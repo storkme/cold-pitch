@@ -11,7 +11,6 @@ export const median = (a) => { if (!a.length) return null; const s = [...a].sort
 export const mean = (a) => a.length ? a.reduce((s, v) => s + v, 0) / a.length : null;
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const r1 = (v) => v == null ? null : Math.round(v * 10) / 10;
-const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 
 export const ROUND_LEN = 15, WIN = 0.1, TONE = 1, HOLD = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84, MIN_SPAN = 2;
 

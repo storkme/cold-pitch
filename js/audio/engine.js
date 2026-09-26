@@ -1,7 +1,7 @@
 // The main thread's side of the piano engine (voices.worklet.js): start it on a context, hand it the samples, and
 // send it notes.
 
-import { outNode } from './piano.js';
+import { outNode } from './piano.js?v=f771651970';
 
 // Start the engine on an audio context (once). Returns null if this browser can't run the worklet.
 export async function engineStart(ac) {
@@ -9,7 +9,7 @@ export async function engineStart(ac) {
   ac._engine = null;
   if (!ac.audioWorklet) return null;
   try {
-    await ac.audioWorklet.addModule(new URL('./voices.worklet.js', import.meta.url).href);
+    await ac.audioWorklet.addModule(new URL('./voices.worklet.js?v=f771651970', import.meta.url).href);
     const node = new AudioWorkletNode(ac, 'cold-pitch-voices', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
     node.connect(outNode(ac));
     ac._engine = { ac, node, seq: 0, waits: new Map() };

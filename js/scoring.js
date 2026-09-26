@@ -1,6 +1,6 @@
 // How a note is scored and described: tiers, percentages and plain-language sentences.
 
-import { nname } from './util.js';
+import { nname } from './util.js?v=f771651970';
 
 /* ---------- scoring words ---------- */
 // Tiers go by how far the first moment was from the note. Past half a semitone you were nearer a different note.

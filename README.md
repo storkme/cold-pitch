@@ -39,6 +39,8 @@ Plain files: no build step and no dependencies. Fonts come from Google Fonts, wi
 
 GitHub Pages serves `main` from the repo root. `.nojekyll` skips the Jekyll build.
 
+Before committing, run `node tools/stamp.mjs`. Pages lets browsers cache files for 10 minutes, so it gives every script and stylesheet URL a `?v=` stamp from a hash of the sources: a deploy then can't mix old and new files. It also lists the modules for preloading in `index.html`. `node tools/stamp.mjs --check` fails if the stamps are stale (a local pre-commit hook can run it).
+
 What lives where:
 
 - `index.html`: the markup.
@@ -51,6 +53,7 @@ What lives where:
 - `js/audio/mic.js`: the mic and the room check, following each note live. Its tap is `tap.worklet.js`. `js/audio/pitch.js`: reading a voice from the audio (YIN pitch and clarity, where a note starts, its Start and Landing), shared with re-scoring.
 - `js/rescore.js`: when the way notes are read changes, re-scores saved rounds from their recordings, keeping the earlier values under `was`.
 - `js/audio/piano.js`: loading the samples, the hum stand-in, the sound button and held notes. `engine.js` is the page's side of the AudioWorklet that plays every note, `voices.worklet.js`.
+- `tools/stamp.mjs`: version-stamps the script and style URLs (see above).
 - `samples/salamander/`: one stereo recording every three semitones, as Opus (`.webm`) and FLAC, and `manifest.json` with each sample's tuning and level. Its README says where they came from and how they were edited.
 
 Motion follows a small design language, written at the top of `css/app.css`: principles, shared duration and easing values (`--t-*`, `--ease-*`), and named patterns (enter, pop, exit, swap, glide, reveal, count, press, ambient). New animations should use those values rather than their own timings. Reduced motion sets every duration to zero.
