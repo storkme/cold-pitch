@@ -1,25 +1,43 @@
 # Cold Pitch
 
-Train your pitch *onset*: hear a note, keep it in your head, then sing it straight on. Only the first ~100 ms of your voice is scored, before your ear has time to correct it.
+Train your pitch *onset*: hear a note, keep it in your head, then sing it straight on. The start of each note is scored before your ear has time to correct it.
 
 **Use it:** https://storkme.github.io/cold-pitch/
 
-## How it works
+## Rounds (the main page, `index.html`)
 
-- Plays a reference tone, waits a configurable hold time, then cues you to sing.
-- Pitch is tracked in the browser (YIN, 65–1100 Hz) and scored as the median pitch in cents over the first 100 ms after your voice starts. It also reports the settled pitch (median from 450 ms on), the correction between the two, and how long it took to land within tolerance.
-- Any voiced sound during the hold voids the attempt.
-- Each session gets a report with simple significance tests: sharp or flat bias, scooping, register, pull from the previous note, change within the session, hold time, and change against earlier sessions.
+- A round is 15 notes in a row, hands-free: a reference tone, a silent hold, then your cue to sing. A short pause follows each note, then the next one starts.
+- Every note gets two scores. **Start** is the first 100 ms after your voice begins. **Landing** is where the note settles, from 450 ms on. Both are percentages: 100% is on the note, 50% is half a semitone off. Each note is also described in words ("started about a whole tone flat, near B♭3, then slid up") and drawn as a piano roll.
+- The end of a round shows both averages, a keyboard map of where in your range you start and land well, and up to three plain-language observations: a flat or sharp lean, sliding into notes, a weaker part of your range, warming up or tailing off.
+- There are three reference voices: Hum, Ooh and Pure. Hum and Ooh are voice-like, with a soft onset and a slight symmetric vibrato, so the average pitch is exact.
+- A demo round with a made-up singer shows the flow without a mic.
+
+## Detailed view (`detailed.html`)
+
+The original single-attempt tool:
+- a full pitch trace in cents for each attempt,
+- settled pitch, correction and time to land,
+- a per-session statistical report (sign and permutation tests),
+- progress across sessions.
+
+## Your data
+
+Nothing is uploaded. Everything stays in the browser, per site:
+
+- **Rounds:** each round's scores and every note's full pitch curve are kept in IndexedDB.
+- **Recordings:** by default the audio of each sung note is kept too (about 1.5 MB a round), so you can play any note back against its piano roll. You can turn this off in the progress card.
+- **Moving data:** **Export** and **Import** move rounds and recordings between browsers or devices. Recordings export separately because they're larger. The detailed view keeps its own history in localStorage, with its own export.
 
 ## Notes
 
-- Use headphones so the reference tone doesn't reach the mic. On iPhone they also stop the tone going quiet while the mic is open. Wired is better: Bluetooth adds a delay the timing doesn't account for.
+- Headphones work best: the reference tone stays out of the mic. On iPhone they also stop the tone going quiet while the mic is open. Wired is better than Bluetooth.
+- A phone speaker works too. The page times the hold from when you actually hear the tone end (using the latency the browser reports) and ignores the mic while the tone's tail is still arriving. Low notes are thin through a phone speaker; Ooh carries better there than Hum.
 - The mic needs a secure page: the hosted https version, localhost, or the file opened directly in Chrome.
-- Nothing is uploaded. History is kept in the browser's localStorage for the page's origin, so the hosted site and a local copy each keep their own. Use Export and Import in Settings to move it between browsers or devices.
+- If the mic or audio stops mid-round (screen lock, a call, another app taking the mic), the page says so and reconnects on the next tap instead of hanging.
 
 ## Development
 
-A single self-contained `index.html`: no build step and no dependencies (fonts come from Google Fonts, with system fallbacks). Open it directly, or serve the folder:
+Two self-contained HTML files. There's no build step and no dependencies; fonts come from Google Fonts, with system fallbacks. Open them directly, or serve the folder:
 
     python3 -m http.server
 

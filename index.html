@@ -3,395 +3,483 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cold Pitch</title>
+<title>Cold Pitch Rounds</title>
+<meta name="description" content="Fifteen notes in a row: hear it, keep it in your head, sing it cold.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B45E8'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#ECEEF2; --surface:#FFFFFF; --surface-2:#F4F5F8; --ink:#14161B; --muted:#5A6070; --line:#D6DAE2;
-  --accent:#24507A; --accent-ink:#FFFFFF; --hit:#1D7A52; --near:#A86A12; --miss:#B03E36;
-  --band:rgba(29,122,82,.13); --win:rgba(36,80,122,.09); --trace:#14161B;
-  --sans:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --bg:#ECEEF8; --surface:#FFFFFF; --surface-2:#F3F4FB; --ink:#17163A; --ink-2:#4A4870; --muted:#6F6D96; --line:#DCDDEC;
+  --accent:#3B45E8; --accent-deep:#252CB0; --accent-ink:#FFFFFF; --accent-wash:rgba(59,69,232,.13); --accent-soft:#D9DCFB;
+  --key-bed:#C9CBE0; --key-white:#FFFFFF; --key-black:#24224A; --key-out:#E6E7F2; --roll-white:#FFFFFF; --roll-black:#F1F2FA; --roll-sep:#D9DAEA;
+  --good:#0CA30C; --warn:#FAB219; --crit:#D03B3B; --none:#A3A1C2;
+  --display:"Bagel Fat One","Arial Rounded MT Bold",system-ui,sans-serif;
+  --sans:"M PLUS Rounded 1c",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0F1115; --surface:#171A20; --surface-2:#1E2229; --ink:#E6E8ED; --muted:#949BAA; --line:#2A2F38;
-    --accent:#7FAEDB; --accent-ink:#0D1622; --hit:#43B883; --near:#E0A33A; --miss:#E4695F;
-    --band:rgba(67,184,131,.15); --win:rgba(127,174,219,.10); --trace:#E6E8ED;
+    --bg:#0E0D20; --surface:#191833; --surface-2:#221F40; --ink:#F1F0FF; --ink-2:#C4C2E6; --muted:#9794BF; --line:#2E2C52;
+    --accent:#8189FF; --accent-deep:#4F57D8; --accent-ink:#0E0D20; --accent-wash:rgba(129,137,255,.17); --accent-soft:#34357A;
+    --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
+    --none:#6E6B96;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0F1115; --surface:#171A20; --surface-2:#1E2229; --ink:#E6E8ED; --muted:#949BAA; --line:#2A2F38;
-  --accent:#7FAEDB; --accent-ink:#0D1622; --hit:#43B883; --near:#E0A33A; --miss:#E4695F;
-  --band:rgba(67,184,131,.15); --win:rgba(127,174,219,.10); --trace:#E6E8ED;
+  --bg:#0E0D20; --surface:#191833; --surface-2:#221F40; --ink:#F1F0FF; --ink-2:#C4C2E6; --muted:#9794BF; --line:#2E2C52;
+  --accent:#8189FF; --accent-deep:#4F57D8; --accent-ink:#0E0D20; --accent-wash:rgba(129,137,255,.17); --accent-soft:#34357A;
+  --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
+  --none:#6E6B96;
   color-scheme:dark;
 }
+[data-tone="good"]{--tone:var(--good);--tone-ink:#FFFFFF}
+[data-tone="warn"]{--tone:var(--warn);--tone-ink:#17163A}
+[data-tone="crit"]{--tone:var(--crit);--tone-ink:#FFFFFF}
+[data-tone="none"]{--tone:var(--none);--tone-ink:#17163A}
+
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px;padding-block:28px 56px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:760px;margin:0 auto;display:grid;gap:16px}
-h1,h2{margin:0;text-wrap:balance}
-h1{font-size:30px;font-weight:800;letter-spacing:-.015em;line-height:1.1}
-h2{font-size:17px;font-weight:700}
-p{margin:0}
-.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;padding-bottom:4px}
-header .sub{color:var(--muted);max-width:58ch;margin-top:6px}
-.pill{display:inline-flex;align-items:center;gap:8px;font:12px/1 var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--surface)}
-.meter{position:relative;width:64px;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
-.meter i{position:absolute;inset:0 auto 0 0;width:0;background:var(--muted);transition:width 60ms linear}
-.meter i.on{background:var(--hit)}
-.meter b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);left:40%}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
-.eyebrow,.phase{font:500 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.app{max-width:560px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh}
+h1,h2,p{margin:0}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:10px}
 
-/* stage */
-.stage{display:grid;gap:10px}
-.phase-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.phase[data-p="sing"]{color:var(--accent)}
-.prompt{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1;min-height:44px}
-.prompt[data-p="sing"]{color:var(--accent)}
-.hint{color:var(--muted);min-height:1.5em}
-.holdbar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
-.holdbar i{display:block;height:100%;width:0;background:var(--accent)}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.btn{font:600 15px/1 var(--sans);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
-.btn:hover:not(:disabled){border-color:var(--muted)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);min-width:132px}
-.btn:disabled{opacity:.45;cursor:default}
-.btn:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.keys{font:12px/1.4 var(--mono);color:var(--muted)}
-.err{color:var(--miss);font-weight:500}
+/* buttons: chunky, pressable */
+.btn{font:800 16px/1 var(--sans);padding:14px 20px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);
+  box-shadow:0 3px 0 var(--line);cursor:pointer;transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--line)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 var(--accent-deep)}
+.btn.primary:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-deep)}
+.btn.big{width:100%;font-size:18px;padding:18px 20px;border-radius:16px}
+.linkbtn{font:700 15px var(--sans);color:var(--accent);background:none;border:0;padding:6px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:0;background:none;color:var(--muted);font:800 20px/1 var(--sans);cursor:pointer;flex:none}
+.iconbtn:hover{background:var(--surface-2);color:var(--ink)}
 
-/* result */
-.result{display:grid;gap:16px}
-.result-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
-.onset{display:flex;align-items:center;gap:12px;margin-top:8px}
-.onset .big{font:500 54px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
-.chip{font:600 12px/1 var(--sans);padding:6px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.c-hit{color:var(--hit)} .c-near{color:var(--near)} .c-miss{color:var(--miss)}
-.result .sub{color:var(--muted);font-size:13px;margin-top:6px}
-.target{text-align:right}
-.target .v{font:500 18px/1.2 var(--mono)}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.metric{background:var(--surface);padding:12px 14px;display:grid;gap:4px}
-.metric .v{font:500 22px/1.1 var(--mono);font-variant-numeric:tabular-nums}
-.metric .s{font-size:12.5px;color:var(--muted)}
-canvas{display:block;width:100%}
-#trace{height:230px}
-#hist{height:130px}
-.caption{font-size:12.5px;color:var(--muted)}
-.warn{color:var(--near);font-weight:500;font-size:14px}
-.badge{display:inline-block;margin-left:8px;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:5px;background:var(--surface-2);color:var(--muted);vertical-align:2px}
+/* brand row */
+.brand{display:flex;align-items:center;gap:10px;padding:4px 0 18px}
+.brand .logo{width:28px;height:28px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.brand .logo i{width:12px;height:12px;border-radius:50%;background:var(--accent-ink)}
+.brand b{font:800 17px var(--sans);letter-spacing:-.01em}
+.brand a{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:14px;text-underline-offset:3px}
 
-/* session */
-.session{display:grid;gap:16px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px 16px}
-.stat .v{font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
-.stat .s{font-size:12.5px;color:var(--muted);margin-top:3px}
-.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font:13px/1.3 var(--mono);font-variant-numeric:tabular-nums}
-th{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-tr:last-child td{border-bottom:0}
-.empty{color:var(--muted);font-size:14px}
-.btn.small{font-size:13.5px;padding:8px 12px;border-radius:8px}
-.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* home */
+.hero h1{font:400 42px/1.02 var(--display);letter-spacing:-.01em;text-wrap:balance}
+.hero p{color:var(--ink-2);margin-top:12px;max-width:40ch;font-size:17px}
+.card{background:var(--surface);border-radius:20px;padding:18px;box-shadow:0 2px 0 var(--line)}
+.home-grid{display:grid;gap:16px;margin-top:22px}
+.card h2{font:800 17px var(--sans)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.card-head span{color:var(--ink-2);font-size:14px;font-weight:700}
+.kbd svg{display:block;width:100%;height:auto;overflow:visible}
+.steppers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stepper{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;background:var(--surface-2);border-radius:14px;padding:6px}
+.stepper .lab{grid-column:1/-1;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px 0}
+.stepper b{text-align:center;font:800 20px var(--sans)}
+.stepper button{width:40px;height:40px;border-radius:11px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:800 20px/1 var(--sans);cursor:pointer;box-shadow:0 2px 0 var(--line)}
+.stepper button:active{transform:translateY(2px);box-shadow:none}
+.stepper button:disabled{opacity:.35;cursor:default}
+.segctl{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.segctl .lab{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.segctl .opts{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.segctl button{border:0;background:none;color:var(--ink-2);font:800 14px var(--sans);padding:8px 12px;border-radius:9px;cursor:pointer}
+.seghint{font-size:13px;font-weight:700;color:var(--muted)}
+.segctl button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
+.legend{display:flex;gap:14px;font-size:13px;font-weight:800;color:var(--ink-2);margin:-2px 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:3px;border-radius:2px}
+.chart{position:relative}
+.chart svg{display:block;width:100%}
+.empty{color:var(--ink-2);font-weight:700;font-size:14px;padding:6px 0 2px}
+.tbl{margin-top:10px}
+.tbl summary{cursor:pointer;font-weight:800;font-size:14px;color:var(--ink-2)}
+.tbl table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th{text-align:right;color:var(--muted);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:700}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.datarow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.switch{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;margin-top:16px;cursor:pointer}
+.switch input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent)}
+.switch b{display:block;font-weight:800;font-size:15px}
+.switch small{display:block;color:var(--ink-2);font-weight:700;font-size:13px}
+.verdict .play{margin-left:auto}
+.btn.small{font-size:14px;padding:10px 14px;border-radius:12px}
+.center{text-align:center}
+.tip{color:var(--ink-2);font-size:14px;text-align:center;max-width:44ch;margin:0 auto}
+.err{color:var(--crit);font-weight:700;text-align:center}
 
-/* report + progress */
-.report{display:grid;gap:18px;border-color:var(--accent)}
-.report .sub{color:var(--muted);font-size:13.5px;margin-top:4px}
-.findings{display:grid;border-top:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:78px 1fr;gap:4px 14px;padding:13px 0;border-bottom:1px solid var(--line)}
-.finding .lv{font:600 11px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;padding-top:4px}
-.lv-clear{color:var(--accent)} .lv-maybe{color:var(--near)} .lv-info{color:var(--muted)}
-.finding h3{margin:0 0 3px;font-size:15px;font-weight:700}
-.finding p{font-size:14px;max-width:64ch}
-.again{display:inline-block;margin-left:8px;font:500 10.5px/1 var(--mono);letter-spacing:.04em;color:var(--hit);border:1px solid currentColor;border-radius:5px;padding:3px 5px;vertical-align:2px;white-space:nowrap}
-#repNotes,#progChart{height:180px}
-.linkbtn{font:500 13px var(--sans);color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-td .linkbtn{font-family:var(--sans)}
-@media (max-width:520px){ .finding{grid-template-columns:1fr} }
+/* run */
+.runbar{display:flex;align-items:center;gap:10px;padding:2px 0 8px}
+.progress{flex:1;display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.seg{height:16px;border-radius:5px;background:var(--line);display:grid;place-items:center;font:800 10px/1 var(--sans);color:var(--tone-ink)}
+.seg.done{background:var(--tone)}
+.seg.now{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.mic{display:flex;align-items:flex-end;gap:2px;height:18px;width:22px;flex:none}
+.mic i{flex:1;background:var(--line);border-radius:2px}
+.mic i:nth-child(1){height:30%}.mic i:nth-child(2){height:55%}.mic i:nth-child(3){height:78%}.mic i:nth-child(4){height:100%}
+.mic i.lit{background:var(--muted)}
+.mic.voice i.lit{background:var(--accent)}
+.demochip{flex:none;font:800 11px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:var(--surface);border-radius:8px;padding:6px 8px}
+.stage{display:grid;justify-items:center;text-align:center;gap:6px;padding-top:4vh}
+.notenum{font-weight:800;color:var(--muted);font-size:14px;letter-spacing:.02em}
+.orb{width:176px;height:176px;margin:10px 0 6px}
+.orb svg{width:100%;height:100%;overflow:visible}
+.orb .ring{fill:none;stroke:var(--accent);stroke-width:3;opacity:0;transform-origin:88px 88px}
+.orb .track{fill:none;stroke:var(--line);stroke-width:8}
+.orb .hold{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:88px 88px;opacity:0}
+.orb .core{fill:var(--surface-2);transform-origin:88px 88px;transition:fill .15s}
+.orb .glyph{font:800 44px var(--sans);fill:var(--tone-ink,var(--ink));dominant-baseline:central;text-anchor:middle;opacity:0}
+.stage[data-phase="calib"] .core{animation:breathe 1.6s ease-in-out infinite}
+.stage[data-phase="tone"] .core{fill:var(--accent-wash)}
+.stage[data-phase="tone"] .ring{animation:ripple 1.2s ease-out infinite}
+.stage[data-phase="tone"] .ring:nth-of-type(2){animation-delay:.4s}
+.stage[data-phase="tone"] .ring:nth-of-type(3){animation-delay:.8s}
+.stage[data-phase="hold"] .hold{opacity:1}
+.stage[data-phase="sing"] .core,.stage[data-phase="capture"] .core{fill:var(--accent)}
+.stage[data-phase="sing"] .core{animation:pop .22s cubic-bezier(.3,1.6,.5,1)}
+.stage[data-phase="done"] .core{fill:var(--tone)}
+.stage[data-phase="done"] .glyph{opacity:1}
+.stage[data-phase="done"] .say,.stage[data-phase="done"] .sub{visibility:hidden}
+@keyframes ripple{from{opacity:.55;transform:scale(1)}to{opacity:0;transform:scale(1.75)}}
+@keyframes breathe{50%{transform:scale(.9)}}
+@keyframes pop{from{transform:scale(.7)}}
+.say{font:400 46px/1.05 var(--display);letter-spacing:-.01em;min-height:48px}
+.stage[data-phase="sing"] .say,.stage[data-phase="capture"] .say{color:var(--accent)}
+.sub{color:var(--ink-2);font-weight:700;min-height:1.5em}
 
-/* settings */
-details.card{padding:0}
-summary{cursor:pointer;padding:16px 20px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
-summary::-webkit-details-marker{display:none}
-summary::after{content:"+";font:500 18px/1 var(--mono);color:var(--muted)}
-details[open] summary::after{content:"−"}
-.dbody{padding:0 20px 20px;display:grid;gap:16px}
-.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 18px}
-.field{display:grid;gap:6px}
-.field label,.check label{font-size:13px;font-weight:500}
-.field .s,.check .s{font-size:12px;color:var(--muted)}
-select{font:14px var(--sans);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
-.check{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start}
-.check input{margin:3px 0 0;width:18px;height:18px;accent-color:var(--accent)}
-.check .s{grid-column:2}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.notes ul{margin:0;padding-left:18px;display:grid;gap:8px;max-width:66ch}
-.notes li{color:var(--ink)}
-.notes li b{font-weight:700}
-.notes p{color:var(--muted);max-width:66ch}
-@media (max-width:520px){
-  .prompt{font-size:32px}
-  .onset .big{font-size:44px}
-  .metrics{grid-template-columns:1fr}
-  .target{text-align:left}
+/* bottom sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;background:color-mix(in srgb,var(--tone,var(--accent)) 14%,var(--surface));
+  border-top:3px solid color-mix(in srgb,var(--tone,var(--accent)) 45%,var(--surface));padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  animation:rise .22s ease-out}
+.sheet-in{max-width:560px;margin:0 auto;display:grid;gap:10px}
+@keyframes rise{from{transform:translateY(40%);opacity:0}}
+.verdict{display:flex;align-items:center;gap:12px}
+.vicon{width:38px;height:38px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 19px/1 var(--sans);flex:none}
+.vword{font:400 30px/1 var(--display)}
+.vacc{margin-left:auto;font:800 22px/1 var(--sans);color:var(--ink-2)}
+.vtext{font-weight:700;color:var(--ink);max-width:52ch}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border-radius:10px;padding:5px 10px 5px 7px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.pill i{width:12px;height:12px;border-radius:50%;background:var(--tone)}
+.pill b{color:var(--ink);font-weight:800}
+.sheet-foot{display:flex;align-items:center;gap:12px}
+.countdown{flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden}
+.countdown i{display:block;height:100%;width:0;background:var(--ink-2);border-radius:3px}
+.sheet .btn{padding:11px 16px;font-size:15px}
+.msg{--tone:var(--accent)}
+.msg h2{font:400 26px/1.1 var(--display)}
+.msg p{color:var(--ink);font-weight:700}
+.msg .row{display:flex;gap:10px;flex-wrap:wrap}
+.msg .row .btn{flex:1}
+
+/* piano roll */
+.roll{position:relative}
+.roll svg{display:block;width:100%;touch-action:pan-y}
+.roll .cap{font-size:12.5px;color:var(--ink-2);font-weight:700;margin-top:4px}
+.tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:800 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:9px;white-space:nowrap;transform:translate(-50%,-100%);z-index:2}
+
+/* summary */
+.done-title{font:400 44px/1 var(--display);letter-spacing:-.01em}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 8px}
+.scorebox{background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:0 2px 0 var(--line)}
+.scorebox .score{display:block;font:800 56px/1 var(--sans);letter-spacing:-.03em;color:var(--ink)}
+.scorebox b{display:block;font-weight:800;margin-top:6px}
+.scorebox .what{display:block;color:var(--ink-2);font-weight:700;font-size:13.5px;line-height:1.35}
+.sumsub{color:var(--ink-2);font-weight:700}
+.bestchip{display:inline-block;margin-left:8px;font:800 13px/1 var(--sans);padding:7px 10px;border-radius:9px;background:var(--accent);color:var(--accent-ink)}
+.bestchip.quiet{background:var(--surface);color:var(--ink-2)}
+.tally{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.tal{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border-radius:12px;padding:6px 10px 6px 6px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.tal i{font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 12px/1 var(--sans)}
+.tal b{color:var(--ink);font-weight:800}
+.sum-grid{display:grid;gap:14px}
+.caption{font-size:13px;color:var(--ink-2);font-weight:700;margin-top:10px}
+.insights{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:14px}
+.insights li{display:grid;gap:2px}
+.insights b{font-weight:800;font-size:16px}
+.insights span{color:var(--ink-2);font-weight:700;font-size:15px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin-top:4px}
+.chip{display:grid;justify-items:center;gap:4px;border:2px solid transparent;background:var(--surface-2);border-radius:14px;padding:8px 2px 6px;cursor:pointer;color:var(--ink);font:800 12.5px var(--sans)}
+.chip i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 14px/1 var(--sans)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--surface)}
+.detail{margin-top:14px;display:grid;gap:8px}
+.detail .verdict .vword{font-size:24px}
+.detail .vicon{width:32px;height:32px;font-size:16px}
+.detail .vacc{font-size:18px}
+.detail .lead{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.actions{display:grid;gap:10px;margin-top:18px}
+.demo-note{color:var(--ink-2);font-weight:700;font-size:14px}
+
+.card-head .opts{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
+.card-head .opts button{border:0;background:none;color:var(--ink-2);font:800 13px var(--sans);padding:7px 10px;border-radius:8px;cursor:pointer}
+.card-head .opts button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
+@media (max-width:420px){
+  .hero h1{font-size:36px}
+  .say{font-size:40px}
+  .orb{width:150px;height:150px}
+  .scorebox .score{font-size:46px}
 }
-@media (prefers-reduced-motion: reduce){ .meter i{transition:none} }
+@media (prefers-reduced-motion: reduce){
+  .stage .core,.stage .ring{animation:none!important}
+  .sheet{animation:none}
+  .btn,.btn:active{transition:none}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="app">
 
-<header>
-  <div>
-    <h1>Cold Pitch</h1>
-    <p class="sub">Hear a note, keep it in your head, then sing it straight on. Only the first 100&nbsp;ms of your voice counts, before your ear has time to correct it.</p>
+<!-- ============ home ============ -->
+<section class="screen" id="home">
+  <div class="brand"><span class="logo"><i></i></span><b>Cold Pitch</b><a href="detailed.html">Detailed view</a></div>
+  <div class="hero">
+    <h1>Hear it. Hold it. Sing it cold.</h1>
+    <p>Fifteen notes in a row. Only the first moment of each note counts, before your ear has time to help.</p>
   </div>
-  <span class="pill" title="Microphone level. The black tick is the threshold for detecting your voice."><span id="micText">Mic off</span><span class="meter"><i id="lvl"></i><b id="thr"></b></span></span>
-</header>
+  <div class="home-grid">
+    <div class="card">
+      <div class="card-head"><h2>Your range</h2><span id="rangeText"></span></div>
+      <div class="kbd" id="rangeKeys"></div>
+      <div class="steppers">
+        <div class="stepper"><span class="lab">Lowest</span><button type="button" id="loDown" aria-label="Lower the lowest note">−</button><b id="loName"></b><button type="button" id="loUp" aria-label="Raise the lowest note">+</button></div>
+        <div class="stepper"><span class="lab">Highest</span><button type="button" id="hiDown" aria-label="Lower the highest note">−</button><b id="hiName"></b><button type="button" id="hiUp" aria-label="Raise the highest note">+</button></div>
+      </div>
+      <div class="segctl"><span class="lab" id="holdLab">Silent hold</span><div class="opts" role="group" aria-labelledby="holdLab">
+        <button type="button" data-hold="1">1 s</button><button type="button" data-hold="2">2 s</button><button type="button" data-hold="rand">1–3 s</button></div></div>
+      <div class="segctl"><span class="lab" id="voiceLab">Reference tone</span><div class="opts" role="group" aria-labelledby="voiceLab">
+        <button type="button" data-voice="hum">Hum</button><button type="button" data-voice="ooh">Ooh</button><button type="button" data-voice="pure">Pure</button></div>
+        <span class="seghint">Tap one to hear it</span></div>
+    </div>
+    <button class="btn primary big" id="startBtn" type="button">Start round</button>
+    <p class="err" id="homeErr" hidden></p>
+    <p class="center"><button class="linkbtn" id="demoBtn" type="button">Watch a demo round, no mic needed</button></p>
+    <p class="tip">Wear headphones so the tone doesn’t reach the mic. At the start, stay quiet for a second while it listens to the room.</p>
+    <div class="card" id="histCard">
+      <div class="card-head"><h2>Your progress</h2><span id="histMeta"></span></div>
+      <div class="legend" id="histLegend" hidden><span><i style="background:var(--accent)"></i>Start</span><span><i style="background:var(--ink-2)"></i>Landing</span></div>
+      <div class="chart" id="histChart"></div>
+      <p class="caption" id="histTrend" hidden></p>
+      <details class="tbl" id="histTbl" hidden><summary>Show as a table</summary><div id="histTable"></div></details>
+      <label class="switch"><input type="checkbox" id="keepAudio"><span><b>Keep recordings of my notes</b><small>About 1.5 MB a round, kept in this browser only. You can play any note back from its round.</small></span></label>
+      <div class="datarow"><button class="btn small" id="exportBtn" type="button">Export scores and curves</button><button class="btn small" id="exportAudioBtn" type="button">Export recordings</button><button class="btn small" id="importBtn" type="button">Import</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
+      <p class="caption" id="dataMsg">Every note’s pitch curve is kept in this browser. Export to back it up or move it to another device.</p>
+    </div>
+  </div>
+</section>
 
-<section class="card stage" aria-live="polite">
-  <div class="phase-row">
-    <span class="phase" id="phase">Ready</span>
-    <span class="eyebrow" id="meta"></span>
+<!-- ============ run ============ -->
+<section class="screen" id="run" hidden>
+  <div class="runbar">
+    <button class="iconbtn" id="quitBtn" type="button" aria-label="End round">✕</button>
+    <div class="progress" id="progress" aria-label="Round progress"></div>
+    <span class="mic" id="mic" title="Mic level" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="demochip" id="demoChip" hidden>Demo</span>
   </div>
-  <div class="prompt" id="prompt">Press Start</div>
-  <p class="hint" id="hint">Your browser will ask for the microphone. Stay quiet for a second while it measures the room.</p>
-  <div class="holdbar" id="holdbar" hidden><i id="holdfill"></i></div>
+  <div class="stage" id="stage" data-phase="calib" aria-live="polite">
+    <p class="notenum" id="noteNum">Getting ready</p>
+    <div class="orb" id="orb">
+      <svg viewBox="0 0 176 176" aria-hidden="true">
+        <circle class="ring" cx="88" cy="88" r="46"/><circle class="ring" cx="88" cy="88" r="46"/><circle class="ring" cx="88" cy="88" r="46"/>
+        <circle class="track" cx="88" cy="88" r="72" id="track" style="opacity:0"/>
+        <circle class="hold" cx="88" cy="88" r="72" id="holdRing" stroke-dasharray="452.39" stroke-dashoffset="452.39"/>
+        <circle class="core" cx="88" cy="88" r="52" id="core"/>
+        <text class="glyph" x="88" y="90" id="glyph"></text>
+      </svg>
+    </div>
+    <h2 class="say" id="say"></h2>
+    <p class="sub" id="sub"></p>
+  </div>
+</section>
+
+<!-- ============ summary ============ -->
+<section class="screen" id="summary" hidden>
+  <div class="brand"><span class="logo"><i></i></span><b>Cold Pitch</b><a href="detailed.html">Detailed view</a></div>
+  <h1 class="done-title" id="doneTitle" tabindex="-1">Round complete</h1>
+  <div class="scores">
+    <div class="scorebox"><span class="score" id="sumStart">—</span><b>Start</b><span class="what">how close your first moment was</span></div>
+    <div class="scorebox"><span class="score" id="sumLand">—</span><b>Landing</b><span class="what">where the note ended up</span></div>
+  </div>
+  <p class="sumsub"><span id="sumSub"></span><span class="bestchip" id="sumBest" hidden></span></p>
+  <p class="err" id="saveErr" hidden>This round couldn’t be saved in this browser’s storage.</p>
+  <p class="demo-note" id="demoNote" hidden>This was a demo with a made-up singer who struggles up high. It isn’t saved.</p>
+  <div class="tally" id="tally"></div>
+  <div class="sum-grid">
+    <div class="card"><div class="card-head"><h2>Across your range</h2><div class="opts" role="group" aria-label="Show on the keyboard"><button type="button" data-map="start" aria-pressed="true">Start</button><button type="button" data-map="land" aria-pressed="false">Landing</button></div></div>
+      <div class="kbd" id="keysMap"></div>
+      <p class="caption" id="mapCap"></p></div>
+    <div class="card"><div class="card-head"><h2>What stood out</h2></div><ul class="insights" id="insights"></ul>
+      <p class="caption">Fifteen notes is a small sample. Trust what comes back round after round.</p></div>
+    <div class="card"><div class="card-head"><h2>Note by note</h2><span>Tap one to see it</span></div><div class="chips" id="chips"></div><div class="detail" id="detail"></div></div>
+  </div>
   <div class="actions">
-    <button class="btn primary" id="go" type="button">Start</button>
-    <button class="btn" id="same" type="button" disabled>Same note</button>
-    <button class="btn" id="hear" type="button" disabled>Hear it again</button>
+    <button class="btn primary big" id="againBtn" type="button">Go again</button>
+    <button class="btn" id="homeBtn" type="button">Change range</button>
   </div>
-  <p class="keys">Space: next note · R: same note · H: hear it again</p>
-  <p class="err" id="err" hidden></p>
 </section>
 
-<section class="card result">
-  <div class="result-head">
-    <div>
-      <div class="eyebrow"><span id="resLabel">Onset</span><span class="badge" id="exBadge">Example</span></div>
-      <div class="onset"><span class="big" id="onsetVal">—</span><span class="chip" id="onsetChip">—</span></div>
-      <div class="sub">median pitch over the first <span id="winLabel">100</span> ms after your voice starts</div>
-    </div>
-    <div class="target">
-      <div class="eyebrow">Target</div>
-      <div class="v" id="targetVal">—</div>
-    </div>
-  </div>
-  <div class="metrics">
-    <div class="metric"><span class="eyebrow">Settled</span><span class="v" id="settledVal">—</span><span class="s">where the note ended up</span></div>
-    <div class="metric"><span class="eyebrow">Correction</span><span class="v" id="corrVal">—</span><span class="s" id="corrSub">onset to settled</span></div>
-    <div class="metric"><span class="eyebrow">Landed in</span><span class="v" id="landVal">—</span><span class="s" id="landSub">time to get within tolerance</span></div>
-  </div>
-  <canvas id="trace" aria-label="Pitch trace of the last attempt, in cents relative to the target"></canvas>
-  <p class="caption" id="traceCap">Pitch relative to the target over time. Green band: ±25¢ tolerance. Tinted column: the onset window.</p>
-  <p class="warn" id="peekWarn" hidden>You made a sound during the hold, so this attempt isn't counted in your stats.</p>
-</section>
+</div>
 
-<section class="card report" id="report" hidden aria-live="polite">
-  <div class="phase-row">
-    <div><h2 id="repTitle">Session report</h2><p class="sub" id="repMeta"></p></div>
-    <button class="btn small" id="repClose" type="button">Close</button>
+<div class="sheet" id="sheet" hidden aria-live="polite">
+  <div class="sheet-in">
+    <div class="verdict"><span class="vicon" id="sIcon"></span><span class="vword" id="sWord"></span></div>
+    <div class="pills" id="sPills"></div>
+    <p class="vtext" id="sText"></p>
+    <div class="roll" id="sRoll"></div>
+    <div class="sheet-foot"><div class="countdown" id="countdown"><i></i></div><button class="btn" id="pauseBtn" type="button">Pause</button></div>
   </div>
-  <div class="stats" id="repStats"></div>
-  <div class="findings" id="repFindings"></div>
-  <div>
-    <canvas id="repNotes" aria-label="Onset error by target note"></canvas>
-    <p class="caption">Onset error for each attempt, by target note. The short bar is that note's median. Green band: tolerance.</p>
+</div>
+<div class="sheet msg" id="msg" hidden role="alertdialog" aria-labelledby="mTitle">
+  <div class="sheet-in">
+    <h2 id="mTitle"></h2>
+    <p id="mBody"></p>
+    <div class="row"><button class="btn" id="mSecond" type="button"></button><button class="btn primary" id="mFirst" type="button"></button></div>
   </div>
-  <p class="caption" id="repFoot"></p>
-</section>
-
-<section class="card session">
-  <div class="phase-row"><h2>This session</h2><div class="head-actions"><span class="eyebrow" id="histMeta"></span><button class="btn small" id="finish" type="button" disabled>Finish session</button></div></div>
-  <div class="stats">
-    <div class="stat"><div class="v" id="sN">—</div><div class="s">attempts counted</div></div>
-    <div class="stat"><div class="v" id="sHit">—</div><div class="s" id="sHitSub">onsets within ±25¢</div></div>
-    <div class="stat"><div class="v" id="sOn">—</div><div class="s">typical onset error</div></div>
-    <div class="stat"><div class="v" id="sCorr">—</div><div class="s">typical correction</div></div>
-    <div class="stat"><div class="v" id="sLand">—</div><div class="s">typical time to land</div></div>
-  </div>
-  <canvas id="hist" aria-label="Onset error of recent attempts"></canvas>
-  <div class="tablewrap" id="tableWrap"></div>
-</section>
-
-<section class="card session" id="progress">
-  <div class="phase-row"><h2>Progress</h2><span class="eyebrow" id="progMeta"></span></div>
-  <canvas id="progChart" aria-label="Median onset and settled error per session"></canvas>
-  <p class="caption">Median onset error per session (solid line) and median settled error (dashed). Lower is better.</p>
-  <div class="tablewrap" id="progTable"></div>
-</section>
-
-<details class="card settings" id="settings">
-  <summary>Settings</summary>
-  <div class="dbody">
-    <div class="form">
-      <div class="field"><label for="low">Lowest note</label><select id="low"></select></div>
-      <div class="field"><label for="high">Highest note</label><select id="high"></select><span class="s">Keep it inside your comfortable range. Range edges are much harder.</span></div>
-      <div class="field"><label for="hold">Hold time</label>
-        <select id="hold">
-          <option value="0">None</option><option value="0.5">0.5 s</option><option value="1">1 s</option>
-          <option value="2">2 s</option><option value="4">4 s</option><option value="8">8 s</option><option value="rand">Random, 1–3 s</option>
-        </select><span class="s">Silence between the tone ending and your cue to sing.</span></div>
-      <div class="field"><label for="win">Onset window</label>
-        <select id="win"><option value="50">50 ms (strict)</option><option value="100">100 ms</option><option value="150">150 ms</option><option value="250">250 ms (forgiving)</option></select>
-        <span class="s">How much of the start of your note is scored.</span></div>
-      <div class="field"><label for="tol">Tolerance</label>
-        <select id="tol"><option value="10">±10¢</option><option value="15">±15¢</option><option value="25">±25¢</option><option value="35">±35¢</option><option value="50">±50¢ (quarter tone)</option></select></div>
-      <div class="field"><label for="timbre">Reference tone</label>
-        <select id="timbre"><option value="rich">Rich (harmonics)</option><option value="sine">Pure sine</option></select></div>
-      <div class="field"><label for="toneLen">Tone length</label>
-        <select id="toneLen"><option value="0.5">0.5 s</option><option value="1">1 s</option><option value="1.5">1.5 s</option><option value="2">2 s</option></select></div>
-    </div>
-    <div class="form">
-      <div class="check"><input type="checkbox" id="fold"><label for="fold">Any octave counts</label><span class="s">Singing the note an octave up or down is scored as the same note.</span></div>
-      <div class="check"><input type="checkbox" id="auto"><label for="auto">Auto-advance</label><span class="s">Start the next note 2.5 s after each score.</span></div>
-    </div>
-    <div class="row">
-      <button class="btn" id="recal" type="button" disabled>Re-measure the room</button>
-      <button class="btn" id="export" type="button">Export data</button>
-      <button class="btn" id="import" type="button">Import data</button>
-      <input type="file" id="importFile" accept="application/json,.json" hidden>
-      <button class="btn" id="clear" type="button">Clear all data</button>
-    </div>
-    <p class="caption" id="ioMsg">Your data is stored in this browser only. Export it to back it up or move it to another browser.</p>
-  </div>
-</details>
-
-<details class="card notes">
-  <summary>How it's scored</summary>
-  <div class="dbody">
-    <ul>
-      <li><b>Onset</b> is the median pitch over the first 100&nbsp;ms after your voice starts (change the window in settings). This is the number to train.</li>
-      <li><b>Settled</b> is the median pitch from 450&nbsp;ms onward, so it only appears if you hold the note for about a second.</li>
-      <li><b>Correction</b> is how far you moved between the onset and the settled pitch. A scoop into the note shows up here.</li>
-      <li><b>Landed in</b> is how long it took to stay within tolerance for 150&nbsp;ms.</li>
-      <li>Any voiced sound during the hold voids the attempt, because humming to check is the habit this trains out.</li>
-    </ul>
-    <p>Use headphones so the reference tone doesn't reach the mic. Start notes with a clean consonant like "da" or "ba" rather than easing in. On iPhone, headphones also stop the tone going quiet while the mic is open.</p>
-    <p>The mic needs a secure page: open this file directly in Chrome, or serve it over https or from localhost. Nothing is uploaded. Pitch detection runs in your browser and history is kept in this browser only.</p>
-  </div>
-</details>
-
 </div>
 
 <script>
 (() => {
 'use strict';
 const $ = (s) => document.querySelector(s);
-const NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+const pc = (m) => ((m % 12) + 12) % 12;
 const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
-const nname = (m) => NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+const nname = (m) => NAMES[pc(m)] + (Math.floor(m / 12) - 1);
+const isBlack = (m) => [1, 3, 6, 8, 10].includes(pc(m));
 const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+const mean = (a) => a.length ? a.reduce((s, v) => s + v, 0) / a.length : null;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const r1 = (v) => v == null ? null : Math.round(v * 10) / 10;
+const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 
-/* ---------- persistence ---------- */
-const STORE = 'coldpitch.v1';
-const DEFAULTS = { low: 48, high: 60, hold: '1', win: 100, tol: 25, fold: true, timbre: 'rich', toneLen: 1, auto: false };
-let settings = { ...DEFAULTS };
-let history = [];
-let sessions = [];   // {id, start, end, closed}
-const KEEP = 15000;          // attempts kept in storage; each is ~200 bytes, well inside the ~5 MB localStorage allows
-const IDLE = 60 * 60e3;      // an open session idle this long is closed
+const ROUND_LEN = 15, WIN = 0.1, TONE = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84;
+
+/* ---------- storage ---------- */
+// Settings live in localStorage. Finished rounds, with every note's full pitch curve, live in IndexedDB,
+// which has room for years of them. Both belong to this site only, so Export/Import moves them between browsers.
+const STORE = 'coldpitch.play.v1';
+let settings = { lo: 48, hi: 60, hold: '1', voice: 'hum', keepAudio: true };
+let rounds = [];      // oldest first
 try {
-  const raw = localStorage.getItem(STORE);
-  if (raw) {
-    const p = JSON.parse(raw); settings = { ...DEFAULTS, ...(p.settings || {}) };
-    if (Array.isArray(p.history)) history = p.history;
-    if (Array.isArray(p.sessions)) sessions = p.sessions;
+  const p = JSON.parse(localStorage.getItem(STORE) || 'null');
+  if (p && p.settings) settings = { ...settings, ...p.settings };
+  else {   // borrow the range from the detailed view, if it has been used on this site
+    const v1 = JSON.parse(localStorage.getItem('coldpitch.v1') || 'null');
+    if (v1 && v1.settings && v1.settings.low != null) { settings.lo = +v1.settings.low; settings.hi = +v1.settings.high; }
   }
 } catch (e) {}
-function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ settings, history: history.slice(-KEEP), sessions })); }
-  catch (e) { const el = $('#err'); el.textContent = 'This browser wouldn’t save your data, so it will be lost when the page closes. Export it from Settings to keep it.'; el.hidden = false; }
+function saveSettings() { try { localStorage.setItem(STORE, JSON.stringify({ settings })); } catch (e) {} }
+
+const DB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('IndexedDB is not available'));
+    const q = indexedDB.open('coldpitch', 2);
+    q.onupgradeneeded = () => {   // v1: rounds. v2: one audio clip per note, kept apart so loading the rounds stays quick.
+      const db = q.result;
+      if (!db.objectStoreNames.contains('rounds')) db.createObjectStore('rounds', { keyPath: 'ts' });
+      if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio', { keyPath: 'id' });
+    };
+    q.onsuccess = () => { q.result.onversionchange = () => q.result.close(); res(q.result); };   // let a newer tab upgrade
+    q.onerror = () => rej(q.error);
+  }));
+  const tx = async (stores, mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction(stores, mode), req = fn((name) => t.objectStore(name));
+      t.oncomplete = () => res(req ? req.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  };
+  return {
+    rounds: () => tx(['rounds'], 'readonly', (st) => st('rounds').getAll()),
+    putRounds: (rs) => tx(['rounds'], 'readwrite', (st) => { rs.forEach((r) => st('rounds').put(r)); }),
+    saveRound: (rec, clips) => tx(['rounds', 'audio'], 'readwrite', (st) => { st('rounds').put(rec); clips.forEach((c) => st('audio').put(c)); }),
+    clip: (id) => tx(['audio'], 'readonly', (st) => st('audio').get(id)),
+    clips: () => tx(['audio'], 'readonly', (st) => st('audio').getAll()),
+    clipKeys: () => tx(['audio'], 'readonly', (st) => st('audio').getAllKeys()),
+    putClips: (cs) => tx(['audio'], 'readwrite', (st) => { cs.forEach((c) => st('audio').put(c)); }),
+  };
+})();
+// Frames come at a fixed hop, so a curve packs down to a start time, a step and whole cents (null where unvoiced).
+function packTrace(tr) {
+  if (!tr || !tr.length) return null;
+  const dt = tr.length > 1 ? (tr[tr.length - 1].t - tr[0].t) / (tr.length - 1) : 0.0105;
+  return { t0: +tr[0].t.toFixed(4), dt: +dt.toFixed(6), c: tr.map((p) => p.c == null ? null : Math.round(p.c)) };
+}
+const unpackTrace = (p) => p ? p.c.map((c, i) => ({ t: p.t0 + i * p.dt, c })) : null;
+
+/* ---------- scoring words ---------- */
+// Tiers go by how far the first moment was from the note. Past half a semitone you were nearer a different note.
+const TIERS = [
+  { key: 'perfect', max: 15, word: 'Perfect', icon: '★', tone: 'good' },
+  { key: 'great', max: 30, word: 'Great', icon: '✓', tone: 'good' },
+  { key: 'close', max: 50, word: 'Close', icon: '≈', tone: 'warn' },
+  { key: 'missed', max: Infinity, word: 'Missed', icon: '✕', tone: 'crit' },
+];
+const OTHER = {
+  void: { key: 'void', word: 'Didn’t count', icon: '–', tone: 'none' },
+  silent: { key: 'silent', word: 'No note heard', icon: '?', tone: 'none' },
+};
+const tierOf = (c) => TIERS.find((t) => Math.abs(c) <= t.max);
+const tierFor = (n) => n.kind === 'ok' ? tierOf(n.onset) : OTHER[n.kind];
+const accuracy = (c) => Math.round(100 * Math.exp(-((c / 60) ** 2)));   // 100% on the note, 50% at half a semitone
+
+function size(a) {
+  if (a < 30) return 'a touch';
+  if (a < 70) return 'about half a semitone';
+  if (a < 140) return 'about a semitone';
+  if (a < 250) return 'about a whole tone';
+  return `about ${Math.round(a / 100)} semitones`;
+}
+const off = (c) => Math.abs(c) < 15 ? 'right on the note' : `${size(Math.abs(c))} ${c < 0 ? 'flat' : 'sharp'}`;
+
+function sentence(n) {
+  if (n.kind === 'silent') return 'The mic didn’t pick up a clear note. Check the mic level in the top corner.';
+  const o = n.onset, s = n.settled;
+  let txt = Math.abs(o) < 15 ? `Started right on ${nname(n.midi)}` : `Started ${off(o)}`;
+  if (Math.abs(o) >= 70) txt += ` (near ${nname(n.midi + Math.round(o / 100))})`;
+  if (s == null) txt += '.';
+  else if (Math.abs(s - o) < 20) txt += Math.abs(o) < 15 ? ' and held it.' : ' and stayed there.';
+  else if (Math.abs(s) < Math.abs(o)) txt += `, then slid ${s > o ? 'up' : 'down'}${Math.abs(s) < 15 ? ` onto ${nname(n.midi)}.` : `, ending ${off(s)}.`}`;
+  else txt += `, then drifted ${s > o ? 'up' : 'down'} to ${off(s)}.`;
+  if (n.oct) txt += ` You sang it an octave ${n.oct > 0 ? 'up' : 'down'}, which counts.`;
+  if (n.kind === 'void') txt = 'You made a sound while holding the note, so this one doesn’t count. ' + txt;
+  return txt;
 }
 
-// Attempts from before sessions existed (or imported without one) get grouped by 30-minute gaps.
-// An open session left idle for over an hour is closed.
-function tidySessions() {
-  const ids = new Set(sessions.map((s) => s.id));
-  const orphans = history.filter((a) => !a.sid || !ids.has(a.sid)).sort((a, b) => a.ts - b.ts);
-  let cur = null;
-  for (const a of orphans) {
-    if (!cur || a.ts - cur.end > 30 * 60e3) { cur = { id: 's' + a.ts.toString(36) + 'o', start: a.ts, end: a.ts, closed: true }; sessions.push(cur); }
-    a.sid = cur.id; cur.end = a.ts;
-  }
-  const used = new Set(history.map((a) => a.sid));
-  sessions = sessions.filter((s) => used.has(s.id)).sort((a, b) => a.start - b.start);
-  for (const s of sessions) if (!s.closed && Date.now() - s.end > IDLE) s.closed = true;
-  let open = 0;
-  for (let i = sessions.length - 1; i >= 0; i--) if (!sessions[i].closed && open++) sessions[i].closed = true;
+function scoreNote(n) {
+  n.tier = tierFor(n);
+  n.acc = n.kind === 'ok' ? accuracy(n.onset) : null;                              // start score
+  n.landAcc = n.kind === 'ok' && n.settled != null ? accuracy(n.settled) : null;    // landing score
+  n.ltier = n.settled != null ? tierOf(n.settled) : null;
+  return n;
 }
-tidySessions();
-// The page can stay open for days, so the idle check also runs here, not only on load.
-function currentSession() {
-  const s = sessions.find((x) => !x.closed);
-  if (s && Date.now() - s.end > IDLE) { s.closed = true; save(); return null; }
-  return s || null;
-}
-const sessAtts = (sid) => history.filter((a) => a.sid === sid);
-function openSession(ts) {
-  let s = currentSession();
-  if (!s) { s = { id: 's' + ts.toString(36), start: ts, end: ts, closed: false }; sessions.push(s); }
-  return s;
+function pills(n) {
+  if (n.kind !== 'ok') return '';
+  const land = n.landAcc == null ? `<span class="pill" title="Hold the note for about a second to get a landing score"><i data-tone="none" style="background:var(--none)"></i>Landing <b>—</b></span>`
+    : `<span class="pill" data-tone="${n.ltier.tone}"><i></i>Landing <b>${n.landAcc}%</b></span>`;
+  return `<span class="pill" data-tone="${n.tier.tone}"><i></i>Start <b>${n.acc}%</b></span>${land}`;
 }
 
-/* ---------- settings UI ---------- */
-const noteOpts = [];
-for (let m = 36; m <= 84; m++) noteOpts.push(`<option value="${m}">${nname(m)} · ${hz(m).toFixed(1)} Hz</option>`);
-$('#low').innerHTML = noteOpts.join(''); $('#high').innerHTML = noteOpts.join('');
-const parsers = { low: Number, high: Number, hold: String, win: Number, tol: Number, timbre: String, toneLen: Number };
-for (const k in parsers) {
-  const el = $('#' + k); el.value = String(settings[k]);
-  if (el.selectedIndex < 0) { settings[k] = DEFAULTS[k]; el.value = String(DEFAULTS[k]); }
-  el.addEventListener('change', () => {
-    settings[k] = parsers[k](el.value);
-    if (settings.low > settings.high) { const t = settings.low; settings.low = settings.high; settings.high = t; $('#low').value = settings.low; $('#high').value = settings.high; }
-    save(); updateMeta(); renderResult(); renderSession(); renderProgress(); renderReport();
-  });
-}
-for (const k of ['fold', 'auto']) { const el = $('#' + k); el.checked = !!settings[k]; el.addEventListener('change', () => { settings[k] = el.checked; save(); }); }
-const clearBtn = $('#clear'); let clearTimer = null;
-clearBtn.addEventListener('click', () => {
-  if (clearBtn.dataset.armed) {
-    history = []; sessions = []; reportSid = null; $('#report').hidden = true; save();
-    renderSession(); renderProgress(); delete clearBtn.dataset.armed; clearBtn.textContent = 'Clear all data'; clearTimeout(clearTimer); return;
-  }
-  clearBtn.dataset.armed = '1'; clearBtn.textContent = 'Tap again to delete everything';
-  clearTimer = setTimeout(() => { delete clearBtn.dataset.armed; clearBtn.textContent = 'Clear all data'; }, 3000);
-});
-function holdLabel() { return settings.hold === 'rand' ? 'hold 1–3 s' : +settings.hold === 0 ? 'no hold' : `hold ${settings.hold} s`; }
-function updateMeta() { $('#meta').textContent = `${nname(settings.low)}–${nname(settings.high)} · ${holdLabel()} · ±${settings.tol}¢`; }
-
-/* ---------- audio + analysis ---------- */
-let ctx = null, stream = null, dec = 1, dsr = 24000;
+/* ---------- audio engine (same analysis as the detailed view) ---------- */
+let ctx = null, stream = null, tap = null, dec = 1, dsr = 24000;
 let W, TAUMAX, TAUMIN, N, HOP, frameBuf, diff;
-const RING = 1 << 16; let ring = null, total = 0, lastEnd = 0, accSum = 0, accN = 0;
-let tMap = 0, iMap = 0;
-let floorDb = -70, thrDb = -50, lastDb = -100;
-let calib = null, round = null, lastMidi = null, lastRoundAt = -1e9, lastResult = null, autoTimer = null;
-let tap = null, lastFrameAt = 0;
+const RING = 1 << 16; let ring = null, total = 0, lastEnd = 0, accSum = 0, accN = 0, tMap = 0, iMap = 0;
+let floorDb = -70, thrDb = -50, lastDb = -100, calib = null, round = null, lastFrameAt = 0;
 
 const WORKLET = `class Tap extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(1024);this.n=0;}
 process(inputs){const c=inputs[0]&&inputs[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===1024){this.port.postMessage({d:this.b,t:currentTime});this.b=new Float32Array(1024);this.n=0;}}}return true;}}
 registerProcessor('tap',Tap);`;
 
-async function initAudio() {
-  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    const e = new Error('insecure'); e.name = 'Insecure'; throw e;
-  }
+async function initAudio(mic) {
+  if (mic && (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) { const e = new Error('insecure'); e.name = 'Insecure'; throw e; }
   const AC = window.AudioContext || window.webkitAudioContext;
   ctx = new AC({ latencyHint: 'interactive' });
+  if (!mic) { await ctx.resume(); return; }
   stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
   await ctx.resume();
   const sr = ctx.sampleRate;
@@ -402,15 +490,10 @@ async function initAudio() {
   total = lastEnd = accSum = accN = 0;
   const src = ctx.createMediaStreamSource(stream);
   const mute = ctx.createGain(); mute.gain.value = 0; mute.connect(ctx.destination);
-  // Worklet modules can fail to load from a local file (opaque origin), so try
-  // a blob URL, then a data URL, then fall back to ScriptProcessor.
+  // Worklet modules can fail to load from a local file, so try a blob URL, then a data URL, then ScriptProcessor.
   let node = null;
   if (ctx.audioWorklet) {
-    const urls = [
-      () => URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' })),
-      () => 'data:application/javascript;charset=utf-8,' + encodeURIComponent(WORKLET),
-    ];
-    for (const mk of urls) {
+    for (const mk of [() => URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' })), () => 'data:application/javascript;charset=utf-8,' + encodeURIComponent(WORKLET)]) {
       try {
         await ctx.audioWorklet.addModule(mk());
         node = new AudioWorkletNode(ctx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
@@ -425,77 +508,48 @@ async function initAudio() {
   }
   src.connect(node); node.connect(mute); tap = node;
 }
-
-// Release the mic and the audio context so the next Start builds them afresh.
 function stopAudio() {
   if (tap) { if (tap.port) tap.port.onmessage = null; tap.onaudioprocess = null; try { tap.disconnect(); } catch (e) {} tap = null; }
   if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
   if (ctx) { try { ctx.close().catch(() => {}); } catch (e) {} ctx = null; }
-  calib = null; lastDb = -100; lastRoundAt = -1e9;   // a new context's clock restarts at 0
-  $('#lvl').style.width = '0%'; $('#micText').textContent = 'Mic off';
+  calib = null; lastDb = -100;
 }
-const audioAlive = () => ctx && ctx.state !== 'closed' && stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
+const micAlive = () => ctx && ctx.state !== 'closed' && stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
 
 function ingest(d, t, sr) {
-  for (let k = 0; k < d.length; k++) {
-    accSum += d[k];
-    if (++accN === dec) { ring[total & (RING - 1)] = accSum / dec; total++; accSum = 0; accN = 0; }
-  }
+  for (let k = 0; k < d.length; k++) { accSum += d[k]; if (++accN === dec) { ring[total & (RING - 1)] = accSum / dec; total++; accSum = 0; accN = 0; } }
   tMap = t + 128 / sr; iMap = total;
   while (total - lastEnd >= HOP) { lastEnd += HOP; if (lastEnd >= N) analyse(lastEnd); }
 }
 const timeOf = (i) => tMap + (i - iMap) / dsr;
-
 function analyse(end) {
   const start = end - N; let s = 0;
   for (let k = 0; k < N; k++) { const v = ring[(start + k) & (RING - 1)]; frameBuf[k] = v; s += v * v; }
-  const db = 10 * Math.log10(s / N + 1e-12);
-  lastDb = db;
-  let f = null;
-  if (db > thrDb - 6) f = yin();
-  onFrame({ t: timeOf(end - N / 2), db, f });
+  const db = 10 * Math.log10(s / N + 1e-12); lastDb = db;
+  onFrame({ t: timeOf(end - N / 2), db, f: db > thrDb - 6 ? yin() : null });
 }
-
-// YIN pitch estimate on frameBuf. Returns Hz or null.
 function yin() {
-  const x = frameBuf, d = diff;
-  let run = 0; d[0] = 1;
-  for (let tau = 1; tau <= TAUMAX; tau++) {
-    let sum = 0;
-    for (let j = 0; j < W; j++) { const q = x[j] - x[j + tau]; sum += q * q; }
-    run += sum; d[tau] = run > 0 ? sum * tau / run : 1;
-  }
+  const x = frameBuf, d = diff; let run = 0; d[0] = 1;
+  for (let tau = 1; tau <= TAUMAX; tau++) { let sum = 0; for (let j = 0; j < W; j++) { const q = x[j] - x[j + tau]; sum += q * q; } run += sum; d[tau] = run > 0 ? sum * tau / run : 1; }
   let tau = -1;
-  for (let t = TAUMIN; t < TAUMAX; t++) {
-    if (d[t] < 0.15) { while (t + 1 < TAUMAX && d[t + 1] < d[t]) t++; tau = t; break; }
-  }
-  if (tau < 0) {
-    let mn = Infinity, mi = -1;
-    for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < mn) { mn = d[t]; mi = t; }
-    if (mn > 0.3 || mi < 1) return null;
-    tau = mi;
-  }
+  for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < 0.15) { while (t + 1 < TAUMAX && d[t + 1] < d[t]) t++; tau = t; break; }
+  if (tau < 0) { let mn = Infinity, mi = -1; for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < mn) { mn = d[t]; mi = t; } if (mn > 0.3 || mi < 1) return null; tau = mi; }
   const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c;
-  const shift = den !== 0 ? Math.max(-1, Math.min(1, 0.5 * (a - c) / den)) : 0;
-  return dsr / (tau + shift);
+  return dsr / (tau + (den !== 0 ? clamp(0.5 * (a - c) / den, -1, 1) : 0));
 }
-
 function onFrame(fr) {
   lastFrameAt = performance.now();
   if (calib) { calib.dbs.push(fr.db); if (fr.t >= calib.until) { const c = calib; calib = null; c.done(); } return; }
   const r = round;
-  if (!r || r.state === 'done') return;
-  if (fr.t < r.toneEnd + 0.15) return;                     // ignore tone bleed
+  if (!r || r.state === 'done' || r.sim) return;
+  if (fr.t < r.bleedEnd) return;                           // the tone may still be reaching the mic
   if (fr.t < r.go) { if (fr.db > thrDb && fr.f) r.peek++; return; }
   const voiced = fr.db > thrDb;
   if (r.state !== 'capture') {
     r.state = 'listen'; r.frames.push(fr);
     r.run = voiced ? r.run + 1 : 0;
-    if (r.run >= 3) {
-      const last3 = r.frames.slice(-3);
-      if (last3.filter((x) => x.f).length >= 2) { r.onsetT = last3[0].t; r.state = 'capture'; r.lastVoiced = fr.t; return; }
-    }
-    if (fr.t > r.go + 6) finish('timeout');   // also when steady unpitched noise keeps the level above threshold
+    if (r.run >= 3) { const l3 = r.frames.slice(-3); if (l3.filter((x) => x.f).length >= 2) { r.onsetT = l3[0].t; r.state = 'capture'; r.lastVoiced = fr.t; return; } }
+    if (fr.t > r.go + 6) finish('timeout');
     return;
   }
   r.frames.push(fr);
@@ -503,681 +557,800 @@ function onFrame(fr) {
   const el = fr.t - r.onsetT;
   if (el >= 1.3 || (el > 0.25 && fr.t - r.lastVoiced > 0.25)) finish('ok');
 }
-
-// Resolves true when measured, false if the audio stopped first (see micLost).
 function calibrate() {
-  setPhase('calib'); lastFrameAt = performance.now();
+  setStage('calib'); lastFrameAt = performance.now();
   return new Promise((res) => {
     const c = { until: ctx.currentTime + 0.9, dbs: [], res };
     c.done = () => {
       const s = c.dbs.filter((v) => v > -119).sort((a, b) => a - b);
       floorDb = s.length ? s[Math.floor(s.length * 0.7)] : -70;
       thrDb = Math.min(-30, Math.max(-58, floorDb + 15));
-      $('#micText').textContent = `Mic · room ${Math.round(floorDb)} dB`;
       res(true);
     };
     calib = c;
   });
 }
-
-// Only incoming audio ends a round or a calibration, so if it stops (screen lock, a call,
-// another app taking the mic) give up and ask for a fresh Start rather than hang.
-function micLost() {
-  const c = calib;
-  if (round) round.state = 'done';
-  clearTimeout(autoTimer); stopAudio(); setPhase('lost');
-  if (c) c.res(false);
-}
-
-function playTone(midi, T, dur) {
-  const f = hz(midi);
-  const master = ctx.createGain(); master.connect(ctx.destination);
-  const peak = 0.22, g = master.gain;
-  g.setValueAtTime(0, T); g.linearRampToValueAtTime(peak, T + 0.02);
-  g.exponentialRampToValueAtTime(peak * 0.7, T + 0.25);
-  g.setValueAtTime(peak * 0.7, T + dur - 0.12); g.linearRampToValueAtTime(0, T + dur);
-  const parts = settings.timbre === 'sine' ? [[1, 1]] : [[1, 1], [2, 0.45], [3, 0.25], [4, 0.12], [5, 0.07], [6, 0.04]];
-  const norm = parts.reduce((s, p) => s + p[1], 0);
-  for (const [h, a] of parts) {
-    if (f * h > ctx.sampleRate / 2.2) continue;
-    const o = ctx.createOscillator(); o.frequency.value = f * h;
-    const pg = ctx.createGain(); pg.gain.value = (a / norm) * 1.6;
-    o.connect(pg); pg.connect(master); o.start(T); o.stop(T + dur + 0.05);
+// Reference voices. Hum and Ooh imitate a sung note: a voice-like source whose harmonics fall away (1/n^slope),
+// shaped by fixed resonances (a closed-mouth nasal hum, or an "oo" vowel), with a soft onset and a slight vibrato
+// that fades in. The vibrato is symmetric, so the average pitch is exactly the target.
+// Filters are [type, Hz, Q, dB]. `level` is the target loudness (RMS); playTone works out the gain that
+// hits it at each pitch, so notes don't get louder or quieter as they pass through a resonance.
+const VOICES = {
+  hum:  { slope: 1.4, vib: 7, rate: 5.2, attack: 0.09, release: 0.14, level: 0.11,
+          filters: [['lowpass', 650, 0.6], ['peaking', 240, 1.4, 4], ['notch', 1150, 1.6]] },
+  ooh:  { slope: 1.2, vib: 10, rate: 5.4, attack: 0.07, release: 0.12, level: 0.11,
+          filters: [['lowpass', 1000, 0.7], ['peaking', 310, 2.5, 7], ['peaking', 850, 3, 3]] },
+  pure: { slope: null, vib: 0, attack: 0.03, release: 0.08, level: 0.11, filters: [] },
+};
+function sourceWave(ac, slope) {
+  if (!ac._waves) ac._waves = new Map();
+  if (!ac._waves.has(slope)) {
+    const n = 48, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) im[k] = 1 / Math.pow(k, slope);
+    ac._waves.set(slope, ac.createPeriodicWave(re, im));
   }
+  return ac._waves.get(slope);
+}
+// RMS of the source's shape after the filters, at this pitch (harmonic k has amplitude 1/k^slope).
+function toneRms(ac, v, f, filters) {
+  const n = v.slope == null ? 1 : Math.min(47, Math.floor(ac.sampleRate / 2 / f));
+  const fr = new Float32Array(n).map((_, i) => f * (i + 1)), mag = new Float32Array(n).fill(1), m = new Float32Array(n), ph = new Float32Array(n);
+  for (const b of filters) { b.getFrequencyResponse(fr, m, ph); for (let i = 0; i < n; i++) mag[i] *= m[i]; }
+  let e = 0; for (let i = 0; i < n; i++) e += (mag[i] / Math.pow(i + 1, v.slope ?? 1)) ** 2;
+  return Math.sqrt(e / 2);
+}
+function playTone(ac, midi, T, dur, voice) {
+  const v = VOICES[voice] || VOICES.hum, f = hz(midi);
+  const filters = v.filters.map(([type, freq, q, db]) => {
+    const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = freq; b.Q.value = q; if (db != null) b.gain.value = db; return b;
+  });
+  const o = ac.createOscillator();
+  // A PeriodicWave is scaled so its peak is 1; measure that scale once per voice so the RMS target holds.
+  let src = 1;
+  if (v.slope != null) {
+    if (!ac._peaks) ac._peaks = new Map();
+    if (!ac._peaks.has(v.slope)) { let pk = 0; for (let t = 0; t < 1; t += 1 / 2048) { let y = 0; for (let k = 1; k < 48; k++) y += Math.sin(2 * Math.PI * k * t) / Math.pow(k, v.slope); pk = Math.max(pk, Math.abs(y)); } ac._peaks.set(v.slope, pk); }
+    src = 1 / ac._peaks.get(v.slope);
+  }
+  const gain = v.level / (toneRms(ac, v, f, filters) * src);
+  const out = ac.createGain(); out.connect(ac.destination);
+  out.gain.setValueAtTime(0, T);
+  out.gain.setTargetAtTime(gain, T, v.attack / 3);                    // ~95% after `attack`
+  out.gain.setTargetAtTime(0, T + dur - v.release, v.release / 5);    // <1% by the end of `dur`
+  if (v.slope == null) o.type = 'sine'; else o.setPeriodicWave(sourceWave(ac, v.slope));
+  o.frequency.setValueAtTime(f, T);
+  if (v.vib) {
+    const lfo = ac.createOscillator(), depth = ac.createGain();
+    lfo.frequency.value = v.rate;
+    depth.gain.setValueAtTime(0, T + 0.3); depth.gain.linearRampToValueAtTime(f * (Math.pow(2, v.vib / 1200) - 1), T + 0.65);
+    lfo.connect(depth); depth.connect(o.frequency); lfo.start(T); lfo.stop(T + dur + 0.2);
+  }
+  let node = o;
+  for (const b of filters) { node.connect(b); node = b; }
+  node.connect(out);
+  o.start(T); o.stop(T + dur + 0.2);
+}
+function summarise(trace) {
+  const v = trace.filter((p) => p.c !== null && p.t >= 0);
+  let on = v.filter((p) => p.t <= WIN).map((p) => p.c);
+  if (on.length < 2) on = v.slice(0, 3).map((p) => p.c);
+  if (!on.length) return null;
+  const st = v.filter((p) => p.t >= 0.45).map((p) => p.c);
+  return { onset: median(on), settled: st.length >= 5 ? median(st) : null };
+}
+// The audio the detector analysed (24 kHz or so): from 0.6 s before the onset to the end of the note,
+// as 16-bit samples. t0 is the first sample's time relative to the onset, so it lines up with the pitch curve.
+function grabAudio(r) {
+  if (!ring) return null;
+  const end = total, start = Math.max(end - RING + 1, Math.round(iMap + (r.onsetT - 0.6 - tMap) * dsr), 0), n = end - start;
+  if (n <= 0) return null;
+  const pcm = new Int16Array(n);
+  for (let k = 0; k < n; k++) pcm[k] = clamp(Math.round(ring[(start + k) & (RING - 1)] * 32767), -32768, 32767);
+  return { sr: dsr, t0: +(tMap + (start - iMap) / dsr - r.onsetT).toFixed(4), pcm };
+}
+function finish(kind) {
+  const r = round; r.state = 'done';
+  if (kind === 'timeout') return noteDone({ midi: r.midi, kind: 'silent' });
+  const target = hz(r.midi);
+  const raw = r.frames.filter((x) => x.t >= r.onsetT - 0.1).map((x) => ({ t: x.t - r.onsetT, c: x.f ? 1200 * Math.log2(x.f / target) : null }));
+  const pre = summarise(raw);
+  if (!pre) return noteDone({ midi: r.midi, kind: 'silent' });
+  const k = Math.round(pre.onset / 1200);                  // any octave counts
+  const trace = raw.map((p) => ({ t: p.t, c: p.c === null ? null : p.c - 1200 * k }));
+  const s = summarise(trace);
+  noteDone({ midi: r.midi, kind: r.peek >= 5 ? 'void' : 'ok', onset: r1(s.onset), settled: r1(s.settled), oct: k, trace, audio: run && run.keepAudio ? grabAudio(r) : null });
 }
 
-/* ---------- rounds ---------- */
-function pickNote() {
-  const lo = settings.low, hi = settings.high;
-  if (lo === hi) return lo;
-  let m; do { m = lo + Math.floor(Math.random() * (hi - lo + 1)); } while (m === lastMidi);
+// A made-up singer for the demo round: accurate low down, starting flatter and sliding slower toward the top.
+function simFinish(r) {
+  r.state = 'done';
+  const f = (r.midi - run.lo) / Math.max(1, run.hi - run.lo);
+  const o = -6 - 175 * f ** 3 + gauss() * 14, s = -3 - 22 * f + gauss() * 5, tau = 0.06 + 0.3 * f;
+  const trace = [];
+  for (let t = -0.03; t <= 1.25; t += 0.0105) trace.push({ t, c: t < 0 ? null : s + (o - s) * Math.exp(-t / tau) + 3 * Math.sin(t * 34) * Math.min(1, t * 2.5) + gauss() * 1.2 });
+  const x = summarise(trace);
+  noteDone({ midi: r.midi, kind: 'ok', onset: r1(x.onset), settled: r1(x.settled), oct: 0, trace });
+}
+
+/* ---------- screens ---------- */
+function show(id) {
+  for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
+  if (id !== 'run') { $('#sheet').hidden = true; $('#msg').hidden = true; }
+  window.scrollTo(0, 0);
+}
+
+/* ---------- keyboard drawing (range picker + summary map) ---------- */
+const rb = (x, y, w, h, r) => `M${x},${y}h${w}v${h - r}q0,${r} ${-r},${r}h${-(w - 2 * r)}q${-r},0 ${-r},${-r}z`;
+function keyboard(el, a, b, o) {
+  const Wd = Math.max(240, el.clientWidth || 480);
+  if (isBlack(a)) a--; if (isBlack(b)) b++;
+  const whites = []; for (let m = a; m <= b; m++) if (!isBlack(m)) whites.push(m);
+  const kw = Wd / whites.length, H = o.H, bh = Math.round(H * 0.62), bw = kw * 0.6, labH = 22;
+  const geo = new Map();
+  let s = `<rect x="0" y="0" width="${Wd}" height="${H}" rx="8" fill="var(--key-bed)"/>`;
+  whites.forEach((m, i) => {
+    const x = i * kw; geo.set(m, { x: x + kw / 2, y: H - Math.min(22, kw * 0.55), x0: x, w: kw, h: H, white: true });
+    s += `<path d="${rb(x + 1, 0, kw - 2, H - 1, 6)}" fill="${o.fill(m) || 'var(--key-white)'}"/>`;
+  });
+  for (let m = a; m <= b; m++) if (isBlack(m)) {
+    const x = whites.indexOf(m - 1) * kw + kw - bw / 2; geo.set(m, { x: x + bw / 2, y: bh - Math.min(16, bw * 0.8), x0: x, w: bw, h: bh, white: false });
+    s += `<path d="${rb(x, 0, bw, bh, 4)}" fill="${o.fill(m) || 'var(--key-black)'}"/>`;
+  }
+  for (const m of whites) if (o.label(m)) s += `<text x="${geo.get(m).x}" y="${H + 16}" text-anchor="middle" font-size="12" font-weight="${o.label(m) === 'bold' ? 800 : 700}" fill="var(${o.label(m) === 'bold' ? '--ink' : '--muted'})">${nname(m)}</text>`;
+  if (o.marks) s += o.marks(geo, kw);
+  el.innerHTML = `<svg viewBox="0 -2 ${Wd} ${H + labH}" width="${Wd}" height="${H + labH}" role="img" aria-label="${o.aria}">${s}</svg>`;
+  return geo;
+}
+
+function renderRange() {
+  const { lo, hi } = settings;
+  $('#loName').textContent = nname(lo); $('#hiName').textContent = nname(hi);
+  $('#rangeText').textContent = `${hi - lo + 1} note${hi === lo ? '' : 's'}`;
+  $('#loDown').disabled = lo <= MIN_NOTE; $('#loUp').disabled = lo >= hi;
+  $('#hiDown').disabled = hi <= lo; $('#hiUp').disabled = hi >= MAX_NOTE;
+  const a = clamp(lo - 5, MIN_NOTE, MAX_NOTE), b = clamp(hi + 5, MIN_NOTE, MAX_NOTE);
+  keyboard($('#rangeKeys'), a, b, {
+    H: 64, aria: `Keyboard with your range, ${nname(lo)} to ${nname(hi)}, highlighted`,
+    fill: (m) => m >= lo && m <= hi ? (isBlack(m) ? 'var(--accent)' : 'var(--accent-soft)') : null,
+    label: (m) => m === lo || m === hi ? 'bold' : pc(m) === 0 && (m < lo - 1 || m > hi + 1) ? 'muted' : null,
+  });
+  for (const b2 of document.querySelectorAll('[data-hold]')) b2.setAttribute('aria-pressed', String(b2.dataset.hold === settings.hold));
+  for (const b2 of document.querySelectorAll('[data-voice]')) b2.setAttribute('aria-pressed', String(b2.dataset.voice === settings.voice));
+  $('#keepAudio').checked = !!settings.keepAudio;
+  renderHistory();
+}
+const bestScore = () => rounds.length ? Math.max(...rounds.map((r) => r.score)) : null;
+function nudge(k, d) {
+  settings[k] = clamp(settings[k] + d, MIN_NOTE, MAX_NOTE);
+  if (settings.lo > settings.hi) settings[k === 'lo' ? 'hi' : 'lo'] = settings[k];
+  saveSettings(); renderRange();
+}
+
+// Tooltips are centred over the point, but kept inside their chart using their real width.
+function placeTip(tip, x, y, width) {
+  tip.hidden = false;
+  const half = tip.offsetWidth / 2;
+  tip.style.left = clamp(x, half, Math.max(half, width - half)) + 'px'; tip.style.top = y + 'px';
+}
+
+/* ---------- piano roll ---------- */
+function mountRoll(el, n, H) {
+  el._n = n; el._H = H;
+  drawRoll(el);
+  if (el._wired) return; el._wired = true;
+  const move = (e) => {
+    const g = el._g; if (!g) return;
+    const box = el.querySelector('svg').getBoundingClientRect(), x = (e.clientX - box.left) * (g.Wd / box.width);
+    const t = (x - g.keyW) / (g.Wd - g.keyW - g.padR) * g.tMax;
+    const tip = el.querySelector('.tip-pop'), xh = el.querySelector('.xh');
+    if (t < 0 || t > g.tMax || !g.pts.length) { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); return; }
+    let best = g.pts[0]; for (const p of g.pts) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p;
+    const px = g.X(best.t), py = g.Y(best.c / 100);
+    xh.setAttribute('visibility', 'visible');
+    xh.querySelector('line').setAttribute('x1', px); xh.querySelector('line').setAttribute('x2', px);
+    xh.querySelector('circle').setAttribute('cx', px); xh.querySelector('circle').setAttribute('cy', py);
+    const near = Math.abs(best.c) >= 70 ? ` · near ${nname(el._n.midi + Math.round(best.c / 100))}` : '';
+    tip.textContent = `${(best.t * 1000).toFixed(0)} ms · ${off(best.c)}${near}`;
+    placeTip(tip, px * box.width / g.Wd, py * box.height / g.H - 10, box.width);
+  };
+  el.addEventListener('pointermove', move);
+  el.addEventListener('pointerdown', move);
+  el.addEventListener('pointerleave', () => { const t = el.querySelector('.tip-pop'); if (t) t.hidden = true; const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
+}
+function drawRoll(el) {
+  const n = el._n, H = el._H, Wd = Math.max(260, el.clientWidth || 480), keyW = 46, padR = 6, axisH = 20, plotH = H - axisH;
+  const pts = (n.trace || []).filter((p) => p.c != null && p.t >= 0 && p.t <= 1.35);
+  const tMax = Math.max(1, Math.min(1.35, pts.length ? pts[pts.length - 1].t : 1));
+  const cs = pts.map((p) => p.c / 100);
+  const lo = clamp(Math.round(Math.min(0, ...cs)) - 1, -7, -2), hi = clamp(Math.round(Math.max(0, ...cs)) + 1, 2, 7);
+  const rows = hi - lo + 1, rh = plotH / rows;
+  const Y = (s) => (hi + 0.5 - clamp(s, lo - 0.5, hi + 0.5)) * rh;
+  const X = (t) => keyW + (t / tMax) * (Wd - keyW - padR);
+  let s = '';
+  for (let j = hi; j >= lo; j--) {
+    const m = n.midi + j, y = Y(j) - rh / 2, blk = isBlack(m);
+    s += `<rect x="${keyW}" y="${y}" width="${Wd - keyW}" height="${rh}" fill="var(${blk ? '--roll-black' : '--roll-white'})"/>`;
+    if (j === 0) s += `<rect x="${keyW}" y="${y}" width="${Wd - keyW}" height="${rh}" fill="var(--accent-wash)"/>`;
+    if ((pc(m) === 0 || pc(m) === 5) && j > lo) s += `<line x1="${keyW}" x2="${Wd}" y1="${y + rh}" y2="${y + rh}" stroke="var(--roll-sep)"/>`;
+    // key strip: white keys run the full width, black keys are shorter and sit at the back
+    s += `<rect x="0" y="${y}" width="${keyW}" height="${rh}" fill="var(${j === 0 ? '--accent' : '--key-white'})"/>`;
+    if (blk && j !== 0) s += `<path d="M0,${y + 1}h${keyW * 0.56 - 3}q3,0 3,3v${rh - 8}q0,3 -3,3h${-(keyW * 0.56 - 3)}z" fill="var(--key-black)"/>`;
+    if (blk && j !== 0) s += `<line x1="${keyW * 0.56}" x2="${keyW}" y1="${y + rh / 2}" y2="${y + rh / 2}" stroke="var(--roll-sep)"/>`;
+    if (!blk && (pc(m) === 0 || pc(m) === 5) && j > lo) s += `<line x1="0" x2="${keyW}" y1="${y + rh}" y2="${y + rh}" stroke="var(--roll-sep)"/>`;
+    const showLabel = j === 0 || (!blk && (rh >= 15 || pc(m) === 0));
+    if (showLabel) s += `<text x="${keyW - 6}" y="${y + rh / 2}" text-anchor="end" dominant-baseline="central" font-size="${clamp(rh * 0.62, 9, 12)}" font-weight="800" fill="var(${j === 0 ? '--accent-ink' : '--ink-2'})">${nname(m)}</text>`;
+  }
+  s += `<line x1="${keyW}" x2="${keyW}" y1="0" y2="${plotH}" stroke="var(--line)"/>`;
+  s += `<rect x="${X(0)}" y="0" width="${X(WIN) - X(0)}" height="${plotH}" fill="var(--ink)" opacity=".08"/>`;
+  let d = '', prev = null;
+  for (const p of pts) { d += `${prev && p.t - prev.t <= 0.04 ? 'L' : 'M'}${X(p.t).toFixed(1)},${Y(p.c / 100).toFixed(1)}`; prev = p; }
+  s += `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (n.onset != null) s += `<circle cx="${X(WIN / 2)}" cy="${Y(n.onset / 100)}" r="6" fill="var(--tone,var(--ink))" stroke="var(--surface)" stroke-width="2" data-tone="${tierFor(n).tone}"/>`;
+  s += `<text x="${X(0)}" y="${H - 5}" font-size="11.5" font-weight="700" fill="var(--muted)">↑ scored</text>`;
+  s += `<text x="${X(1)}" y="${H - 5}" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--muted)">1 second</text>`;
+  s += `<g class="xh" visibility="hidden"><line y1="0" y2="${plotH}" stroke="var(--ink)" stroke-opacity=".35"/><circle r="5" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/></g>`;
+  s += `<line class="playhead" visibility="hidden" y1="0" y2="${plotH}" stroke="var(--accent)" stroke-width="2.5"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Piano roll of your pitch over the note. ${sentence(n)}">${s}</svg><div class="tip-pop" hidden></div>`;
+  el._g = { Wd, H, keyW, padR, tMax, X, Y, pts };
+}
+
+/* ---------- a round ---------- */
+let run = null;
+function bag() {
+  const a = []; for (let m = run.lo; m <= run.hi; m++) a.push(m);
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function pick() {   // every note in the range comes up before any repeats
+  if (!run.bag.length) run.bag = bag();
+  let m = run.bag.pop();
+  if (m === run.last && run.bag.length) { const k = run.bag.pop(); run.bag.unshift(m); m = k; }
+  else if (m === run.last && run.hi > run.lo) { run.bag = bag(); run.bag.push(m); m = run.bag.find((x) => x !== run.last); run.bag.splice(run.bag.indexOf(m), 1); }
   return m;
 }
 
-async function start() {
-  hideErr(); setPhase('calib');
-  try { await initAudio(); }
-  catch (e) { stopAudio(); showErr(e); setPhase('intro'); return; }
-  $('#recal').disabled = false;
-  if (!(await calibrate())) return;
-  next(false);
+async function startRound(sim) {
+  hideMsg(); $('#homeErr').hidden = true;
+  stopClip();
+  if (pctx) { pctx.close().catch(() => {}); pctx = null; }
+  run = { sim, keepAudio: !sim && settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: settings.hold, voice: settings.voice, notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 };
+  show('run'); $('#demoChip').hidden = !sim; $('#mic').hidden = sim;
+  renderProgress(); setStage('calib'); $('#noteNum').textContent = 'Getting ready';
+  if (await ensureAudio()) playNext();
+}
+async function ensureAudio() {
+  const r = run;
+  if (ctx && (r.sim || micAlive())) {
+    if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
+    return true;
+  }
+  stopAudio();
+  try { await initAudio(!r.sim); }
+  catch (e) { stopAudio(); if (run === r) failStart(e); return false; }
+  if (!r.sim && !(await calibrate())) return false;
+  return run === r;
+}
+function failStart(e) {
+  run = null; show('home');
+  let msg;
+  if (e && e.name === 'Insecure') msg = 'The mic only works on a secure page: the https site, localhost, or this file opened directly in Chrome.';
+  else if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) msg = 'Mic access was blocked. Allow it in your browser’s site settings, then press Start round again.';
+  else if (e && e.name === 'NotFoundError') msg = 'No microphone found. Plug one in, then press Start round again.';
+  else msg = (e && e.message) || 'Something went wrong starting the mic.';
+  $('#homeErr').textContent = msg; $('#homeErr').hidden = false;
 }
 
-async function next(same) {
-  clearTimeout(autoTimer);
-  if (round && round.state !== 'done') return;
-  if (ctx && !audioAlive()) stopAudio();
-  if (!ctx) { await start(); return; }
-  if (calib) return;
-  if (ctx.state !== 'running') {
-    try { await ctx.resume(); } catch (e) {}   // if it stays stopped, the watchdog in tick() catches it
-    if (round && round.state !== 'done') return;
-  }
-  hideErr();
-  const m = same && lastMidi != null ? lastMidi : pickNote();
-  const T = ctx.currentTime + 0.1, dur = +settings.toneLen;
-  const prev = lastMidi != null && T - lastRoundAt < 30 ? lastMidi : null;   // the note heard just before, if recent
-  lastMidi = m; lastRoundAt = T;
-  const hold = settings.hold === 'rand' ? 1 + Math.random() * 2 : +settings.hold;
-  playTone(m, T, dur);
-  round = { midi: m, prev, T, toneEnd: T + dur, go: T + dur + Math.max(hold, 0.15), frames: [], run: 0, peek: 0, state: 'tone' };
+function playNext() {
+  if (!run) return;
+  clearTimeout(run.timer);
+  if (run.notes.length >= ROUND_LEN) return endRound();
+  $('#sheet').hidden = true;
+  const m = pick(); run.last = m;
+  const T = ctx.currentTime + 0.35;
+  const hold = run.hold === 'rand' ? 1 + Math.random() * 2 : +run.hold;
+  playTone(ctx, m, T, TONE, run.voice);
+  // Time the hold from when the tone is heard to end, not when the page finishes playing it. Through a phone
+  // speaker or Bluetooth that can be a few tenths of a second later, and the tail also takes a while to come back
+  // in through the mic, so ignore what the mic hears until then. Browsers that don't report latency get 0.
+  const outLat = clamp((ctx.outputLatency || 0) + (ctx.baseLatency || 0), 0, 0.5);
+  const inLat = clamp((stream && stream.getAudioTracks()[0] && stream.getAudioTracks()[0].getSettings().latency) || 0, 0, 0.3);
+  const heardEnd = T + TONE + outLat;
+  round = { midi: m, T, toneEnd: heardEnd, bleedEnd: heardEnd + inLat + 0.25, go: heardEnd + Math.max(hold, inLat + 0.3),
+    frames: [], run: 0, peek: 0, state: 'tone', sim: run.sim };
   lastFrameAt = performance.now();
+  $('#stage').dataset.midi = m;
+  $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`;
+  setStage('tone'); renderProgress();
 }
 
-function hearAgain() {
-  if (!ctx || lastMidi == null || (round && round.state !== 'done')) return;
-  playTone(lastMidi, ctx.currentTime + 0.05, +settings.toneLen);
-}
-
-function summarise(trace, winS, tol) {
-  const v = trace.filter((p) => p.c !== null && p.t >= 0);
-  let on = v.filter((p) => p.t <= winS).map((p) => p.c);
-  if (on.length < 2) on = v.slice(0, 3).map((p) => p.c);
-  if (!on.length) return null;
-  const onset = median(on);
-  const st = v.filter((p) => p.t >= 0.45).map((p) => p.c);
-  const settled = st.length >= 5 ? median(st) : null;
-  let land = null;
-  for (let i = 0; i < v.length; i++) {
-    const t0 = v[i].t, span = v.filter((p) => p.t >= t0 && p.t <= t0 + 0.15);
-    if (span.length >= 8 && span.every((p) => Math.abs(p.c) <= tol)) { land = Math.max(0, t0 * 1000); break; }
+function noteDone(n) {
+  if (!run) return;
+  scoreNote(n);
+  n.hold = round ? r1(round.go - round.toneEnd) : null;
+  run.notes.push(n);
+  run.silent = n.kind === 'silent' ? run.silent + 1 : 0;
+  renderProgress();
+  $('#stage').dataset.tone = n.tier.tone; $('#glyph').textContent = n.tier.icon;
+  setStage('done');
+  showSheet(n);
+  if (run.silent >= 2) {
+    showMsg('Can’t hear you', 'Two notes in a row with no clear voice. Check the mic level in the top corner moves when you sing, then carry on.',
+      ['Carry on', () => { run.silent = 0; hideMsg(); playNext(); }], ['End round', quitRound]);
+    return;
   }
-  return { onset, settled, corr: settled == null ? null : settled - onset, land, hit: Math.abs(onset) <= tol };
+  schedule();
 }
 
-function finish(kind) {
-  const r = round; r.state = 'done';
-  if (kind === 'timeout') { setPhase('timeout'); return; }
-  const target = hz(r.midi);
-  const raw = r.frames.filter((x) => x.t >= r.onsetT - 0.1).map((x) => ({ t: x.t - r.onsetT, c: x.f ? 1200 * Math.log2(x.f / target) : null }));
-  const pre = summarise(raw, settings.win / 1000, settings.tol);
-  if (!pre) { setPhase('timeout'); return; }
-  const k = settings.fold ? Math.round(pre.onset / 1200) : 0;
-  const trace = raw.map((p) => ({ t: p.t, c: p.c === null ? null : p.c - 1200 * k }));
-  const s = summarise(trace, settings.win / 1000, settings.tol);
-  const attempt = {
-    ts: Date.now(), midi: r.midi, onset: r1(s.onset), settled: r1(s.settled), corr: r1(s.corr),
-    land: s.land == null ? null : Math.round(s.land), hit: s.hit, peek: r.peek >= 5, win: settings.win, tol: settings.tol, oct: k,
-    prev: r.prev, hold: r1(r.go - r.toneEnd), cfg: `${settings.low}-${settings.high}|${settings.hold}`,
-  };
-  const sess = openSession(attempt.ts); attempt.sid = sess.id; sess.end = attempt.ts;
-  history.push(attempt); save();
-  lastResult = { attempt, trace, win: settings.win, tol: settings.tol };
-  setPhase('scored'); renderResult(); renderSession(); renderProgress(); if (reportSid === sess.id) renderReport();
-  if (settings.auto) autoTimer = setTimeout(() => next(false), 2500);
+function showSheet(n) {
+  const sh = $('#sheet'); sh.dataset.tone = n.tier.tone;
+  $('#sIcon').textContent = n.tier.icon; $('#sWord').textContent = n.tier.word;
+  $('#sPills').innerHTML = pills(n); $('#sPills').hidden = n.kind !== 'ok';
+  $('#sText').textContent = sentence(n);
+  sh.hidden = false;
+  const rollEl = $('#sRoll');
+  rollEl.hidden = !n.trace;
+  if (n.trace) mountRoll(rollEl, n, window.innerHeight < 700 ? 150 : 176);
+  $('#pauseBtn').textContent = run.notes.length >= ROUND_LEN ? 'See results' : 'Pause';
+}
+function schedule() {
+  const bar = $('#countdown i');
+  bar.style.transition = 'none'; bar.style.width = '0%'; void bar.offsetWidth;
+  bar.style.transition = `width ${PAUSE}ms linear`; bar.style.width = '100%';
+  run.paused = false;
+  run.timer = setTimeout(() => { if (run && !run.paused) playNext(); }, PAUSE);
+}
+function togglePause() {
+  if (!run) return;
+  if (run.notes.length >= ROUND_LEN) return playNext();
+  if (run.paused) { run.paused = false; playNext(); return; }
+  run.paused = true; clearTimeout(run.timer);
+  const bar = $('#countdown i'); bar.style.width = getComputedStyle(bar).width; bar.style.transition = 'none';
+  $('#pauseBtn').textContent = 'Continue';
 }
 
-/* ---------- phase UI ---------- */
-const PH = {
-  intro:   ['Ready', 'Press Start', 'Your browser will ask for the microphone. Stay quiet for a second while it measures the room.'],
-  calib:   ['Measuring the room', 'Stay quiet', 'Listening to background noise to set the voice threshold.'],
-  tone:    ['Listen', 'Listen', "Don't hum along."],
-  hold:    ['Hold it', 'Keep it in your head', 'Silently. Any sound now voids the attempt.'],
-  sing:    ['Go', 'Sing', 'Start clean, on a "da" or "ba".'],
-  capture: ['Hearing you', 'Hold it if you like', 'About a second gets you a settled score as well.'],
-  scored:  ['Scored', 'Next note', 'Press Space or Next note when you are ready.'],
-  timeout: ['No voice heard', 'Try again', "The mic didn't pick up a clear note within 6 s. Check the level meter at the top, or re-measure the room in Settings."],
-  lost:    ['Mic stopped', 'Press Start', 'The microphone or sound stopped, which can happen when the screen locks or another app takes the mic. Press Start to reconnect.'],
+function askQuit() {
+  if (!run) return;
+  clearTimeout(run.timer); run.paused = true;
+  if (round && round.state !== 'done') round.state = 'done';     // drop the note in progress
+  showMsg('End this round?', run.notes.length ? `You’ve sung ${run.notes.length} of ${ROUND_LEN}. An unfinished round isn’t saved.` : 'An unfinished round isn’t saved.',
+    ['Keep going', () => { hideMsg(); run.paused = false; playNext(); }], ['End round', quitRound]);
+}
+function quitRound() { if (run) clearTimeout(run.timer); run = null; round = null; hideMsg(); show('home'); renderRange(); }
+
+// Nothing but incoming audio ends a note or a room measurement, so if it stops, say so rather than hang.
+function micLost() {
+  const c = calib;
+  if (round) round.state = 'done';
+  stopAudio();
+  if (c) c.res(false);
+  if (!run) return;
+  clearTimeout(run.timer); run.paused = true;
+  showMsg('Mic stopped', 'The mic or sound stopped, which can happen when the screen locks or another app takes the mic.',
+    ['Reconnect', async () => { hideMsg(); run.paused = false; setStage('calib'); if (await ensureAudio()) playNext(); }], ['End round', quitRound]);
+}
+
+function showMsg(title, body, first, second) {
+  $('#sheet').hidden = true;
+  $('#mTitle').textContent = title; $('#mBody').textContent = body;
+  $('#mFirst').textContent = first[0]; $('#mFirst').onclick = first[1];
+  $('#mSecond').textContent = second[0]; $('#mSecond').onclick = second[1];
+  $('#msg').hidden = false; $('#mFirst').focus();
+}
+function hideMsg() { $('#msg').hidden = true; }
+
+/* ---------- stage ---------- */
+const STAGE = {
+  calib: ['Shh…', 'Listening to the room for a second.'],
+  tone: ['Listen', 'Don’t hum along.'],
+  hold: ['In your head', 'Keep it silent.'],
+  sing: ['Sing!', 'Straight onto the note, on “da” or “ba”.'],
+  capture: ['Keep going', 'About a second is plenty.'],
+  done: ['', ''],
 };
-let phase = null;
-const busyPhase = () => ['calib', 'tone', 'hold', 'sing', 'capture'].includes(phase);
-function setPhase(p) {
-  if (p === phase) return; phase = p;
-  const [label, prompt, hint] = PH[p];
-  $('#phase').textContent = label; $('#phase').dataset.p = p;
-  $('#prompt').textContent = prompt; $('#prompt').dataset.p = p;
-  $('#hint').textContent = hint;
-  $('#holdbar').hidden = p !== 'hold';
-  const busy = ['calib', 'tone', 'hold', 'sing', 'capture'].includes(p);
-  const go = $('#go');
-  go.disabled = busy;
-  go.textContent = busy ? 'Listening…' : p === 'intro' || !ctx ? 'Start' : 'Next note';
-  $('#same').disabled = busy || lastMidi == null || !ctx;
-  $('#hear').disabled = busy || lastMidi == null || !ctx;
-  $('#recal').disabled = busy || !ctx;
-  $('#finish').disabled = busy || !currentSession();
+let stagePhase = null;
+function setStage(p) {
+  if (p === stagePhase) return; stagePhase = p;
+  const st = $('#stage'); st.dataset.phase = p;
+  if (p !== 'done') { delete st.dataset.tone; $('#glyph').textContent = ''; }
+  $('#say').textContent = STAGE[p][0]; $('#sub').textContent = STAGE[p][1];
+  $('#track').style.opacity = p === 'hold' ? 1 : 0;
+  if (p !== 'capture') $('#core').style.transform = '';
   if (p === 'sing' && navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+}
+function renderProgress() {
+  if (!run) return;
+  let h = '';
+  for (let i = 0; i < ROUND_LEN; i++) {
+    const n = run.notes[i];
+    if (n) h += `<span class="seg done" data-tone="${n.tier.tone}" title="${nname(n.midi)}: ${n.tier.word}">${n.tier.icon}</span>`;
+    else h += `<span class="seg${i === run.notes.length ? ' now' : ''}"></span>`;
+  }
+  $('#progress').innerHTML = h;
+  $('#progress').setAttribute('aria-label', `${run.notes.length} of ${ROUND_LEN} notes sung`);
 }
 
 function tick() {
   requestAnimationFrame(tick);
-  if ((calib || (round && round.state !== 'done')) && performance.now() - lastFrameAt > 2000) micLost();
-  if (ctx) {
-    const pct = (db) => Math.max(0, Math.min(100, (db + 80) / 70 * 100));
-    const lvl = $('#lvl'); lvl.style.width = pct(lastDb) + '%'; lvl.classList.toggle('on', lastDb > thrDb);
-    $('#thr').style.left = pct(thrDb) + '%';
-  }
+  if ((calib || (round && round.state !== 'done' && !round.sim)) && performance.now() - lastFrameAt > 2000) micLost();
+  const lv = ctx && stream ? clamp((lastDb + 80) / 60, 0, 1) : 0;
+  const bars = $('#mic').children;
+  for (let i = 0; i < 4; i++) bars[i].classList.toggle('lit', lv > (i + 0.5) / 4.5);
+  $('#mic').classList.toggle('voice', lastDb > thrDb);
   const r = round;
   if (!r || r.state === 'done' || !ctx) return;
   const now = ctx.currentTime;
-  if (now < r.toneEnd) setPhase('tone');
-  else if (now < r.go) { setPhase('hold'); $('#holdfill').style.width = ((now - r.toneEnd) / (r.go - r.toneEnd) * 100).toFixed(1) + '%'; }
-  else if (r.state === 'capture') setPhase('capture');
-  else setPhase('sing');
+  if (r.sim) {
+    if (now >= r.go + 0.45 && r.state !== 'capture') r.state = 'capture';
+    if (now >= r.go + 1.75) { simFinish(r); return; }
+  }
+  if (now < r.toneEnd) setStage('tone');
+  else if (now < r.go) { setStage('hold'); $('#holdRing').setAttribute('stroke-dashoffset', (452.39 * (1 - (now - r.toneEnd) / (r.go - r.toneEnd))).toFixed(1)); }
+  else if (r.state === 'capture') {
+    setStage('capture');
+    const level = r.sim ? 0.5 + 0.3 * Math.sin(now * 9) : lv;
+    $('#core').style.transform = `scale(${(0.92 + level * 0.22).toFixed(3)})`;
+  }
+  else setStage('sing');
 }
 
-function showErr(e) {
-  const el = $('#err'); let msg;
-  if (e && e.name === 'Insecure') msg = 'The microphone only works on a secure page. Open this file directly in Chrome, or serve it over https or from localhost.';
-  else if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) msg = 'Microphone access was blocked. Allow it in your browser’s site settings, then press Start again.';
-  else if (e && e.name === 'NotFoundError') msg = 'No microphone found. Plug one in, then press Start again.';
-  else msg = (e && e.message) || 'Something went wrong starting the microphone.';
-  el.textContent = msg; el.hidden = false;
+/* ---------- summary ---------- */
+function insights(notes) {
+  const ok = notes.filter((n) => n.kind === 'ok');
+  if (ok.length < 5) return [{ title: 'Not much to go on', body: `Only ${ok.length} note${ok.length === 1 ? '' : 's'} counted this round, which is too few to spot habits.` }];
+  const out = [];
+  const medOn = median(ok.map((n) => Math.abs(n.onset)));
+  const held = ok.filter((n) => n.settled != null);
+  const medSet = held.length >= 4 ? median(held.map((n) => Math.abs(n.settled))) : null;
+
+  // a lean one way
+  const offs = ok.filter((n) => Math.abs(n.onset) >= 15);
+  const flat = offs.filter((n) => n.onset < 0);
+  if (offs.length >= 5) {
+    const isFlat = flat.length * 2 > offs.length, side = isFlat ? flat : offs.filter((n) => n.onset > 0);
+    if (side.length / offs.length >= 0.7) out.push({ title: `You tend to start ${isFlat ? 'flat' : 'sharp'}`,
+      body: `${side.length} of the ${offs.length} notes you didn’t start right on were ${isFlat ? 'under' : 'over'} the note, typically ${size(median(side.map((n) => Math.abs(n.onset))))} ${isFlat ? 'flat' : 'sharp'}.` });
+  }
+  // sliding into notes: of the held notes that started well off, how many then slid toward the note
+  let slid = false;
+  for (const up of [true, false]) {
+    const cand = held.filter((n) => (up ? n.onset <= -30 : n.onset >= 30));
+    const sl = cand.filter((n) => (up ? n.settled - n.onset : n.onset - n.settled) >= 30);
+    if (sl.length >= 3 && sl.length / cand.length >= 0.6) { slid = true; out.push({ title: `You slide ${up ? 'up' : 'down'} into notes`,
+      body: `On ${sl.length} of the ${cand.length} notes you started ${up ? 'flat' : 'sharp'}, you then slid ${up ? 'up' : 'down'} toward the note. Your ear finds it, but only after you’ve started.` }); }
+  }
+  // where in the range
+  const mids = [...new Set(ok.map((n) => n.midi))].sort((a, b) => a - b);
+  if (ok.length >= 8 && mids.length >= 4 && mids[mids.length - 1] - mids[0] >= 4) {
+    let split = null, bestGap = Infinity;
+    for (let i = 1; i < mids.length; i++) { const nl = ok.filter((n) => n.midi < mids[i]).length, nh = ok.length - nl; if (nl >= 3 && nh >= 3 && Math.abs(nl - nh) < bestGap) { bestGap = Math.abs(nl - nh); split = mids[i]; } }
+    if (split != null) {
+      const low = ok.filter((n) => n.midi < split), high = ok.filter((n) => n.midi >= split);
+      const aL = mean(low.map((n) => n.acc)), aH = mean(high.map((n) => n.acc));
+      if (Math.abs(aL - aH) >= 15) {
+        const weakHigh = aH < aL, weak = weakHigh ? high : low;
+        const span = (g) => { const a = Math.min(...g.map((n) => n.midi)), b = Math.max(...g.map((n) => n.midi)); return a === b ? nname(a) : `${nname(a)} to ${nname(b)}`; };
+        const lean = median(weak.map((n) => n.onset));
+        const lL = mean(low.filter((n) => n.landAcc != null).map((n) => n.landAcc)), lH = mean(high.filter((n) => n.landAcc != null).map((n) => n.landAcc));
+        const landGap = lL != null && lH != null && (weakHigh ? lL - lH : lH - lL) >= 10;
+        const [aW, aS, lW, lS] = weakHigh ? [aH, aL, lH, lL] : [aL, aH, lL, lH], strong = weakHigh ? low : high;
+        out.push({ title: weakHigh ? 'Your higher notes are harder' : 'Your lower notes are harder',
+          body: `Your starts averaged ${Math.round(aW)}% from ${span(weak)}, against ${Math.round(aS)}% from ${span(strong)}.${Math.abs(lean) >= 30 ? ` There you tended to start ${off(lean)}.` : ''}`
+            + (lW == null || lS == null ? '' : landGap ? ` Your landings were worse there too, ${Math.round(lW)}% against ${Math.round(lS)}%.` : ` Your landings there were about as good, ${Math.round(lW)}% against ${Math.round(lS)}%.`) });
+      }
+    }
+  }
+  // the ear catching up
+  if (!slid && medSet != null && medOn >= 30 && medSet <= 20) out.push({ title: 'Your ear gets you there',
+    body: `You usually ended up ${medSet < 15 ? 'right on the note' : 'within a touch of it'}, but started ${size(medOn)} off. The miss is in the first moment, which is what these rounds train.` });
+  // not quite landing
+  if (held.length >= 5) {
+    const ends = held.map((n) => n.settled), m = median(ends), same = ends.filter((v) => Math.sign(v) === Math.sign(m) && Math.abs(v) >= 15).length;
+    if (Math.abs(m) >= 20 && same / held.length >= 0.6) out.push({ title: `You land a little ${m < 0 ? 'flat' : 'sharp'}`,
+      body: `Even after correcting, ${same} of ${held.length} notes ended ${m < 0 ? 'under' : 'over'} the note, typically ${off(m)}.` });
+  }
+  // through the round
+  if (ok.length >= 10) {
+    const a = mean(ok.slice(0, 5).map((n) => n.acc)), b = mean(ok.slice(-5).map((n) => n.acc));
+    if (Math.abs(a - b) >= 15) out.push({ title: b > a ? 'You warmed up' : 'You tailed off',
+      body: `Your first five notes averaged ${Math.round(a)}% and your last five ${Math.round(b)}%.` });
+  }
+  if (!out.length) out.push({ title: 'Nice and even', body: `Your starts were typically ${medOn < 15 ? 'right on the note' : `${size(medOn)} off`}, with no lean either way, no sliding habit and no weak part of your range.` });
+  return out.slice(0, 3);
 }
-function hideErr() { $('#err').hidden = true; }
 
-/* ---------- formatting ---------- */
-function fmtC(c) { if (c == null) return '—'; const r = Math.round(c); return (r > 0 ? '+' : r < 0 ? '−' : '±') + Math.abs(r) + '¢'; }
-function cls(c, tol) { const a = Math.abs(c); return a <= tol ? 'hit' : a <= tol * 2 ? 'near' : 'miss'; }
-function verdict(c, tol) { if (Math.abs(c) <= tol) return 'On it'; return `${Math.abs(Math.round(c))}¢ ${c > 0 ? 'sharp' : 'flat'}`; }
-
-/* ---------- example (shown before the first attempt) ---------- */
-function exampleResult() {
-  const trace = [];
-  for (let t = -0.1; t <= 1.25; t += 0.0107) {
-    if (t < 0) { trace.push({ t, c: null }); continue; }
-    const c = -46 * Math.exp(-t / 0.13) + 3 + 2.5 * Math.sin(t * 34) * Math.min(1, t * 2.5);
-    trace.push({ t, c });
-  }
-  const s = summarise(trace, settings.win / 1000, settings.tol);
-  return { attempt: { midi: 52, onset: s.onset, settled: s.settled, corr: s.corr, land: s.land == null ? null : Math.round(s.land), hit: s.hit, peek: false }, trace, win: settings.win, tol: settings.tol, example: true };
-}
-
-/* ---------- canvas helpers ---------- */
-function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function prep(cv) {
-  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
-  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  return { g, w, h };
-}
-
-function drawTrace(res) {
-  const { g, w, h } = prep($('#trace'));
-  if (!w) return;
-  const C = { ink: tok('--trace'), muted: tok('--muted'), line: tok('--line'), band: tok('--band'), win: tok('--win'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
-  const { trace, win, tol, attempt } = res;
-  const padL = 46, padR = 14, padT = 10, padB = 26;
-  const lastT = trace.length ? trace[trace.length - 1].t : 1;
-  const tMin = -0.1, tMax = Math.max(0.6, Math.min(1.4, lastT + 0.02));
-  const vals = trace.filter((p) => p.c !== null).map((p) => Math.abs(p.c));
-  const maxAbs = Math.max(tol * 2, ...(vals.length ? vals : [0]));
-  const range = Math.min(600, Math.max(100, Math.ceil((maxAbs + 10) / 50) * 50));
-  const X = (t) => padL + (t - tMin) / (tMax - tMin) * (w - padL - padR);
-  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
-  g.font = `11px ${tok('--mono') || 'monospace'}`; g.textBaseline = 'middle';
-
-  // onset window + tolerance band
-  g.fillStyle = C.win; g.fillRect(X(0), padT, X(win / 1000) - X(0), h - padT - padB);
-  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
-
-  // y grid
-  const step = range <= 150 ? 50 : range <= 300 ? 100 : 200;
-  g.lineWidth = 1;
-  for (let c = -range; c <= range; c += step) {
-    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
-    g.fillStyle = C.muted; g.textAlign = 'right'; g.fillText(fmtC(c).replace('±0¢', '0¢'), padL - 8, Y(c));
-  }
-  // target line
-  g.strokeStyle = C.muted; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(padL, Math.round(Y(0)) + 0.5); g.lineTo(w - padR, Math.round(Y(0)) + 0.5); g.stroke(); g.setLineDash([]);
-
-  // x ticks
-  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = C.muted;
-  for (let t = 0; t <= tMax + 1e-6; t += 0.2) {
-    const x = X(t);
-    g.strokeStyle = C.line; g.beginPath(); g.moveTo(Math.round(x) + 0.5, h - padB); g.lineTo(Math.round(x) + 0.5, h - padB + 4); g.stroke();
-    g.fillText(t === 0 ? 'voice starts' : `${Math.round(t * 1000)} ms`, Math.min(Math.max(x, padL + 30), w - padR - 24), h - padB + 7);
-  }
-
-  // trace
-  g.strokeStyle = C.ink; g.lineWidth = 2; g.lineJoin = 'round'; g.lineCap = 'round';
-  g.beginPath(); let pen = false, prevT = null;
-  for (const p of trace) {
-    if (p.c === null || p.t < tMin || p.t > tMax) { pen = false; continue; }
-    if (pen && prevT !== null && p.t - prevT > 0.04) pen = false;
-    if (!pen) { g.moveTo(X(p.t), Y(p.c)); pen = true; } else g.lineTo(X(p.t), Y(p.c));
-    prevT = p.t;
-  }
-  g.stroke();
-
-  // onset marker
-  const oc = C[cls(attempt.onset, tol)];
-  g.strokeStyle = oc; g.lineWidth = 3;
-  g.beginPath(); g.moveTo(X(0), Y(attempt.onset)); g.lineTo(X(win / 1000), Y(attempt.onset)); g.stroke();
-  g.fillStyle = oc; g.beginPath(); g.arc(X(win / 2000), Y(attempt.onset), 4.5, 0, Math.PI * 2); g.fill();
-  if (attempt.settled != null) {
-    const sc = C[cls(attempt.settled, tol)];
-    g.fillStyle = sc; g.beginPath(); g.arc(X(Math.min(tMax, lastT)) - 2, Y(attempt.settled), 4.5, 0, Math.PI * 2); g.fill();
+function endRound() {
+  const r = run; clearTimeout(r.timer); round = null;
+  const ok = r.notes.filter((n) => n.kind === 'ok'), landed = ok.filter((n) => n.landAcc != null);
+  const score = ok.length ? Math.round(mean(ok.map((n) => n.acc))) : null;
+  const landing = landed.length ? Math.round(mean(landed.map((n) => n.landAcc))) : null;
+  const prevBest = bestScore(), before = rounds.slice(-5);
+  r.ts = Date.now();
+  renderSummary(r, { score, landing, prevBest, before, fresh: true });
+  if (!r.sim && score != null) {
+    const rec = { ts: r.ts, v: 1, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
+      notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, trace: packTrace(n.trace), rec: !!n.audio })) };
+    const clips = r.notes.map((n, i) => n.audio && { id: `${r.ts}:${i}`, round: r.ts, note: i, midi: n.midi, ...n.audio }).filter(Boolean);
+    rounds.push(rec);
+    DB.saveRound(rec, clips).then(() => { clipCount += clips.length; dataLine(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); })
+      .catch(() => { $('#saveErr').hidden = false; });
   }
 }
-
-function drawHist(valid) {
-  const cv = $('#hist'); const { g, w, h } = prep(cv);
-  if (!w) return;
-  const C = { muted: tok('--muted'), line: tok('--line'), band: tok('--band'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
-  const tol = settings.tol, pts = valid.slice(-60);
-  const padL = 46, padR = 10, padT = 8, padB = 8;
-  const range = Math.max(75, Math.ceil(tol * 3 / 25) * 25);
-  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
-  g.font = `11px ${tok('--mono') || 'monospace'}`; g.textBaseline = 'middle'; g.textAlign = 'right';
-  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
-  for (const c of [-range, 0, range]) {
-    g.strokeStyle = C.line; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
-    g.fillStyle = C.muted; g.fillText(c === 0 ? '0¢' : fmtC(c), padL - 8, Y(c));
+// Shared by a round just sung and one reopened from the progress table.
+function renderSummary(r, o) {
+  const ok = r.notes.filter((n) => n.kind === 'ok'), landed = ok.filter((n) => n.landAcc != null);
+  const { score, landing, prevBest, before } = o;
+  stopClip(); show('summary');
+  $('#saveErr').hidden = true;
+  $('#homeBtn').textContent = o.fresh ? 'Change range' : 'Back';
+  $('#sumStart').textContent = score == null ? '—' : score + '%';
+  $('#sumLand').textContent = landing == null ? '—' : landing + '%';
+  const bs = mean(before.map((x) => x.score)), bl = mean(before.filter((x) => x.landing != null).map((x) => x.landing));
+  $('#sumSub').textContent = `Averages over ${ok.length} of ${ROUND_LEN} notes${landed.length < ok.length ? `, ${ok.length - landed.length} too short to score the landing` : ''}.`
+    + (!r.sim && before.length ? ` ${o.fresh ? 'Your last' : 'The'} ${before.length === 1 ? 'round' : before.length + ' rounds'}${o.fresh ? '' : ' before it'}: ${Math.round(bs)}% and ${bl == null ? '—' : Math.round(bl) + '%'}.` : '');
+  const chip = $('#sumBest');
+  chip.hidden = r.sim || score == null || !o.fresh;
+  if (!r.sim && score != null && o.fresh) {
+    const isBest = prevBest == null || score > prevBest;
+    chip.textContent = prevBest == null ? 'First round' : isBest ? 'New best start' : `Best start ${prevBest}%`;
+    chip.classList.toggle('quiet', !isBest || prevBest == null);
   }
-  if (!pts.length) {
-    g.textAlign = 'center'; g.fillStyle = C.muted; g.font = `13px ${tok('--sans') || 'sans-serif'}`;
-    g.fillText('Onset errors from your attempts will appear here', (padL + w - padR) / 2, h / 2 - 18);
-    return;
-  }
-  const span = Math.max(pts.length, 20);
-  const X = (i) => padL + 8 + (i + 0.5) / span * (w - padL - padR - 16);
-  pts.forEach((a, i) => {
-    g.fillStyle = C[cls(a.onset, tol)];
-    g.beginPath(); g.arc(X(i), Y(a.onset), 4, 0, Math.PI * 2); g.fill();
-  });
+  $('#demoNote').hidden = !r.sim;
+  $('#doneTitle').textContent = !o.fresh ? `Round from ${fmtDay(r.ts)}` : score == null ? 'Round over' : 'Round complete';
+  const counts = new Map(); for (const n of r.notes) counts.set(n.tier.key, (counts.get(n.tier.key) || 0) + 1);
+  $('#tally').innerHTML = [...TIERS, OTHER.void, OTHER.silent].filter((t) => counts.get(t.key) || TIERS.includes(t))
+    .map((t) => `<span class="tal"><i data-tone="${t.tone}">${t.icon}</i>${t.word} <b>${counts.get(t.key) || 0}</b></span>`).join('');
+  $('#insights').innerHTML = insights(r.notes).map((f) => `<li><b>${f.title}</b><span>${f.body}</span></li>`).join('');
+  summaryRun = r;
+  drawKeysMap();
+  const chips = $('#chips');
+  chips.innerHTML = r.notes.map((n, i) => `<button type="button" class="chip" data-i="${i}" aria-pressed="false" aria-label="Note ${i + 1}: ${nname(n.midi)}, ${n.tier.word}"><i data-tone="${n.tier.tone}">${n.tier.icon}</i>${nname(n.midi)}</button>`).join('');
+  const worst = ok.length ? r.notes.indexOf(ok.reduce((a, b) => (b.acc < a.acc ? b : a))) : 0;
+  pickDetail(worst, true);
+  $('#doneTitle').focus({ preventScroll: true });
+}
+let summaryRun = null;
+function pickDetail(i, isWorst) {
+  const r = summaryRun, n = r.notes[i]; if (!n) return;
+  stopClip();
+  for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(+c.dataset.i === i));
+  const d = $('#detail'), canPlay = !!(n.audio || (n.rec && r.ts));
+  d.innerHTML = `<span class="lead">${isWorst && n.kind === 'ok' ? 'Your trickiest note: ' : ''}note ${i + 1}, ${nname(n.midi)}</span>
+    <div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
+    <div class="pills">${pills(n)}</div><p class="vtext"></p><div class="roll"></div>`;
+  d.querySelector('.vtext').textContent = sentence(n);
+  const rollEl = d.querySelector('.roll');
+  if (n.trace) mountRoll(rollEl, n, 190); else rollEl.remove();
+  const btn = d.querySelector('.play');
+  if (btn) btn.addEventListener('click', () => (playing && playing.btn === btn ? stopClip() : playClip(r, i, rollEl, btn)));
+}
+// Reopen a stored round: rebuild its notes' curves and scores, then show the usual summary.
+function openRound(rec) {
+  const i = rounds.indexOf(rec);
+  const r = { ts: rec.ts, lo: rec.lo, hi: rec.hi, sim: false, notes: rec.notes.map((n) => scoreNote({ ...n, trace: unpackTrace(n.trace) })) };
+  renderSummary(r, { score: rec.score, landing: rec.landing, before: rounds.slice(Math.max(0, i - 5), i), fresh: false });
 }
 
-/* ---------- renders ---------- */
-function renderResult() {
-  const res = lastResult || exampleResult();
-  const a = res.attempt, tol = res.tol;
-  $('#exBadge').hidden = !res.example;
-  $('#onsetVal').textContent = fmtC(a.onset);
-  const chip = $('#onsetChip'); chip.textContent = verdict(a.onset, tol); chip.className = 'chip c-' + cls(a.onset, tol);
-  $('#winLabel').textContent = res.win;
-  $('#targetVal').textContent = `${nname(a.midi)} · ${hz(a.midi).toFixed(1)} Hz`;
-  const sv = $('#settledVal'); sv.textContent = fmtC(a.settled); sv.className = 'v' + (a.settled == null ? '' : ' c-' + cls(a.settled, tol));
-  $('#corrVal').textContent = a.corr == null ? '—' : fmtC(a.corr);
-  $('#corrSub').textContent = a.corr == null ? 'hold the note to see this' : Math.abs(a.corr) < 5 ? 'barely moved after the onset' : a.corr > 0 ? 'moved up after the onset' : 'moved down after the onset';
-  $('#landVal').textContent = a.land == null ? '—' : a.land < 11 ? 'at once' : `${a.land} ms`;
-  $('#landSub').textContent = a.land == null ? (a.settled == null ? 'note was too short to tell' : `never stayed within ±${tol}¢`) : `to stay within ±${tol}¢`;
-  $('#traceCap').textContent = `${res.example ? 'Example: a scooped entry that starts flat and slides up. ' : ''}Pitch relative to the target over time. Green band: ±${tol}¢ tolerance. Tinted column: the ${res.win} ms onset window. Coloured bar: onset score. Dot on the right: settled pitch.`;
-  $('#peekWarn').hidden = !a.peek;
-  drawTrace(res);
-}
-
-function renderSession() {
-  const cur = currentSession();
-  const sAll = cur ? sessAtts(cur.id) : [];
-  const valid = sAll.filter((a) => !a.peek);
-  const hits = valid.filter((a) => Math.abs(a.onset) <= settings.tol).length;
-  $('#sN').textContent = valid.length || '—';
-  $('#sHit').textContent = valid.length ? Math.round(hits / valid.length * 100) + '%' : '—';
-  $('#sHitSub').textContent = `onsets within ±${settings.tol}¢`;
-  const mOn = median(valid.map((a) => Math.abs(a.onset)));
-  const mCorr = median(valid.filter((a) => a.corr != null).map((a) => Math.abs(a.corr)));
-  const mLand = median(valid.filter((a) => a.land != null).map((a) => a.land));
-  $('#sOn').textContent = mOn == null ? '—' : Math.round(mOn) + '¢';
-  $('#sCorr').textContent = mCorr == null ? '—' : Math.round(mCorr) + '¢';
-  $('#sLand').textContent = mLand == null ? '—' : Math.round(mLand) + ' ms';
-  const voided = sAll.length - valid.length;
-  $('#histMeta').textContent = voided ? `${voided} voided` : '';
-  $('#finish').disabled = !cur || busyPhase();
-  drawHist(valid);
-  const rows = sAll.slice(-10).reverse();
-  $('#tableWrap').innerHTML = rows.length ? `<table><thead><tr><th>Note</th><th>Onset</th><th>Settled</th><th>Correction</th><th>Landed</th></tr></thead><tbody>${
-    rows.map((a) => `<tr${a.peek ? ' style="opacity:.5"' : ''}><td>${nname(a.midi)}${a.peek ? ' · voided' : ''}</td><td class="c-${cls(a.onset, settings.tol)}">${fmtC(a.onset)}</td><td>${fmtC(a.settled)}</td><td>${a.corr == null ? '—' : fmtC(a.corr)}</td><td>${a.land == null ? '—' : a.land + ' ms'}</td></tr>`).join('')
-  }</tbody></table>` : `<p class="empty">${sessions.length ? 'Sing a note to start a new session.' : 'No attempts yet.'}</p>`;
-}
-
-/* ---------- stats helpers ---------- */
-function rng(seed) { // small seeded PRNG so a report reads the same each time it's opened
-  let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
-  let a = h >>> 0;
-  return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-const LF = [0];
-function lnf(n) { while (LF.length <= n) LF.push(LF[LF.length - 1] + Math.log(LF.length)); return LF[n]; }
-// two-sided exact sign test: k successes out of n under p = 0.5
-function signTest(k, n) {
-  if (!n) return 1;
-  const lp = (i) => lnf(n) - lnf(i) - lnf(n - i) - n * Math.LN2, pk = lp(k);
-  let p = 0; for (let i = 0; i <= n; i++) { const li = lp(i); if (li <= pk + 1e-9) p += Math.exp(li); }
-  return Math.min(1, p);
-}
-function shuffle(a, R) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function permMedians(a, b, R, it = 2000) {
-  const obs = Math.abs(median(a) - median(b)), all = [...a, ...b]; let c = 0;
-  for (let i = 0; i < it; i++) { shuffle(all, R); if (Math.abs(median(all.slice(0, a.length)) - median(all.slice(a.length))) >= obs - 1e-9) c++; }
-  return (c + 1) / (it + 1);
-}
-function pearson(x, y) {
-  const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
-  let sxy = 0, sxx = 0, syy = 0;
-  for (let i = 0; i < n; i++) { const dx = x[i] - mx, dy = y[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
-  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
-}
-function slope(x, y) {
-  const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
-  let sxy = 0, sxx = 0; for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; }
-  return sxx ? sxy / sxx : 0;
-}
-function ranks(a) {
-  const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]), r = new Array(a.length);
-  for (let i = 0; i < idx.length;) { let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; for (let k = i; k <= j; k++) r[idx[k][1]] = (i + j) / 2 + 1; i = j + 1; }
-  return r;
-}
-function permCorr(x, y, R, it = 2000) {
-  const r = pearson(x, y), ys = [...y]; let c = 0;
-  for (let i = 0; i < it; i++) { shuffle(ys, R); if (Math.abs(pearson(x, ys)) >= Math.abs(r) - 1e-12) c++; }
-  return { r, p: (c + 1) / (it + 1) };
-}
-const cents0 = (v) => v == null ? '—' : Math.round(v) + '¢';
-const pct = (v) => v == null ? '—' : Math.round(v * 100) + '%';
-
-/* ---------- session analysis ---------- */
-function summarise2(list, tol) {
-  const ws = list.filter((a) => a.settled != null);
-  return {
-    n: list.length,
-    hit: list.length ? list.filter((a) => Math.abs(a.onset) <= tol).length / list.length : null,
-    medOn: median(list.map((a) => Math.abs(a.onset))),
-    medSet: median(ws.map((a) => Math.abs(a.settled))),
-    medCorr: median(ws.filter((a) => a.corr != null).map((a) => Math.abs(a.corr))),
+/* ---------- playing back a recorded note ---------- */
+let playing = null;
+async function playClip(r, i, rollEl, btn) {
+  stopClip();
+  const n = r.notes[i];
+  if (!n.audio) { try { const c = await DB.clip(`${r.ts}:${i}`); if (c) n.audio = { sr: c.sr, t0: c.t0, pcm: c.pcm }; } catch (e) {} }
+  const a = n.audio;
+  if (!a) { btn.textContent = 'No recording'; btn.disabled = true; return; }
+  const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
+  if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }
+  const buf = ac.createBuffer(1, a.pcm.length, a.sr), ch = buf.getChannelData(0);
+  let pk = 1e-4; for (let k = 0; k < a.pcm.length; k++) { ch[k] = a.pcm[k] / 32768; pk = Math.max(pk, Math.abs(ch[k])); }
+  const src = ac.createBufferSource(), g = ac.createGain();
+  g.gain.value = Math.min(12, 0.7 / pk);            // mic recordings are often quiet; bring them up to a comfortable level
+  src.buffer = buf; src.connect(g); g.connect(ac.destination);
+  const t = ac.currentTime + 0.05; src.start(t);
+  btn.textContent = '■ Stop';
+  const p = playing = { src, btn, rollEl, raf: 0 };
+  const head = () => {   // a playhead across the piano roll, so you hear and see the same moment
+    const line = rollEl.querySelector('.playhead'), g2 = rollEl._g, pos = ac.currentTime - t + a.t0;
+    if (line && g2) {
+      const vis = pos >= 0 && pos <= g2.tMax;
+      line.setAttribute('visibility', vis ? 'visible' : 'hidden');
+      if (vis) { line.setAttribute('x1', g2.X(pos)); line.setAttribute('x2', g2.X(pos)); }
+    }
+    p.raf = requestAnimationFrame(head);
   };
+  head();
+  src.onended = () => { if (playing === p) stopClip(); };
 }
-
-function analyseSession(all, prior, seed) {
-  const R = rng(String(seed)), tol = settings.tol;
-  const atts = all.filter((a) => !a.peek), n = atts.length;
-  const absOn = atts.map((a) => Math.abs(a.onset));
-  const out = { ...summarise2(atts, tol), voided: all.length - n, findings: [], quiet: [] };
-  const pAtts = (prior || []).filter((a) => !a.peek);
-  out.prior = pAtts.length >= 5 ? summarise2(pAtts, tol) : null;
-  const F = (key, level, title, body) => out.findings.push({ key, level, title, body });
-  const test = (p, label, fn) => { const lv = p < 0.05 ? 'clear' : p < 0.15 ? 'maybe' : null; if (lv) fn(lv); else out.quiet.push(label); };
-  const mode = (arr) => { const m = new Map(); let best = null, bc = 0; for (const v of arr) { if (v == null) continue; const c = (m.get(v) || 0) + 1; m.set(v, c); if (c > bc) { bc = c; best = v; } } return best; };
-
-  if (n < 8) F('few', 'info', 'Not much to go on yet', `Only ${n} attempt${n === 1 ? '' : 's'} counted. Most of the checks need 8 to 12, so patterns show up after a longer session.`);
-
-  // compared with earlier sessions
-  if (pAtts.length >= 10 && n >= 5) {
-    const cfgA = mode(atts.map((a) => a.cfg)), cfgB = mode(pAtts.map((a) => a.cfg));
-    const caveat = cfgA && cfgB && cfgA !== cfgB ? ' Your range or hold time differed from before, so this isn’t a like-for-like comparison.' : '';
-    test(permMedians(absOn, pAtts.map((a) => Math.abs(a.onset)), R), 'change from earlier sessions', (lv) => {
-      const better = out.medOn < out.prior.medOn;
-      F(better ? 'better' : 'worse', lv, better ? 'Better than your earlier sessions' : 'Worse than your earlier sessions',
-        `Median onset error was ${Math.round(out.medOn)}¢, against ${Math.round(out.prior.medOn)}¢ across ${pAtts.length} earlier attempts.${caveat}`);
-    });
-  }
-
-  // sharp / flat bias
-  { const nz = atts.filter((a) => Math.abs(a.onset) >= 1);
-    if (nz.length >= 8) {
-      const below = nz.filter((a) => a.onset < 0).length, flat = below * 2 > nz.length, k = flat ? below : nz.length - below;
-      test(signTest(below, nz.length), 'a sharp or flat tendency', (lv) => F(flat ? 'bias-flat' : 'bias-sharp', lv,
-        flat ? 'You tend to start flat' : 'You tend to start sharp',
-        `${k} of ${nz.length} onsets came in ${flat ? 'below' : 'above'} the target, with a median of ${fmtC(median(nz.map((a) => a.onset)))}.`));
-    } }
-
-  // which way corrections go
-  { const cs = atts.filter((a) => a.corr != null && Math.abs(a.corr) >= 5);
-    if (cs.length >= 6) {
-      const up = cs.filter((a) => a.corr > 0).length, isUp = up * 2 > cs.length, k = isUp ? up : cs.length - up;
-      test(signTest(up, cs.length), 'which way you correct', (lv) => F(isUp ? 'scoop-up' : 'scoop-down', lv,
-        isUp ? 'You slide up into notes' : 'You slide down into notes',
-        `${k} of ${cs.length} held notes moved ${isUp ? 'up' : 'down'} after the onset, by a median of ${Math.round(median(cs.map((a) => Math.abs(a.corr))))}¢.${isUp ? ' Starting under and sliding up is the classic scoop.' : ''}`));
-    } }
-
-  // effect of register
-  { const notes = new Set(atts.map((a) => a.midi));
-    if (n >= 10 && notes.size >= 3) {
-      const x = atts.map((a) => a.midi), y = atts.map((a) => a.onset), { r, p } = permCorr(x, y, R), sl = slope(x, y);
-      test(p, 'an effect of how high the note is', (lv) => F(sl < 0 ? 'register-centre' : 'register-spread', lv,
-        sl < 0 ? 'Your onsets lean toward the middle of your range' : 'You overshoot toward the edges of your range',
-        `${sl < 0 ? 'Low notes came out sharp and high notes flat' : 'High notes came out sharp and low notes flat'}, by about ${Math.abs(sl).toFixed(1)}¢ per semitone (r = ${r.toFixed(2)}).`));
-    } }
-
-  // pull from the previous note
-  { const ch = atts.filter((a) => a.prev != null && a.prev !== a.midi && Math.abs(a.onset) >= 1);
-    if (ch.length >= 8) {
-      const under = ch.filter((a) => a.onset * Math.sign(a.midi - a.prev) < 0).length, pulled = under * 2 > ch.length, k = pulled ? under : ch.length - under;
-      test(signTest(under, ch.length), 'a pull from the previous note', (lv) => F(pulled ? 'carryover' : 'overshoot-jump', lv,
-        pulled ? 'The previous note pulls on you' : 'You overshoot note changes',
-        pulled ? `After a jump up you tended to land low, and after a jump down, high. That happened on ${k} of ${ch.length} note changes.`
-               : `After a jump you tended to go past the new note, on ${k} of ${ch.length} note changes.`));
-    } }
-
-  // change within the session
-  if (n >= 12) {
-    const h = Math.floor(n / 2), a = absOn.slice(0, h), b = absOn.slice(n - h);
-    test(permMedians(a, b, R), 'change during the session', (lv) => {
-      const ma = median(a), mb = median(b);
-      F(mb < ma ? 'warmup' : 'fatigue', lv, mb < ma ? 'You got better as you went' : 'You got worse as you went',
-        `Median onset error went from ${Math.round(ma)}¢ in the first half to ${Math.round(mb)}¢ in the second.`);
-    });
-  }
-
-  // hold time (only when it varied, e.g. the random setting)
-  { const hs = atts.filter((a) => typeof a.hold === 'number'), distinct = new Set(hs.map((a) => Math.round(a.hold * 10)));
-    if (hs.length >= 10 && distinct.size >= 3) {
-      const { r, p } = permCorr(ranks(hs.map((a) => a.hold)), ranks(hs.map((a) => Math.abs(a.onset))), R);
-      test(p, 'an effect of hold time', (lv) => F(r > 0 ? 'hold-cost' : 'hold-help', lv,
-        r > 0 ? 'Longer holds cost you accuracy' : 'Longer holds helped',
-        `Onset error ${r > 0 ? 'grew' : 'shrank'} with the time you kept the note in your head (rank correlation ${r.toFixed(2)}).`));
-    } }
-
-  // onset vs settled
-  { const ws = atts.filter((a) => a.settled != null);
-    if (ws.length >= 5) {
-      const mo = median(ws.map((a) => Math.abs(a.onset))), ms = median(ws.map((a) => Math.abs(a.settled)));
-      if (ms > tol) F('settled-off', 'info', 'Your settled pitch is off too', `Even after correcting, you ended up ${Math.round(ms)}¢ from the target. Some of the error is in matching the pitch at all, not only in the first moment.`);
-      else if (mo > ms * 1.5 && mo - ms >= 5) F('ear-fixes', 'info', 'Your ear fixes the rest', `Onsets were ${Math.round(mo)}¢ off but you settled within ${Math.round(ms)}¢. You know where the note is. The gap is in reaching it before you can hear yourself.`);
-      else F('clean-onset', 'info', 'Little correction happening', `Your onsets (${Math.round(mo)}¢) were about as accurate as where you ended up (${Math.round(ms)}¢).`);
-    } }
-
-  // hardest note
-  { const by = new Map();
-    for (const a of atts) { if (!by.has(a.midi)) by.set(a.midi, []); by.get(a.midi).push(Math.abs(a.onset)); }
-    let worst = null;
-    for (const [m, v] of by) { if (v.length < 3) continue; const md = median(v); if (!worst || md > worst.md) worst = { m, md, n: v.length }; }
-    if (worst && out.medOn != null && worst.md >= Math.max(tol, out.medOn * 1.5))
-      F('hard-' + worst.m, 'info', `Hardest note: ${nname(worst.m)}`, `Median ${Math.round(worst.md)}¢ off over ${worst.n} tries, against ${Math.round(out.medOn)}¢ overall.`); }
-
-  // octave switches
-  { const oc = atts.filter((a) => a.oct).length;
-    if (oc >= 2 && oc / n >= 0.2) F('octave', 'info', 'You often sang in a different octave', `${oc} of ${n} onsets were an octave or more from the tone. They count as the same note while "Any octave counts" is on.`); }
-
-  const order = { clear: 0, maybe: 1, info: 2 };
-  out.findings.sort((a, b) => order[a.level] - order[b.level]);
-  return out;
+function stopClip() {
+  if (!playing) return;
+  const p = playing; playing = null;
+  cancelAnimationFrame(p.raf);
+  try { p.src.stop(); } catch (e) {}
+  p.btn.textContent = '▶ Hear it';
+  const line = p.rollEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
 }
-
-/* ---------- report ---------- */
-let reportSid = null;
-const fmtWhen = (ts) => new Date(ts).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-
-function showReport(sid, scroll) {
-  reportSid = sid; $('#report').hidden = false; renderReport();
-  if (scroll) { const rm = matchMedia('(prefers-reduced-motion: reduce)').matches; $('#report').scrollIntoView({ behavior: rm ? 'auto' : 'smooth', block: 'start' }); }
-}
-function renderReport() {
-  if (!reportSid) return;
-  const idx = sessions.findIndex((s) => s.id === reportSid);
-  if (idx < 0) { reportSid = null; $('#report').hidden = true; return; }
-  const s = sessions[idx], tol = settings.tol;
-  const earlier = new Set(sessions.slice(0, idx).map((x) => x.id));
-  const all = sessAtts(s.id), prior = history.filter((a) => earlier.has(a.sid));
-  const A = analyseSession(all, prior, s.id + ':' + all.length);
-  const prevKeys = new Set();
-  if (idx > 0) {
-    const ps = sessions[idx - 1], pa = sessAtts(ps.id);
-    analyseSession(pa, [], ps.id + ':' + pa.length).findings.filter((f) => f.level !== 'info').forEach((f) => prevKeys.add(f.key));
-  }
-  const mins = Math.max(1, Math.round((s.end - s.start) / 60000));
-  $('#repTitle').textContent = `Session ${idx + 1}${s.closed ? '' : ', so far'}`;
-  $('#repMeta').textContent = `${fmtWhen(s.start)} · ${A.n} attempt${A.n === 1 ? '' : 's'} counted${A.voided ? `, ${A.voided} voided` : ''} · ${mins} min`;
-  const P = A.prior;
-  const stat = (v, label, was) => `<div class="stat"><div class="v">${v}</div><div class="s">${label}</div>${was ? `<div class="s">${was}</div>` : ''}</div>`;
-  $('#repStats').innerHTML =
-    stat(pct(A.hit), `onsets within ±${tol}¢`, P ? `earlier: ${pct(P.hit)}` : '') +
-    stat(cents0(A.medOn), 'typical onset error', P ? `earlier: ${cents0(P.medOn)}` : '') +
-    stat(cents0(A.medSet), 'typical settled error', P ? `earlier: ${cents0(P.medSet)}` : '') +
-    stat(cents0(A.medCorr), 'typical correction', P ? `earlier: ${cents0(P.medCorr)}` : '');
-  const LV = { clear: 'Clear', maybe: 'Possible', info: 'Note' };
-  $('#repFindings').innerHTML = A.findings.length
-    ? A.findings.map((f) => `<div class="finding"><span class="lv lv-${f.level}">${LV[f.level]}</span><div><h3>${f.title}${f.level !== 'info' && prevKeys.has(f.key) ? '<span class="again">also last session</span>' : ''}</h3><p>${f.body}</p></div></div>`).join('')
-    : `<div class="finding"><span class="lv lv-info">Note</span><div><h3>No clear patterns</h3><p>Nothing in this session stood out from ordinary variation.</p></div></div>`;
-  $('#repFoot').textContent = (A.quiet.length ? `Checked with nothing clear: ${A.quiet.join(', ')}. ` : '') +
-    'Clear means unlikely to be chance (p < 0.05). Possible means worth watching (p < 0.15). Each report runs several checks, so the odd fluke is expected. Trust patterns that come back across sessions.';
-  drawNotes(all.filter((a) => !a.peek), tol);
-}
-
-function drawNotes(atts, tol) {
-  const { g, w, h } = prep($('#repNotes'));
-  if (!w) return;
-  const C = { ink: tok('--ink'), muted: tok('--muted'), line: tok('--line'), band: tok('--band'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
-  const padL = 46, padR = 10, padT = 8, padB = 24;
-  g.font = `11px ${tok('--mono') || 'monospace'}`;
-  if (!atts.length) { g.fillStyle = C.muted; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('No counted attempts', w / 2, h / 2); return; }
-  const lo = Math.min(...atts.map((a) => a.midi)), hi = Math.max(...atts.map((a) => a.midi)), cols = hi - lo + 1;
-  const maxAbs = Math.max(...atts.map((a) => Math.abs(a.onset)));
-  const range = Math.min(300, Math.max(75, Math.ceil((maxAbs + 10) / 25) * 25));
-  const colW = (w - padL - padR) / cols;
-  const X = (m) => padL + (m - lo + 0.5) * colW;
-  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
-  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
-  g.textBaseline = 'middle'; g.textAlign = 'right'; g.lineWidth = 1;
-  for (const c of [-range, 0, range]) {
-    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
-    g.fillStyle = C.muted; g.fillText(c === 0 ? '0¢' : fmtC(c), padL - 8, Y(c));
-  }
-  const every = colW < 30 ? Math.ceil(30 / colW) : 1;
-  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = C.muted;
-  for (let m = lo; m <= hi; m++) if ((m - lo) % every === 0) g.fillText(nname(m), X(m), h - padB + 7);
-  const byNote = new Map();
-  atts.forEach((a, i) => {
-    if (!byNote.has(a.midi)) byNote.set(a.midi, []);
-    const list = byNote.get(a.midi); list.push(a.onset);
-    const jit = ((i * 0.618) % 1 - 0.5) * Math.min(14, colW * 0.5);
-    g.fillStyle = C[cls(a.onset, tol)]; g.globalAlpha = 0.85;
-    g.beginPath(); g.arc(X(a.midi) + jit, Y(a.onset), 3.5, 0, Math.PI * 2); g.fill();
+let mapMode = 'start';
+function drawKeysMap() {
+  const r = summaryRun; if (!r) return;
+  const land = mapMode === 'land', val = (n) => land ? n.settled : n.onset, score = (n) => land ? n.landAcc : n.acc;
+  for (const b of document.querySelectorAll('[data-map]')) b.setAttribute('aria-pressed', String(b.dataset.map === mapMode));
+  $('#mapCap').textContent = land ? 'Each dot is where that note ended up. ▼ means you landed flat, ▲ sharp. Hover a key for details.'
+    : 'Each dot is how you started that note. ▼ means you started flat, ▲ sharp. Hover a key for details.';
+  const by = new Map();
+  for (const n of r.notes) if (n.kind === 'ok' && val(n) != null) { if (!by.has(n.midi)) by.set(n.midi, []); by.get(n.midi).push(n); }
+  const el = $('#keysMap');
+  const geo = keyboard(el, r.lo, r.hi, {
+    H: 118, aria: `Keyboard across your range, with a dot on each note showing ${land ? 'where you landed' : 'how you started'}`,
+    fill: (m) => m < r.lo || m > r.hi ? 'var(--key-out)' : null,
+    label: (m) => m === r.lo || m === r.hi ? 'bold' : pc(m) === 0 ? 'muted' : null,
+    marks: (g, kw) => {
+      let s = '';
+      for (const [m, list] of by) {
+        const k = g.get(m), c = median(list.map(val)), t = tierOf(c), rad = clamp(kw * (k.white ? 0.34 : 0.26), 5, 11);
+        s += `<g data-tone="${t.tone}"><circle cx="${k.x}" cy="${k.y}" r="${rad}" fill="var(--tone)" stroke="var(--surface)" stroke-width="2"/>`;
+        if (rad >= 8) s += `<text x="${k.x}" y="${k.y + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${rad * 1.05}" font-weight="800" fill="var(--tone-ink)">${t.icon}</text>`;
+        s += '</g>';
+        if (Math.abs(c) >= 15) s += `<text x="${k.x}" y="${k.y - rad - 5}" text-anchor="middle" font-size="${clamp(rad, 8, 11)}" fill="var(${k.white ? '--ink-2' : '--key-white'})">${c < 0 ? '▼' : '▲'}</text>`;
+      }
+      for (const [m, k] of g) s += `<rect class="hit" data-m="${m}" x="${k.x0}" y="0" width="${k.w}" height="${k.h}" fill="transparent"/>`;
+      return s;
+    },
   });
-  g.globalAlpha = 1; g.strokeStyle = C.ink; g.lineWidth = 2.5;
-  for (const [m, v] of byNote) { const md = median(v), hw = Math.min(11, colW * 0.4); g.beginPath(); g.moveTo(X(m) - hw, Y(md)); g.lineTo(X(m) + hw, Y(md)); g.stroke(); }
-}
-
-/* ---------- progress ---------- */
-function sessionRows() {
-  return sessions.map((s, i) => {
-    const at = sessAtts(s.id).filter((a) => !a.peek);
-    return { s, i, ...summarise2(at, settings.tol) };
-  }).filter((x) => x.n > 0);
-}
-function renderProgress() {
-  const S = sessionRows();
-  $('#progMeta').textContent = S.length ? `${S.length} session${S.length === 1 ? '' : 's'}` : '';
-  drawProgress(S);
-  $('#progTable').innerHTML = S.length ? `<table><thead><tr><th>Session</th><th>Attempts</th><th>Hits</th><th>Onset</th><th>Settled</th><th>Correction</th><th></th></tr></thead><tbody>${
-    [...S].reverse().map((x) => `<tr><td>#${x.i + 1} · ${new Date(x.s.start).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}${x.s.closed ? '' : ' · now'}</td><td>${x.n}</td><td>${pct(x.hit)}</td><td>${cents0(x.medOn)}</td><td>${cents0(x.medSet)}</td><td>${cents0(x.medCorr)}</td><td><button class="linkbtn" type="button" data-sid="${x.s.id}">Report</button></td></tr>`).join('')
-  }</tbody></table>` : '<p class="empty">Each session you finish shows up here.</p>';
-}
-function drawProgress(S) {
-  const { g, w, h } = prep($('#progChart'));
-  if (!w) return;
-  const C = { ink: tok('--trace'), muted: tok('--muted'), line: tok('--line'), accent: tok('--accent') };
-  const padL = 46, padR = 16, padT = 10, padB = 24;
-  g.font = `11px ${tok('--mono') || 'monospace'}`;
-  if (!S.length) { g.fillStyle = C.muted; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `13px ${tok('--sans') || 'sans-serif'}`; g.fillText('Your sessions will be charted here', w / 2, h / 2); return; }
-  const vals = S.flatMap((x) => [x.medOn, x.medSet]).filter((v) => v != null);
-  const top = Math.max(40, Math.ceil((Math.max(...vals) + 5) / 20) * 20);
-  const X = (i) => S.length === 1 ? (padL + w - padR) / 2 : padL + 12 + i / (S.length - 1) * (w - padL - padR - 24);
-  const Y = (v) => padT + (1 - v / top) * (h - padT - padB);
-  g.textBaseline = 'middle'; g.textAlign = 'right'; g.lineWidth = 1;
-  for (const v of [0, top / 2, top]) {
-    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(v)) + 0.5); g.lineTo(w - padR, Math.round(Y(v)) + 0.5); g.stroke();
-    g.fillStyle = C.muted; g.fillText(Math.round(v) + '¢', padL - 8, Y(v));
-  }
-  g.textAlign = 'center'; g.textBaseline = 'top';
-  const every = Math.ceil(S.length / Math.max(1, Math.floor((w - padL - padR) / 40)));
-  S.forEach((x, i) => { if (i % every === 0 || i === S.length - 1) g.fillText('#' + (x.i + 1), X(i), h - padB + 7); });
-  const line = (key, color, dash, dot) => {
-    g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 2; g.setLineDash(dash); g.beginPath(); let pen = false;
-    S.forEach((x, i) => { const v = x[key]; if (v == null) { pen = false; return; } if (!pen) { g.moveTo(X(i), Y(v)); pen = true; } else g.lineTo(X(i), Y(v)); });
-    g.stroke(); g.setLineDash([]);
-    if (dot) S.forEach((x, i) => { if (x[key] != null) { g.beginPath(); g.arc(X(i), Y(x[key]), i === S.length - 1 ? 4.5 : 3, 0, Math.PI * 2); g.fill(); } });
+  // key tooltips: black keys are drawn last, so they win where they overlap white keys
+  let tip = el.querySelector('.tip-pop'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip-pop'; tip.hidden = true; el.style.position = 'relative'; el.appendChild(tip); }
+  const svg = el.querySelector('svg');
+  const hover = (e) => {
+    const h = e.target.closest && e.target.closest('.hit'); if (!h) { tip.hidden = true; return; }
+    const m = +h.dataset.m, list = by.get(m) || [], k = geo.get(m), box = svg.getBoundingClientRect(), sc = box.width / svg.viewBox.baseVal.width;
+    tip.textContent = list.length ? `${nname(m)} · ${land ? 'landing' : 'start'} ${Math.round(mean(list.map(score)))}% · ${land ? 'ended' : 'started'} ${off(median(list.map(val)))}${list.length > 1 ? ` · ${list.length} notes` : ''}` : `${nname(m)} · ${land ? 'no landing scored' : 'not sung'} this round`;
+    placeTip(tip, k.x * sc, k.y * sc - 16, box.width);
   };
-  line('medSet', C.muted, [5, 4], false);
-  line('medOn', C.accent, [], true);
+  svg.addEventListener('pointermove', hover); svg.addEventListener('pointerdown', hover);
+  svg.addEventListener('pointerleave', () => { tip.hidden = true; });
 }
 
-function finishSession() {
-  if (busyPhase()) return;
-  const s = currentSession(); if (!s) return;
-  clearTimeout(autoTimer);
-  s.closed = true; save();
-  renderSession(); renderProgress(); showReport(s.id, true);
-  setPhase(phase === 'intro' || phase === 'lost' ? phase : 'scored');
+/* ---------- progress across rounds ---------- */
+const fmtDay = (ts) => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+const fmtWhen = (ts) => new Date(ts).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+function renderHistory() {
+  const el = $('#histChart'), n = rounds.length;
+  $('#histMeta').textContent = n ? `${n} round${n === 1 ? '' : 's'}` : '';
+  $('#histLegend').hidden = $('#histTbl').hidden = !n;
+  if (!n) { el.innerHTML = '<p class="empty">Finish a round and your start and landing scores show up here.</p>'; el._g = null; $('#histTrend').hidden = true; return; }
+  const Wd = Math.max(260, el.clientWidth || 480), H = 170, padL = 40, padR = 12, padT = 12, padB = 24;
+  const X = (i) => n === 1 ? (padL + Wd - padR) / 2 : padL + 8 + i / (n - 1) * (Wd - padL - padR - 16);
+  const Y = (v) => padT + (1 - v / 100) * (H - padT - padB);
+  let s = '';
+  for (const v of [0, 50, 100]) s += `<line x1="${padL}" x2="${Wd - padR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${padL - 8}" y="${Y(v)}" text-anchor="end" dominant-baseline="central" font-size="11" font-weight="700" fill="var(--muted)">${v}%</text>`;
+  for (const [k, col] of [['landing', 'var(--ink-2)'], ['score', 'var(--accent)']]) {   // start drawn last, on top
+    let d = '';
+    rounds.forEach((r, i) => { if (r[k] != null) d += `${d ? 'L' : 'M'}${X(i).toFixed(1)},${Y(r[k]).toFixed(1)}`; });
+    s += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    rounds.forEach((r, i) => { if (r[k] != null && (n <= 40 || i === n - 1)) s += `<circle cx="${X(i)}" cy="${Y(r[k])}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>`; });
+  }
+  s += `<text x="${X(0)}" y="${H - 6}" font-size="11" font-weight="700" fill="var(--muted)" text-anchor="${n === 1 ? 'middle' : 'start'}">${fmtDay(rounds[0].ts)}</text>`;
+  if (n > 1) s += `<text x="${X(n - 1)}" y="${H - 6}" font-size="11" font-weight="700" fill="var(--muted)" text-anchor="end">${fmtDay(rounds[n - 1].ts)}</text>`;
+  s += `<g class="xh" visibility="hidden"><line y1="${padT}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity=".3"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Start and landing score for each round">${s}</svg><div class="tip-pop" hidden></div>`;
+  el._g = { Wd, H, X, Y, n };
+  if (!el._wired) {
+    el._wired = true;
+    const move = (e) => {
+      const g = el._g; if (!g) return;
+      const svg = el.querySelector('svg'), box = svg.getBoundingClientRect(), x = (e.clientX - box.left) * g.Wd / box.width;
+      let i = 0; for (let j = 0; j < g.n; j++) if (Math.abs(g.X(j) - x) < Math.abs(g.X(i) - x)) i = j;
+      const r = rounds[i], tip = el.querySelector('.tip-pop'), xh = el.querySelector('.xh line');
+      xh.setAttribute('x1', g.X(i)); xh.setAttribute('x2', g.X(i)); el.querySelector('.xh').setAttribute('visibility', 'visible');
+      tip.textContent = `${fmtWhen(r.ts)} · start ${r.score}% · landing ${r.landing == null ? '—' : r.landing + '%'}`;
+      placeTip(tip, g.X(i) * box.width / g.Wd, g.Y(Math.max(r.score, r.landing ?? 0)) * box.height / g.H - 12, box.width);
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerdown', move);
+    el.addEventListener('pointerleave', () => { const t = el.querySelector('.tip-pop'); if (t) t.hidden = true; const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
+  }
+  if (n >= 6) {
+    const k = Math.min(5, Math.floor(n / 2)), a = rounds.slice(-2 * k, -k), b = rounds.slice(-k);
+    const avg = (g, key) => Math.round(mean(g.filter((r) => r[key] != null).map((r) => r[key])));
+    $('#histTrend').textContent = `Your last ${k} rounds averaged ${avg(b, 'score')}% at the start and ${avg(b, 'landing')}% landing, against ${avg(a, 'score')}% and ${avg(a, 'landing')}% for the ${k} before.`;
+    $('#histTrend').hidden = false;
+  } else $('#histTrend').hidden = true;
+  $('#histTable').innerHTML = `<table><thead><tr><th>When</th><th>Range</th><th>Start</th><th>Landing</th><th></th></tr></thead><tbody>${
+    [...rounds].reverse().map((r) => `<tr><td>${fmtWhen(r.ts)}</td><td>${nname(r.lo)}–${nname(r.hi)}</td><td>${r.score}%</td><td>${r.landing == null ? '—' : r.landing + '%'}</td><td><button type="button" class="linkbtn" data-open="${r.ts}">Open</button></td></tr>`).join('')}</tbody></table>`;
+  dataLine();
 }
-
-/* ---------- wiring ---------- */
-$('#finish').addEventListener('click', finishSession);
-$('#repClose').addEventListener('click', () => { $('#report').hidden = true; reportSid = null; });
-$('#progTable').addEventListener('click', (e) => { const b = e.target.closest('[data-sid]'); if (b) showReport(b.dataset.sid, true); });
-$('#export').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ app: 'cold-pitch', version: 1, exported: new Date().toISOString(), settings, sessions, history })], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cold-pitch-${new Date().toISOString().slice(0, 10)}.json`;
+let clipCount = 0;
+function dataLine() {
+  $('#dataMsg').textContent = `Every note’s pitch curve is kept in this browser${clipCount ? `, with ${clipCount} recording${clipCount === 1 ? '' : 's'}` : ''}. Export to back it up or move it to another device.`;
+}
+function download(parts, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(parts, { type: 'application/json' })); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  $('#ioMsg').textContent = `Exported ${history.length} attempts.`;
+}
+const today = () => new Date().toISOString().slice(0, 10);
+function toB64(i16) {
+  const u8 = new Uint8Array(i16.buffer, i16.byteOffset, i16.byteLength); let s = '';
+  for (let k = 0; k < u8.length; k += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(k, k + 0x8000));
+  return btoa(s);
+}
+function fromB64(str) { const bin = atob(str), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k); return new Int16Array(u8.buffer); }
+$('#histTable').addEventListener('click', (e) => { const b = e.target.closest('[data-open]'); if (b) { const rec = rounds.find((r) => r.ts === +b.dataset.open); if (rec) openRound(rec); } });
+$('#keepAudio').addEventListener('change', (e) => { settings.keepAudio = e.target.checked; saveSettings(); });
+$('#exportAudioBtn').addEventListener('click', async () => {
+  let clips = [];
+  try { clips = await DB.clips(); } catch (e) {}
+  if (!clips.length) { $('#dataMsg').textContent = 'No recordings to export yet.'; return; }
+  // Written in pieces so a big export never becomes one giant string. Samples are 16-bit little-endian, base64.
+  const parts = ['{"app":"cold-pitch-audio","version":1,"format":"pcm_s16le","exported":"' + new Date().toISOString() + '","clips":['];
+  clips.forEach((c, i) => parts.push((i ? ',' : '') + JSON.stringify({ id: c.id, round: c.round, note: c.note, midi: c.midi, sr: c.sr, t0: c.t0, pcm: toB64(c.pcm) })));
+  parts.push(']}');
+  download(parts, `cold-pitch-recordings-${today()}.json`);
+  $('#dataMsg').textContent = `Exported ${clips.length} recording${clips.length === 1 ? '' : 's'}.`;
 });
-$('#import').addEventListener('click', () => $('#importFile').click());
+$('#exportBtn').addEventListener('click', () => {
+  download([JSON.stringify({ app: 'cold-pitch-rounds', version: 1, exported: new Date().toISOString(), settings, rounds })], `cold-pitch-rounds-${today()}.json`);
+  $('#dataMsg').textContent = `Exported ${rounds.length} round${rounds.length === 1 ? '' : 's'}.`;
+});
+$('#importBtn').addEventListener('click', () => $('#importFile').click());
 $('#importFile').addEventListener('change', async (e) => {
-  const f = e.target.files[0]; if (!f) return;
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try {
     const d = JSON.parse(await f.text());
-    if (!Array.isArray(d.history)) throw new Error('bad');
-    const seen = new Set(history.map((a) => a.ts + ':' + a.midi)); let added = 0;
-    for (const a of d.history) if (a && typeof a.onset === 'number' && typeof a.midi === 'number' && !seen.has(a.ts + ':' + a.midi)) { history.push(a); added++; }
-    const ids = new Set(sessions.map((s) => s.id));
-    for (const s of d.sessions || []) if (s && s.id && !ids.has(s.id)) sessions.push({ id: s.id, start: s.start, end: s.end, closed: true });
-    history.sort((a, b) => a.ts - b.ts); tidySessions(); save();
-    renderSession(); renderProgress(); renderReport();
-    $('#ioMsg').textContent = `Imported ${added} new attempt${added === 1 ? '' : 's'}.`;
-  } catch (err) { $('#ioMsg').textContent = 'That file couldn’t be read as Cold Pitch data.'; }
-  e.target.value = '';
+    if (d.app === 'cold-pitch-audio' && Array.isArray(d.clips)) {
+      const have = new Set(await DB.clipKeys());
+      const fresh = d.clips.filter((c) => c && typeof c.id === 'string' && typeof c.pcm === 'string' && !have.has(c.id)).map((c) => ({ ...c, pcm: fromB64(c.pcm) }));
+      await DB.putClips(fresh); clipCount += fresh.length;
+      $('#dataMsg').textContent = `Imported ${fresh.length} new recording${fresh.length === 1 ? '' : 's'}.`;
+      return;
+    }
+    if (d.app !== 'cold-pitch-rounds' || !Array.isArray(d.rounds)) throw new Error('not ours');
+    const have = new Set(rounds.map((r) => r.ts));
+    const fresh = d.rounds.filter((r) => r && typeof r.ts === 'number' && typeof r.score === 'number' && Array.isArray(r.notes) && !have.has(r.ts));
+    await DB.putRounds(fresh);
+    rounds = [...rounds, ...fresh].sort((a, b) => a.ts - b.ts);
+    renderHistory();
+    $('#dataMsg').textContent = `Imported ${fresh.length} new round${fresh.length === 1 ? '' : 's'}.`;
+  } catch (err) { $('#dataMsg').textContent = 'That file couldn’t be read as Cold Pitch data.'; }
 });
-$('#go').addEventListener('click', () => next(false));
-$('#same').addEventListener('click', () => next(true));
-$('#hear').addEventListener('click', hearAgain);
-$('#recal').addEventListener('click', () => { if (ctx && (!round || round.state === 'done')) calibrate().then((ok) => { if (ok) setPhase(lastMidi == null ? 'intro' : 'scored'); }); });
+DB.clipKeys().then((k) => { clipCount = k.length; dataLine(); }).catch(() => {});
+DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistory(); })
+  .catch(() => { $('#dataMsg').textContent = 'This browser won’t let the page store rounds, so they’ll be lost when it closes. Export after each session to keep them.'; });
+
+/* ---------- wiring ---------- */
+$('#loDown').addEventListener('click', () => nudge('lo', -1));
+$('#loUp').addEventListener('click', () => nudge('lo', 1));
+$('#hiDown').addEventListener('click', () => nudge('hi', -1));
+$('#hiUp').addEventListener('click', () => nudge('hi', 1));
+for (const b of document.querySelectorAll('[data-hold]')) b.addEventListener('click', () => { settings.hold = b.dataset.hold; saveSettings(); renderRange(); });
+// Preview a voice in the middle of the range. Before a round there's no audio context yet, so make a small one.
+let pctx = null;
+for (const b of document.querySelectorAll('[data-voice]')) b.addEventListener('click', () => {
+  settings.voice = b.dataset.voice; saveSettings(); renderRange();
+  const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
+  if (ac.state !== 'running') ac.resume().catch(() => {});
+  playTone(ac, Math.round((settings.lo + settings.hi) / 2), ac.currentTime + 0.05, TONE, settings.voice);
+});
+$('#startBtn').addEventListener('click', () => startRound(false));
+$('#demoBtn').addEventListener('click', () => startRound(true));
+$('#quitBtn').addEventListener('click', askQuit);
+$('#pauseBtn').addEventListener('click', togglePause);
+$('#againBtn').addEventListener('click', () => startRound(summaryRun ? summaryRun.sim : false));
+$('#homeBtn').addEventListener('click', () => { show('home'); renderRange(); });
+for (const b of document.querySelectorAll('[data-map]')) b.addEventListener('click', () => { mapMode = b.dataset.map; drawKeysMap(); });
+$('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pickDetail(+b.dataset.i, false); });
 document.addEventListener('keydown', (e) => {
-  if (e.target.closest && e.target.closest('input,select,textarea,button,summary')) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const busy = ['calib', 'tone', 'hold', 'sing', 'capture'].includes(phase);
-  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!busy) next(false); }
-  else if ((e.key === 'r' || e.key === 'R') && !busy && lastMidi != null) next(true);
-  else if ((e.key === 'h' || e.key === 'H') && !busy) hearAgain();
+  const inRun = !$('#run').hidden;
+  if (e.key === 'Escape' && inRun && $('#msg').hidden) { e.preventDefault(); askQuit(); return; }
+  if (e.key !== ' ' || (e.target.closest && e.target.closest('button,input,select,textarea'))) return;
+  if (!$('#home').hidden) { e.preventDefault(); startRound(false); }
+  else if (inRun && !$('#sheet').hidden && $('#msg').hidden) { e.preventDefault(); togglePause(); }
 });
 let rz = null;
-const redraw = () => { clearTimeout(rz); rz = setTimeout(() => { renderResult(); renderSession(); renderProgress(); renderReport(); }, 60); };
-window.addEventListener('resize', redraw);
-try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw); } catch (e) {}
-new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => {
+  renderRange(); if (!$('#summary').hidden) drawKeysMap();
+  for (const el of document.querySelectorAll('.roll')) if (el._n && el.offsetParent) drawRoll(el);
+}, 80); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
 
-updateMeta(); setPhase('intro'); renderResult(); renderSession(); renderProgress();
+renderRange();
 requestAnimationFrame(tick);
 })();
 </script>

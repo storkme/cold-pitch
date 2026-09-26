@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cold Pitch</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B45E8'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEEF2; --surface:#FFFFFF; --surface-2:#F4F5F8; --ink:#14161B; --muted:#5A6070; --line:#D6DAE2;
+  --accent:#24507A; --accent-ink:#FFFFFF; --hit:#1D7A52; --near:#A86A12; --miss:#B03E36;
+  --band:rgba(29,122,82,.13); --win:rgba(36,80,122,.09); --trace:#14161B;
+  --sans:"Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1115; --surface:#171A20; --surface-2:#1E2229; --ink:#E6E8ED; --muted:#949BAA; --line:#2A2F38;
+    --accent:#7FAEDB; --accent-ink:#0D1622; --hit:#43B883; --near:#E0A33A; --miss:#E4695F;
+    --band:rgba(67,184,131,.15); --win:rgba(127,174,219,.10); --trace:#E6E8ED;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1115; --surface:#171A20; --surface-2:#1E2229; --ink:#E6E8ED; --muted:#949BAA; --line:#2A2F38;
+  --accent:#7FAEDB; --accent-ink:#0D1622; --hit:#43B883; --near:#E0A33A; --miss:#E4695F;
+  --band:rgba(67,184,131,.15); --win:rgba(127,174,219,.10); --trace:#E6E8ED;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px;padding-block:28px 56px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:16px}
+h1,h2{margin:0;text-wrap:balance}
+h1{font-size:30px;font-weight:800;letter-spacing:-.015em;line-height:1.1}
+h2{font-size:17px;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;padding-bottom:4px}
+header .sub{color:var(--muted);max-width:58ch;margin-top:6px}
+header .back{margin-bottom:10px;font-size:14px}
+header .back a{color:var(--accent);font-weight:500;text-underline-offset:3px}
+.pill{display:inline-flex;align-items:center;gap:8px;font:12px/1 var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--surface)}
+.meter{position:relative;width:64px;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;width:0;background:var(--muted);transition:width 60ms linear}
+.meter i.on{background:var(--hit)}
+.meter b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);left:40%}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.eyebrow,.phase{font:500 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* stage */
+.stage{display:grid;gap:10px}
+.phase-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.phase[data-p="sing"]{color:var(--accent)}
+.prompt{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.1;min-height:44px}
+.prompt[data-p="sing"]{color:var(--accent)}
+.hint{color:var(--muted);min-height:1.5em}
+.holdbar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.holdbar i{display:block;height:100%;width:0;background:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.btn{font:600 15px/1 var(--sans);padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);min-width:132px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.keys{font:12px/1.4 var(--mono);color:var(--muted)}
+.err{color:var(--miss);font-weight:500}
+
+/* result */
+.result{display:grid;gap:16px}
+.result-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.onset{display:flex;align-items:center;gap:12px;margin-top:8px}
+.onset .big{font:500 54px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.chip{font:600 12px/1 var(--sans);padding:6px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.c-hit{color:var(--hit)} .c-near{color:var(--near)} .c-miss{color:var(--miss)}
+.result .sub{color:var(--muted);font-size:13px;margin-top:6px}
+.target{text-align:right}
+.target .v{font:500 18px/1.2 var(--mono)}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.metric{background:var(--surface);padding:12px 14px;display:grid;gap:4px}
+.metric .v{font:500 22px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.metric .s{font-size:12.5px;color:var(--muted)}
+canvas{display:block;width:100%}
+#trace{height:230px}
+#hist{height:130px}
+.caption{font-size:12.5px;color:var(--muted)}
+.warn{color:var(--near);font-weight:500;font-size:14px}
+.badge{display:inline-block;margin-left:8px;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:5px;background:var(--surface-2);color:var(--muted);vertical-align:2px}
+
+/* session */
+.session{display:grid;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px 16px}
+.stat .v{font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.stat .s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:13px/1.3 var(--mono);font-variant-numeric:tabular-nums}
+th{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+.empty{color:var(--muted);font-size:14px}
+.btn.small{font-size:13.5px;padding:8px 12px;border-radius:8px}
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* report + progress */
+.report{display:grid;gap:18px;border-color:var(--accent)}
+.report .sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.findings{display:grid;border-top:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:78px 1fr;gap:4px 14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.finding .lv{font:600 11px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;padding-top:4px}
+.lv-clear{color:var(--accent)} .lv-maybe{color:var(--near)} .lv-info{color:var(--muted)}
+.finding h3{margin:0 0 3px;font-size:15px;font-weight:700}
+.finding p{font-size:14px;max-width:64ch}
+.again{display:inline-block;margin-left:8px;font:500 10.5px/1 var(--mono);letter-spacing:.04em;color:var(--hit);border:1px solid currentColor;border-radius:5px;padding:3px 5px;vertical-align:2px;white-space:nowrap}
+#repNotes,#progChart{height:180px}
+.linkbtn{font:500 13px var(--sans);color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+td .linkbtn{font-family:var(--sans)}
+@media (max-width:520px){ .finding{grid-template-columns:1fr} }
+
+/* settings */
+details.card{padding:0}
+summary{cursor:pointer;padding:16px 20px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:500 18px/1 var(--mono);color:var(--muted)}
+details[open] summary::after{content:"−"}
+.dbody{padding:0 20px 20px;display:grid;gap:16px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 18px}
+.field{display:grid;gap:6px}
+.field label,.check label{font-size:13px;font-weight:500}
+.field .s,.check .s{font-size:12px;color:var(--muted)}
+select{font:14px var(--sans);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+.check{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start}
+.check input{margin:3px 0 0;width:18px;height:18px;accent-color:var(--accent)}
+.check .s{grid-column:2}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.notes ul{margin:0;padding-left:18px;display:grid;gap:8px;max-width:66ch}
+.notes li{color:var(--ink)}
+.notes li b{font-weight:700}
+.notes p{color:var(--muted);max-width:66ch}
+@media (max-width:520px){
+  .prompt{font-size:32px}
+  .onset .big{font-size:44px}
+  .metrics{grid-template-columns:1fr}
+  .target{text-align:left}
+}
+@media (prefers-reduced-motion: reduce){ .meter i{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <p class="back"><a href="./">← Back to rounds</a></p>
+    <h1>Cold Pitch</h1>
+    <p class="sub">Hear a note, keep it in your head, then sing it straight on. Only the first 100&nbsp;ms of your voice counts, before your ear has time to correct it.</p>
+  </div>
+  <span class="pill" title="Microphone level. The black tick is the threshold for detecting your voice."><span id="micText">Mic off</span><span class="meter"><i id="lvl"></i><b id="thr"></b></span></span>
+</header>
+
+<section class="card stage" aria-live="polite">
+  <div class="phase-row">
+    <span class="phase" id="phase">Ready</span>
+    <span class="eyebrow" id="meta"></span>
+  </div>
+  <div class="prompt" id="prompt">Press Start</div>
+  <p class="hint" id="hint">Your browser will ask for the microphone. Stay quiet for a second while it measures the room.</p>
+  <div class="holdbar" id="holdbar" hidden><i id="holdfill"></i></div>
+  <div class="actions">
+    <button class="btn primary" id="go" type="button">Start</button>
+    <button class="btn" id="same" type="button" disabled>Same note</button>
+    <button class="btn" id="hear" type="button" disabled>Hear it again</button>
+  </div>
+  <p class="keys">Space: next note · R: same note · H: hear it again</p>
+  <p class="err" id="err" hidden></p>
+</section>
+
+<section class="card result">
+  <div class="result-head">
+    <div>
+      <div class="eyebrow"><span id="resLabel">Onset</span><span class="badge" id="exBadge">Example</span></div>
+      <div class="onset"><span class="big" id="onsetVal">—</span><span class="chip" id="onsetChip">—</span></div>
+      <div class="sub">median pitch over the first <span id="winLabel">100</span> ms after your voice starts</div>
+    </div>
+    <div class="target">
+      <div class="eyebrow">Target</div>
+      <div class="v" id="targetVal">—</div>
+    </div>
+  </div>
+  <div class="metrics">
+    <div class="metric"><span class="eyebrow">Settled</span><span class="v" id="settledVal">—</span><span class="s">where the note ended up</span></div>
+    <div class="metric"><span class="eyebrow">Correction</span><span class="v" id="corrVal">—</span><span class="s" id="corrSub">onset to settled</span></div>
+    <div class="metric"><span class="eyebrow">Landed in</span><span class="v" id="landVal">—</span><span class="s" id="landSub">time to get within tolerance</span></div>
+  </div>
+  <canvas id="trace" aria-label="Pitch trace of the last attempt, in cents relative to the target"></canvas>
+  <p class="caption" id="traceCap">Pitch relative to the target over time. Green band: ±25¢ tolerance. Tinted column: the onset window.</p>
+  <p class="warn" id="peekWarn" hidden>You made a sound during the hold, so this attempt isn't counted in your stats.</p>
+</section>
+
+<section class="card report" id="report" hidden aria-live="polite">
+  <div class="phase-row">
+    <div><h2 id="repTitle">Session report</h2><p class="sub" id="repMeta"></p></div>
+    <button class="btn small" id="repClose" type="button">Close</button>
+  </div>
+  <div class="stats" id="repStats"></div>
+  <div class="findings" id="repFindings"></div>
+  <div>
+    <canvas id="repNotes" aria-label="Onset error by target note"></canvas>
+    <p class="caption">Onset error for each attempt, by target note. The short bar is that note's median. Green band: tolerance.</p>
+  </div>
+  <p class="caption" id="repFoot"></p>
+</section>
+
+<section class="card session">
+  <div class="phase-row"><h2>This session</h2><div class="head-actions"><span class="eyebrow" id="histMeta"></span><button class="btn small" id="finish" type="button" disabled>Finish session</button></div></div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="sN">—</div><div class="s">attempts counted</div></div>
+    <div class="stat"><div class="v" id="sHit">—</div><div class="s" id="sHitSub">onsets within ±25¢</div></div>
+    <div class="stat"><div class="v" id="sOn">—</div><div class="s">typical onset error</div></div>
+    <div class="stat"><div class="v" id="sCorr">—</div><div class="s">typical correction</div></div>
+    <div class="stat"><div class="v" id="sLand">—</div><div class="s">typical time to land</div></div>
+  </div>
+  <canvas id="hist" aria-label="Onset error of recent attempts"></canvas>
+  <div class="tablewrap" id="tableWrap"></div>
+</section>
+
+<section class="card session" id="progress">
+  <div class="phase-row"><h2>Progress</h2><span class="eyebrow" id="progMeta"></span></div>
+  <canvas id="progChart" aria-label="Median onset and settled error per session"></canvas>
+  <p class="caption">Median onset error per session (solid line) and median settled error (dashed). Lower is better.</p>
+  <div class="tablewrap" id="progTable"></div>
+</section>
+
+<details class="card settings" id="settings">
+  <summary>Settings</summary>
+  <div class="dbody">
+    <div class="form">
+      <div class="field"><label for="low">Lowest note</label><select id="low"></select></div>
+      <div class="field"><label for="high">Highest note</label><select id="high"></select><span class="s">Keep it inside your comfortable range. Range edges are much harder.</span></div>
+      <div class="field"><label for="hold">Hold time</label>
+        <select id="hold">
+          <option value="0">None</option><option value="0.5">0.5 s</option><option value="1">1 s</option>
+          <option value="2">2 s</option><option value="4">4 s</option><option value="8">8 s</option><option value="rand">Random, 1–3 s</option>
+        </select><span class="s">Silence between the tone ending and your cue to sing.</span></div>
+      <div class="field"><label for="win">Onset window</label>
+        <select id="win"><option value="50">50 ms (strict)</option><option value="100">100 ms</option><option value="150">150 ms</option><option value="250">250 ms (forgiving)</option></select>
+        <span class="s">How much of the start of your note is scored.</span></div>
+      <div class="field"><label for="tol">Tolerance</label>
+        <select id="tol"><option value="10">±10¢</option><option value="15">±15¢</option><option value="25">±25¢</option><option value="35">±35¢</option><option value="50">±50¢ (quarter tone)</option></select></div>
+      <div class="field"><label for="timbre">Reference tone</label>
+        <select id="timbre"><option value="rich">Rich (harmonics)</option><option value="sine">Pure sine</option></select></div>
+      <div class="field"><label for="toneLen">Tone length</label>
+        <select id="toneLen"><option value="0.5">0.5 s</option><option value="1">1 s</option><option value="1.5">1.5 s</option><option value="2">2 s</option></select></div>
+    </div>
+    <div class="form">
+      <div class="check"><input type="checkbox" id="fold"><label for="fold">Any octave counts</label><span class="s">Singing the note an octave up or down is scored as the same note.</span></div>
+      <div class="check"><input type="checkbox" id="auto"><label for="auto">Auto-advance</label><span class="s">Start the next note 2.5 s after each score.</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="recal" type="button" disabled>Re-measure the room</button>
+      <button class="btn" id="export" type="button">Export data</button>
+      <button class="btn" id="import" type="button">Import data</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <button class="btn" id="clear" type="button">Clear all data</button>
+    </div>
+    <p class="caption" id="ioMsg">Your data is stored in this browser only. Export it to back it up or move it to another browser.</p>
+  </div>
+</details>
+
+<details class="card notes">
+  <summary>How it's scored</summary>
+  <div class="dbody">
+    <ul>
+      <li><b>Onset</b> is the median pitch over the first 100&nbsp;ms after your voice starts (change the window in settings). This is the number to train.</li>
+      <li><b>Settled</b> is the median pitch from 450&nbsp;ms onward, so it only appears if you hold the note for about a second.</li>
+      <li><b>Correction</b> is how far you moved between the onset and the settled pitch. A scoop into the note shows up here.</li>
+      <li><b>Landed in</b> is how long it took to stay within tolerance for 150&nbsp;ms.</li>
+      <li>Any voiced sound during the hold voids the attempt, because humming to check is the habit this trains out.</li>
+    </ul>
+    <p>Use headphones so the reference tone doesn't reach the mic. Start notes with a clean consonant like "da" or "ba" rather than easing in. On iPhone, headphones also stop the tone going quiet while the mic is open.</p>
+    <p>The mic needs a secure page: open this file directly in Chrome, or serve it over https or from localhost. Nothing is uploaded. Pitch detection runs in your browser and history is kept in this browser only.</p>
+  </div>
+</details>
+
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+const nname = (m) => NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+const r1 = (v) => v == null ? null : Math.round(v * 10) / 10;
+
+/* ---------- persistence ---------- */
+const STORE = 'coldpitch.v1';
+const DEFAULTS = { low: 48, high: 60, hold: '1', win: 100, tol: 25, fold: true, timbre: 'rich', toneLen: 1, auto: false };
+let settings = { ...DEFAULTS };
+let history = [];
+let sessions = [];   // {id, start, end, closed}
+const KEEP = 15000;          // attempts kept in storage; each is ~200 bytes, well inside the ~5 MB localStorage allows
+const IDLE = 60 * 60e3;      // an open session idle this long is closed
+try {
+  const raw = localStorage.getItem(STORE);
+  if (raw) {
+    const p = JSON.parse(raw); settings = { ...DEFAULTS, ...(p.settings || {}) };
+    if (Array.isArray(p.history)) history = p.history;
+    if (Array.isArray(p.sessions)) sessions = p.sessions;
+  }
+} catch (e) {}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({ settings, history: history.slice(-KEEP), sessions })); }
+  catch (e) { const el = $('#err'); el.textContent = 'This browser wouldn’t save your data, so it will be lost when the page closes. Export it from Settings to keep it.'; el.hidden = false; }
+}
+
+// Attempts from before sessions existed (or imported without one) get grouped by 30-minute gaps.
+// An open session left idle for over an hour is closed.
+function tidySessions() {
+  const ids = new Set(sessions.map((s) => s.id));
+  const orphans = history.filter((a) => !a.sid || !ids.has(a.sid)).sort((a, b) => a.ts - b.ts);
+  let cur = null;
+  for (const a of orphans) {
+    if (!cur || a.ts - cur.end > 30 * 60e3) { cur = { id: 's' + a.ts.toString(36) + 'o', start: a.ts, end: a.ts, closed: true }; sessions.push(cur); }
+    a.sid = cur.id; cur.end = a.ts;
+  }
+  const used = new Set(history.map((a) => a.sid));
+  sessions = sessions.filter((s) => used.has(s.id)).sort((a, b) => a.start - b.start);
+  for (const s of sessions) if (!s.closed && Date.now() - s.end > IDLE) s.closed = true;
+  let open = 0;
+  for (let i = sessions.length - 1; i >= 0; i--) if (!sessions[i].closed && open++) sessions[i].closed = true;
+}
+tidySessions();
+// The page can stay open for days, so the idle check also runs here, not only on load.
+function currentSession() {
+  const s = sessions.find((x) => !x.closed);
+  if (s && Date.now() - s.end > IDLE) { s.closed = true; save(); return null; }
+  return s || null;
+}
+const sessAtts = (sid) => history.filter((a) => a.sid === sid);
+function openSession(ts) {
+  let s = currentSession();
+  if (!s) { s = { id: 's' + ts.toString(36), start: ts, end: ts, closed: false }; sessions.push(s); }
+  return s;
+}
+
+/* ---------- settings UI ---------- */
+const noteOpts = [];
+for (let m = 36; m <= 84; m++) noteOpts.push(`<option value="${m}">${nname(m)} · ${hz(m).toFixed(1)} Hz</option>`);
+$('#low').innerHTML = noteOpts.join(''); $('#high').innerHTML = noteOpts.join('');
+const parsers = { low: Number, high: Number, hold: String, win: Number, tol: Number, timbre: String, toneLen: Number };
+for (const k in parsers) {
+  const el = $('#' + k); el.value = String(settings[k]);
+  if (el.selectedIndex < 0) { settings[k] = DEFAULTS[k]; el.value = String(DEFAULTS[k]); }
+  el.addEventListener('change', () => {
+    settings[k] = parsers[k](el.value);
+    if (settings.low > settings.high) { const t = settings.low; settings.low = settings.high; settings.high = t; $('#low').value = settings.low; $('#high').value = settings.high; }
+    save(); updateMeta(); renderResult(); renderSession(); renderProgress(); renderReport();
+  });
+}
+for (const k of ['fold', 'auto']) { const el = $('#' + k); el.checked = !!settings[k]; el.addEventListener('change', () => { settings[k] = el.checked; save(); }); }
+const clearBtn = $('#clear'); let clearTimer = null;
+clearBtn.addEventListener('click', () => {
+  if (clearBtn.dataset.armed) {
+    history = []; sessions = []; reportSid = null; $('#report').hidden = true; save();
+    renderSession(); renderProgress(); delete clearBtn.dataset.armed; clearBtn.textContent = 'Clear all data'; clearTimeout(clearTimer); return;
+  }
+  clearBtn.dataset.armed = '1'; clearBtn.textContent = 'Tap again to delete everything';
+  clearTimer = setTimeout(() => { delete clearBtn.dataset.armed; clearBtn.textContent = 'Clear all data'; }, 3000);
+});
+function holdLabel() { return settings.hold === 'rand' ? 'hold 1–3 s' : +settings.hold === 0 ? 'no hold' : `hold ${settings.hold} s`; }
+function updateMeta() { $('#meta').textContent = `${nname(settings.low)}–${nname(settings.high)} · ${holdLabel()} · ±${settings.tol}¢`; }
+
+/* ---------- audio + analysis ---------- */
+let ctx = null, stream = null, dec = 1, dsr = 24000;
+let W, TAUMAX, TAUMIN, N, HOP, frameBuf, diff;
+const RING = 1 << 16; let ring = null, total = 0, lastEnd = 0, accSum = 0, accN = 0;
+let tMap = 0, iMap = 0;
+let floorDb = -70, thrDb = -50, lastDb = -100;
+let calib = null, round = null, lastMidi = null, lastRoundAt = -1e9, lastResult = null, autoTimer = null;
+let tap = null, lastFrameAt = 0;
+
+const WORKLET = `class Tap extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(1024);this.n=0;}
+process(inputs){const c=inputs[0]&&inputs[0][0];if(c){for(let k=0;k<c.length;k++){this.b[this.n++]=c[k];if(this.n===1024){this.port.postMessage({d:this.b,t:currentTime});this.b=new Float32Array(1024);this.n=0;}}}return true;}}
+registerProcessor('tap',Tap);`;
+
+async function initAudio() {
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const e = new Error('insecure'); e.name = 'Insecure'; throw e;
+  }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  ctx = new AC({ latencyHint: 'interactive' });
+  stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+  await ctx.resume();
+  const sr = ctx.sampleRate;
+  dec = Math.max(1, Math.round(sr / 24000)); dsr = sr / dec;
+  W = Math.round(dsr * 0.021); TAUMAX = Math.ceil(dsr / 65); TAUMIN = Math.max(2, Math.floor(dsr / 1100));
+  N = W + TAUMAX; HOP = Math.round(dsr * 0.0105);
+  ring = new Float32Array(RING); frameBuf = new Float32Array(N); diff = new Float32Array(TAUMAX + 2);
+  total = lastEnd = accSum = accN = 0;
+  const src = ctx.createMediaStreamSource(stream);
+  const mute = ctx.createGain(); mute.gain.value = 0; mute.connect(ctx.destination);
+  // Worklet modules can fail to load from a local file (opaque origin), so try
+  // a blob URL, then a data URL, then fall back to ScriptProcessor.
+  let node = null;
+  if (ctx.audioWorklet) {
+    const urls = [
+      () => URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' })),
+      () => 'data:application/javascript;charset=utf-8,' + encodeURIComponent(WORKLET),
+    ];
+    for (const mk of urls) {
+      try {
+        await ctx.audioWorklet.addModule(mk());
+        node = new AudioWorkletNode(ctx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
+        node.port.onmessage = (e) => ingest(e.data.d, e.data.t, sr);
+        break;
+      } catch (e) { node = null; }
+    }
+  }
+  if (!node) {
+    node = ctx.createScriptProcessor(1024, 1, 1);
+    node.onaudioprocess = (e) => ingest(new Float32Array(e.inputBuffer.getChannelData(0)), ctx.currentTime - 128 / sr, sr);
+  }
+  src.connect(node); node.connect(mute); tap = node;
+}
+
+// Release the mic and the audio context so the next Start builds them afresh.
+function stopAudio() {
+  if (tap) { if (tap.port) tap.port.onmessage = null; tap.onaudioprocess = null; try { tap.disconnect(); } catch (e) {} tap = null; }
+  if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+  if (ctx) { try { ctx.close().catch(() => {}); } catch (e) {} ctx = null; }
+  calib = null; lastDb = -100; lastRoundAt = -1e9;   // a new context's clock restarts at 0
+  $('#lvl').style.width = '0%'; $('#micText').textContent = 'Mic off';
+}
+const audioAlive = () => ctx && ctx.state !== 'closed' && stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
+
+function ingest(d, t, sr) {
+  for (let k = 0; k < d.length; k++) {
+    accSum += d[k];
+    if (++accN === dec) { ring[total & (RING - 1)] = accSum / dec; total++; accSum = 0; accN = 0; }
+  }
+  tMap = t + 128 / sr; iMap = total;
+  while (total - lastEnd >= HOP) { lastEnd += HOP; if (lastEnd >= N) analyse(lastEnd); }
+}
+const timeOf = (i) => tMap + (i - iMap) / dsr;
+
+function analyse(end) {
+  const start = end - N; let s = 0;
+  for (let k = 0; k < N; k++) { const v = ring[(start + k) & (RING - 1)]; frameBuf[k] = v; s += v * v; }
+  const db = 10 * Math.log10(s / N + 1e-12);
+  lastDb = db;
+  let f = null;
+  if (db > thrDb - 6) f = yin();
+  onFrame({ t: timeOf(end - N / 2), db, f });
+}
+
+// YIN pitch estimate on frameBuf. Returns Hz or null.
+function yin() {
+  const x = frameBuf, d = diff;
+  let run = 0; d[0] = 1;
+  for (let tau = 1; tau <= TAUMAX; tau++) {
+    let sum = 0;
+    for (let j = 0; j < W; j++) { const q = x[j] - x[j + tau]; sum += q * q; }
+    run += sum; d[tau] = run > 0 ? sum * tau / run : 1;
+  }
+  let tau = -1;
+  for (let t = TAUMIN; t < TAUMAX; t++) {
+    if (d[t] < 0.15) { while (t + 1 < TAUMAX && d[t + 1] < d[t]) t++; tau = t; break; }
+  }
+  if (tau < 0) {
+    let mn = Infinity, mi = -1;
+    for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < mn) { mn = d[t]; mi = t; }
+    if (mn > 0.3 || mi < 1) return null;
+    tau = mi;
+  }
+  const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c;
+  const shift = den !== 0 ? Math.max(-1, Math.min(1, 0.5 * (a - c) / den)) : 0;
+  return dsr / (tau + shift);
+}
+
+function onFrame(fr) {
+  lastFrameAt = performance.now();
+  if (calib) { calib.dbs.push(fr.db); if (fr.t >= calib.until) { const c = calib; calib = null; c.done(); } return; }
+  const r = round;
+  if (!r || r.state === 'done') return;
+  if (fr.t < r.toneEnd + 0.15) return;                     // ignore tone bleed
+  if (fr.t < r.go) { if (fr.db > thrDb && fr.f) r.peek++; return; }
+  const voiced = fr.db > thrDb;
+  if (r.state !== 'capture') {
+    r.state = 'listen'; r.frames.push(fr);
+    r.run = voiced ? r.run + 1 : 0;
+    if (r.run >= 3) {
+      const last3 = r.frames.slice(-3);
+      if (last3.filter((x) => x.f).length >= 2) { r.onsetT = last3[0].t; r.state = 'capture'; r.lastVoiced = fr.t; return; }
+    }
+    if (fr.t > r.go + 6) finish('timeout');   // also when steady unpitched noise keeps the level above threshold
+    return;
+  }
+  r.frames.push(fr);
+  if (voiced) r.lastVoiced = fr.t;
+  const el = fr.t - r.onsetT;
+  if (el >= 1.3 || (el > 0.25 && fr.t - r.lastVoiced > 0.25)) finish('ok');
+}
+
+// Resolves true when measured, false if the audio stopped first (see micLost).
+function calibrate() {
+  setPhase('calib'); lastFrameAt = performance.now();
+  return new Promise((res) => {
+    const c = { until: ctx.currentTime + 0.9, dbs: [], res };
+    c.done = () => {
+      const s = c.dbs.filter((v) => v > -119).sort((a, b) => a - b);
+      floorDb = s.length ? s[Math.floor(s.length * 0.7)] : -70;
+      thrDb = Math.min(-30, Math.max(-58, floorDb + 15));
+      $('#micText').textContent = `Mic · room ${Math.round(floorDb)} dB`;
+      res(true);
+    };
+    calib = c;
+  });
+}
+
+// Only incoming audio ends a round or a calibration, so if it stops (screen lock, a call,
+// another app taking the mic) give up and ask for a fresh Start rather than hang.
+function micLost() {
+  const c = calib;
+  if (round) round.state = 'done';
+  clearTimeout(autoTimer); stopAudio(); setPhase('lost');
+  if (c) c.res(false);
+}
+
+function playTone(midi, T, dur) {
+  const f = hz(midi);
+  const master = ctx.createGain(); master.connect(ctx.destination);
+  const peak = 0.22, g = master.gain;
+  g.setValueAtTime(0, T); g.linearRampToValueAtTime(peak, T + 0.02);
+  g.exponentialRampToValueAtTime(peak * 0.7, T + 0.25);
+  g.setValueAtTime(peak * 0.7, T + dur - 0.12); g.linearRampToValueAtTime(0, T + dur);
+  const parts = settings.timbre === 'sine' ? [[1, 1]] : [[1, 1], [2, 0.45], [3, 0.25], [4, 0.12], [5, 0.07], [6, 0.04]];
+  const norm = parts.reduce((s, p) => s + p[1], 0);
+  for (const [h, a] of parts) {
+    if (f * h > ctx.sampleRate / 2.2) continue;
+    const o = ctx.createOscillator(); o.frequency.value = f * h;
+    const pg = ctx.createGain(); pg.gain.value = (a / norm) * 1.6;
+    o.connect(pg); pg.connect(master); o.start(T); o.stop(T + dur + 0.05);
+  }
+}
+
+/* ---------- rounds ---------- */
+function pickNote() {
+  const lo = settings.low, hi = settings.high;
+  if (lo === hi) return lo;
+  let m; do { m = lo + Math.floor(Math.random() * (hi - lo + 1)); } while (m === lastMidi);
+  return m;
+}
+
+async function start() {
+  hideErr(); setPhase('calib');
+  try { await initAudio(); }
+  catch (e) { stopAudio(); showErr(e); setPhase('intro'); return; }
+  $('#recal').disabled = false;
+  if (!(await calibrate())) return;
+  next(false);
+}
+
+async function next(same) {
+  clearTimeout(autoTimer);
+  if (round && round.state !== 'done') return;
+  if (ctx && !audioAlive()) stopAudio();
+  if (!ctx) { await start(); return; }
+  if (calib) return;
+  if (ctx.state !== 'running') {
+    try { await ctx.resume(); } catch (e) {}   // if it stays stopped, the watchdog in tick() catches it
+    if (round && round.state !== 'done') return;
+  }
+  hideErr();
+  const m = same && lastMidi != null ? lastMidi : pickNote();
+  const T = ctx.currentTime + 0.1, dur = +settings.toneLen;
+  const prev = lastMidi != null && T - lastRoundAt < 30 ? lastMidi : null;   // the note heard just before, if recent
+  lastMidi = m; lastRoundAt = T;
+  const hold = settings.hold === 'rand' ? 1 + Math.random() * 2 : +settings.hold;
+  playTone(m, T, dur);
+  round = { midi: m, prev, T, toneEnd: T + dur, go: T + dur + Math.max(hold, 0.15), frames: [], run: 0, peek: 0, state: 'tone' };
+  lastFrameAt = performance.now();
+}
+
+function hearAgain() {
+  if (!ctx || lastMidi == null || (round && round.state !== 'done')) return;
+  playTone(lastMidi, ctx.currentTime + 0.05, +settings.toneLen);
+}
+
+function summarise(trace, winS, tol) {
+  const v = trace.filter((p) => p.c !== null && p.t >= 0);
+  let on = v.filter((p) => p.t <= winS).map((p) => p.c);
+  if (on.length < 2) on = v.slice(0, 3).map((p) => p.c);
+  if (!on.length) return null;
+  const onset = median(on);
+  const st = v.filter((p) => p.t >= 0.45).map((p) => p.c);
+  const settled = st.length >= 5 ? median(st) : null;
+  let land = null;
+  for (let i = 0; i < v.length; i++) {
+    const t0 = v[i].t, span = v.filter((p) => p.t >= t0 && p.t <= t0 + 0.15);
+    if (span.length >= 8 && span.every((p) => Math.abs(p.c) <= tol)) { land = Math.max(0, t0 * 1000); break; }
+  }
+  return { onset, settled, corr: settled == null ? null : settled - onset, land, hit: Math.abs(onset) <= tol };
+}
+
+function finish(kind) {
+  const r = round; r.state = 'done';
+  if (kind === 'timeout') { setPhase('timeout'); return; }
+  const target = hz(r.midi);
+  const raw = r.frames.filter((x) => x.t >= r.onsetT - 0.1).map((x) => ({ t: x.t - r.onsetT, c: x.f ? 1200 * Math.log2(x.f / target) : null }));
+  const pre = summarise(raw, settings.win / 1000, settings.tol);
+  if (!pre) { setPhase('timeout'); return; }
+  const k = settings.fold ? Math.round(pre.onset / 1200) : 0;
+  const trace = raw.map((p) => ({ t: p.t, c: p.c === null ? null : p.c - 1200 * k }));
+  const s = summarise(trace, settings.win / 1000, settings.tol);
+  const attempt = {
+    ts: Date.now(), midi: r.midi, onset: r1(s.onset), settled: r1(s.settled), corr: r1(s.corr),
+    land: s.land == null ? null : Math.round(s.land), hit: s.hit, peek: r.peek >= 5, win: settings.win, tol: settings.tol, oct: k,
+    prev: r.prev, hold: r1(r.go - r.toneEnd), cfg: `${settings.low}-${settings.high}|${settings.hold}`,
+  };
+  const sess = openSession(attempt.ts); attempt.sid = sess.id; sess.end = attempt.ts;
+  history.push(attempt); save();
+  lastResult = { attempt, trace, win: settings.win, tol: settings.tol };
+  setPhase('scored'); renderResult(); renderSession(); renderProgress(); if (reportSid === sess.id) renderReport();
+  if (settings.auto) autoTimer = setTimeout(() => next(false), 2500);
+}
+
+/* ---------- phase UI ---------- */
+const PH = {
+  intro:   ['Ready', 'Press Start', 'Your browser will ask for the microphone. Stay quiet for a second while it measures the room.'],
+  calib:   ['Measuring the room', 'Stay quiet', 'Listening to background noise to set the voice threshold.'],
+  tone:    ['Listen', 'Listen', "Don't hum along."],
+  hold:    ['Hold it', 'Keep it in your head', 'Silently. Any sound now voids the attempt.'],
+  sing:    ['Go', 'Sing', 'Start clean, on a "da" or "ba".'],
+  capture: ['Hearing you', 'Hold it if you like', 'About a second gets you a settled score as well.'],
+  scored:  ['Scored', 'Next note', 'Press Space or Next note when you are ready.'],
+  timeout: ['No voice heard', 'Try again', "The mic didn't pick up a clear note within 6 s. Check the level meter at the top, or re-measure the room in Settings."],
+  lost:    ['Mic stopped', 'Press Start', 'The microphone or sound stopped, which can happen when the screen locks or another app takes the mic. Press Start to reconnect.'],
+};
+let phase = null;
+const busyPhase = () => ['calib', 'tone', 'hold', 'sing', 'capture'].includes(phase);
+function setPhase(p) {
+  if (p === phase) return; phase = p;
+  const [label, prompt, hint] = PH[p];
+  $('#phase').textContent = label; $('#phase').dataset.p = p;
+  $('#prompt').textContent = prompt; $('#prompt').dataset.p = p;
+  $('#hint').textContent = hint;
+  $('#holdbar').hidden = p !== 'hold';
+  const busy = ['calib', 'tone', 'hold', 'sing', 'capture'].includes(p);
+  const go = $('#go');
+  go.disabled = busy;
+  go.textContent = busy ? 'Listening…' : p === 'intro' || !ctx ? 'Start' : 'Next note';
+  $('#same').disabled = busy || lastMidi == null || !ctx;
+  $('#hear').disabled = busy || lastMidi == null || !ctx;
+  $('#recal').disabled = busy || !ctx;
+  $('#finish').disabled = busy || !currentSession();
+  if (p === 'sing' && navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+}
+
+function tick() {
+  requestAnimationFrame(tick);
+  if ((calib || (round && round.state !== 'done')) && performance.now() - lastFrameAt > 2000) micLost();
+  if (ctx) {
+    const pct = (db) => Math.max(0, Math.min(100, (db + 80) / 70 * 100));
+    const lvl = $('#lvl'); lvl.style.width = pct(lastDb) + '%'; lvl.classList.toggle('on', lastDb > thrDb);
+    $('#thr').style.left = pct(thrDb) + '%';
+  }
+  const r = round;
+  if (!r || r.state === 'done' || !ctx) return;
+  const now = ctx.currentTime;
+  if (now < r.toneEnd) setPhase('tone');
+  else if (now < r.go) { setPhase('hold'); $('#holdfill').style.width = ((now - r.toneEnd) / (r.go - r.toneEnd) * 100).toFixed(1) + '%'; }
+  else if (r.state === 'capture') setPhase('capture');
+  else setPhase('sing');
+}
+
+function showErr(e) {
+  const el = $('#err'); let msg;
+  if (e && e.name === 'Insecure') msg = 'The microphone only works on a secure page. Open this file directly in Chrome, or serve it over https or from localhost.';
+  else if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) msg = 'Microphone access was blocked. Allow it in your browser’s site settings, then press Start again.';
+  else if (e && e.name === 'NotFoundError') msg = 'No microphone found. Plug one in, then press Start again.';
+  else msg = (e && e.message) || 'Something went wrong starting the microphone.';
+  el.textContent = msg; el.hidden = false;
+}
+function hideErr() { $('#err').hidden = true; }
+
+/* ---------- formatting ---------- */
+function fmtC(c) { if (c == null) return '—'; const r = Math.round(c); return (r > 0 ? '+' : r < 0 ? '−' : '±') + Math.abs(r) + '¢'; }
+function cls(c, tol) { const a = Math.abs(c); return a <= tol ? 'hit' : a <= tol * 2 ? 'near' : 'miss'; }
+function verdict(c, tol) { if (Math.abs(c) <= tol) return 'On it'; return `${Math.abs(Math.round(c))}¢ ${c > 0 ? 'sharp' : 'flat'}`; }
+
+/* ---------- example (shown before the first attempt) ---------- */
+function exampleResult() {
+  const trace = [];
+  for (let t = -0.1; t <= 1.25; t += 0.0107) {
+    if (t < 0) { trace.push({ t, c: null }); continue; }
+    const c = -46 * Math.exp(-t / 0.13) + 3 + 2.5 * Math.sin(t * 34) * Math.min(1, t * 2.5);
+    trace.push({ t, c });
+  }
+  const s = summarise(trace, settings.win / 1000, settings.tol);
+  return { attempt: { midi: 52, onset: s.onset, settled: s.settled, corr: s.corr, land: s.land == null ? null : Math.round(s.land), hit: s.hit, peek: false }, trace, win: settings.win, tol: settings.tol, example: true };
+}
+
+/* ---------- canvas helpers ---------- */
+function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function prep(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  return { g, w, h };
+}
+
+function drawTrace(res) {
+  const { g, w, h } = prep($('#trace'));
+  if (!w) return;
+  const C = { ink: tok('--trace'), muted: tok('--muted'), line: tok('--line'), band: tok('--band'), win: tok('--win'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
+  const { trace, win, tol, attempt } = res;
+  const padL = 46, padR = 14, padT = 10, padB = 26;
+  const lastT = trace.length ? trace[trace.length - 1].t : 1;
+  const tMin = -0.1, tMax = Math.max(0.6, Math.min(1.4, lastT + 0.02));
+  const vals = trace.filter((p) => p.c !== null).map((p) => Math.abs(p.c));
+  const maxAbs = Math.max(tol * 2, ...(vals.length ? vals : [0]));
+  const range = Math.min(600, Math.max(100, Math.ceil((maxAbs + 10) / 50) * 50));
+  const X = (t) => padL + (t - tMin) / (tMax - tMin) * (w - padL - padR);
+  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
+  g.font = `11px ${tok('--mono') || 'monospace'}`; g.textBaseline = 'middle';
+
+  // onset window + tolerance band
+  g.fillStyle = C.win; g.fillRect(X(0), padT, X(win / 1000) - X(0), h - padT - padB);
+  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
+
+  // y grid
+  const step = range <= 150 ? 50 : range <= 300 ? 100 : 200;
+  g.lineWidth = 1;
+  for (let c = -range; c <= range; c += step) {
+    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
+    g.fillStyle = C.muted; g.textAlign = 'right'; g.fillText(fmtC(c).replace('±0¢', '0¢'), padL - 8, Y(c));
+  }
+  // target line
+  g.strokeStyle = C.muted; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(padL, Math.round(Y(0)) + 0.5); g.lineTo(w - padR, Math.round(Y(0)) + 0.5); g.stroke(); g.setLineDash([]);
+
+  // x ticks
+  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = C.muted;
+  for (let t = 0; t <= tMax + 1e-6; t += 0.2) {
+    const x = X(t);
+    g.strokeStyle = C.line; g.beginPath(); g.moveTo(Math.round(x) + 0.5, h - padB); g.lineTo(Math.round(x) + 0.5, h - padB + 4); g.stroke();
+    g.fillText(t === 0 ? 'voice starts' : `${Math.round(t * 1000)} ms`, Math.min(Math.max(x, padL + 30), w - padR - 24), h - padB + 7);
+  }
+
+  // trace
+  g.strokeStyle = C.ink; g.lineWidth = 2; g.lineJoin = 'round'; g.lineCap = 'round';
+  g.beginPath(); let pen = false, prevT = null;
+  for (const p of trace) {
+    if (p.c === null || p.t < tMin || p.t > tMax) { pen = false; continue; }
+    if (pen && prevT !== null && p.t - prevT > 0.04) pen = false;
+    if (!pen) { g.moveTo(X(p.t), Y(p.c)); pen = true; } else g.lineTo(X(p.t), Y(p.c));
+    prevT = p.t;
+  }
+  g.stroke();
+
+  // onset marker
+  const oc = C[cls(attempt.onset, tol)];
+  g.strokeStyle = oc; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(X(0), Y(attempt.onset)); g.lineTo(X(win / 1000), Y(attempt.onset)); g.stroke();
+  g.fillStyle = oc; g.beginPath(); g.arc(X(win / 2000), Y(attempt.onset), 4.5, 0, Math.PI * 2); g.fill();
+  if (attempt.settled != null) {
+    const sc = C[cls(attempt.settled, tol)];
+    g.fillStyle = sc; g.beginPath(); g.arc(X(Math.min(tMax, lastT)) - 2, Y(attempt.settled), 4.5, 0, Math.PI * 2); g.fill();
+  }
+}
+
+function drawHist(valid) {
+  const cv = $('#hist'); const { g, w, h } = prep(cv);
+  if (!w) return;
+  const C = { muted: tok('--muted'), line: tok('--line'), band: tok('--band'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
+  const tol = settings.tol, pts = valid.slice(-60);
+  const padL = 46, padR = 10, padT = 8, padB = 8;
+  const range = Math.max(75, Math.ceil(tol * 3 / 25) * 25);
+  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
+  g.font = `11px ${tok('--mono') || 'monospace'}`; g.textBaseline = 'middle'; g.textAlign = 'right';
+  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
+  for (const c of [-range, 0, range]) {
+    g.strokeStyle = C.line; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
+    g.fillStyle = C.muted; g.fillText(c === 0 ? '0¢' : fmtC(c), padL - 8, Y(c));
+  }
+  if (!pts.length) {
+    g.textAlign = 'center'; g.fillStyle = C.muted; g.font = `13px ${tok('--sans') || 'sans-serif'}`;
+    g.fillText('Onset errors from your attempts will appear here', (padL + w - padR) / 2, h / 2 - 18);
+    return;
+  }
+  const span = Math.max(pts.length, 20);
+  const X = (i) => padL + 8 + (i + 0.5) / span * (w - padL - padR - 16);
+  pts.forEach((a, i) => {
+    g.fillStyle = C[cls(a.onset, tol)];
+    g.beginPath(); g.arc(X(i), Y(a.onset), 4, 0, Math.PI * 2); g.fill();
+  });
+}
+
+/* ---------- renders ---------- */
+function renderResult() {
+  const res = lastResult || exampleResult();
+  const a = res.attempt, tol = res.tol;
+  $('#exBadge').hidden = !res.example;
+  $('#onsetVal').textContent = fmtC(a.onset);
+  const chip = $('#onsetChip'); chip.textContent = verdict(a.onset, tol); chip.className = 'chip c-' + cls(a.onset, tol);
+  $('#winLabel').textContent = res.win;
+  $('#targetVal').textContent = `${nname(a.midi)} · ${hz(a.midi).toFixed(1)} Hz`;
+  const sv = $('#settledVal'); sv.textContent = fmtC(a.settled); sv.className = 'v' + (a.settled == null ? '' : ' c-' + cls(a.settled, tol));
+  $('#corrVal').textContent = a.corr == null ? '—' : fmtC(a.corr);
+  $('#corrSub').textContent = a.corr == null ? 'hold the note to see this' : Math.abs(a.corr) < 5 ? 'barely moved after the onset' : a.corr > 0 ? 'moved up after the onset' : 'moved down after the onset';
+  $('#landVal').textContent = a.land == null ? '—' : a.land < 11 ? 'at once' : `${a.land} ms`;
+  $('#landSub').textContent = a.land == null ? (a.settled == null ? 'note was too short to tell' : `never stayed within ±${tol}¢`) : `to stay within ±${tol}¢`;
+  $('#traceCap').textContent = `${res.example ? 'Example: a scooped entry that starts flat and slides up. ' : ''}Pitch relative to the target over time. Green band: ±${tol}¢ tolerance. Tinted column: the ${res.win} ms onset window. Coloured bar: onset score. Dot on the right: settled pitch.`;
+  $('#peekWarn').hidden = !a.peek;
+  drawTrace(res);
+}
+
+function renderSession() {
+  const cur = currentSession();
+  const sAll = cur ? sessAtts(cur.id) : [];
+  const valid = sAll.filter((a) => !a.peek);
+  const hits = valid.filter((a) => Math.abs(a.onset) <= settings.tol).length;
+  $('#sN').textContent = valid.length || '—';
+  $('#sHit').textContent = valid.length ? Math.round(hits / valid.length * 100) + '%' : '—';
+  $('#sHitSub').textContent = `onsets within ±${settings.tol}¢`;
+  const mOn = median(valid.map((a) => Math.abs(a.onset)));
+  const mCorr = median(valid.filter((a) => a.corr != null).map((a) => Math.abs(a.corr)));
+  const mLand = median(valid.filter((a) => a.land != null).map((a) => a.land));
+  $('#sOn').textContent = mOn == null ? '—' : Math.round(mOn) + '¢';
+  $('#sCorr').textContent = mCorr == null ? '—' : Math.round(mCorr) + '¢';
+  $('#sLand').textContent = mLand == null ? '—' : Math.round(mLand) + ' ms';
+  const voided = sAll.length - valid.length;
+  $('#histMeta').textContent = voided ? `${voided} voided` : '';
+  $('#finish').disabled = !cur || busyPhase();
+  drawHist(valid);
+  const rows = sAll.slice(-10).reverse();
+  $('#tableWrap').innerHTML = rows.length ? `<table><thead><tr><th>Note</th><th>Onset</th><th>Settled</th><th>Correction</th><th>Landed</th></tr></thead><tbody>${
+    rows.map((a) => `<tr${a.peek ? ' style="opacity:.5"' : ''}><td>${nname(a.midi)}${a.peek ? ' · voided' : ''}</td><td class="c-${cls(a.onset, settings.tol)}">${fmtC(a.onset)}</td><td>${fmtC(a.settled)}</td><td>${a.corr == null ? '—' : fmtC(a.corr)}</td><td>${a.land == null ? '—' : a.land + ' ms'}</td></tr>`).join('')
+  }</tbody></table>` : `<p class="empty">${sessions.length ? 'Sing a note to start a new session.' : 'No attempts yet.'}</p>`;
+}
+
+/* ---------- stats helpers ---------- */
+function rng(seed) { // small seeded PRNG so a report reads the same each time it's opened
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  let a = h >>> 0;
+  return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const LF = [0];
+function lnf(n) { while (LF.length <= n) LF.push(LF[LF.length - 1] + Math.log(LF.length)); return LF[n]; }
+// two-sided exact sign test: k successes out of n under p = 0.5
+function signTest(k, n) {
+  if (!n) return 1;
+  const lp = (i) => lnf(n) - lnf(i) - lnf(n - i) - n * Math.LN2, pk = lp(k);
+  let p = 0; for (let i = 0; i <= n; i++) { const li = lp(i); if (li <= pk + 1e-9) p += Math.exp(li); }
+  return Math.min(1, p);
+}
+function shuffle(a, R) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function permMedians(a, b, R, it = 2000) {
+  const obs = Math.abs(median(a) - median(b)), all = [...a, ...b]; let c = 0;
+  for (let i = 0; i < it; i++) { shuffle(all, R); if (Math.abs(median(all.slice(0, a.length)) - median(all.slice(a.length))) >= obs - 1e-9) c++; }
+  return (c + 1) / (it + 1);
+}
+function pearson(x, y) {
+  const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) { const dx = x[i] - mx, dy = y[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+}
+function slope(x, y) {
+  const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
+  let sxy = 0, sxx = 0; for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; }
+  return sxx ? sxy / sxx : 0;
+}
+function ranks(a) {
+  const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]), r = new Array(a.length);
+  for (let i = 0; i < idx.length;) { let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; for (let k = i; k <= j; k++) r[idx[k][1]] = (i + j) / 2 + 1; i = j + 1; }
+  return r;
+}
+function permCorr(x, y, R, it = 2000) {
+  const r = pearson(x, y), ys = [...y]; let c = 0;
+  for (let i = 0; i < it; i++) { shuffle(ys, R); if (Math.abs(pearson(x, ys)) >= Math.abs(r) - 1e-12) c++; }
+  return { r, p: (c + 1) / (it + 1) };
+}
+const cents0 = (v) => v == null ? '—' : Math.round(v) + '¢';
+const pct = (v) => v == null ? '—' : Math.round(v * 100) + '%';
+
+/* ---------- session analysis ---------- */
+function summarise2(list, tol) {
+  const ws = list.filter((a) => a.settled != null);
+  return {
+    n: list.length,
+    hit: list.length ? list.filter((a) => Math.abs(a.onset) <= tol).length / list.length : null,
+    medOn: median(list.map((a) => Math.abs(a.onset))),
+    medSet: median(ws.map((a) => Math.abs(a.settled))),
+    medCorr: median(ws.filter((a) => a.corr != null).map((a) => Math.abs(a.corr))),
+  };
+}
+
+function analyseSession(all, prior, seed) {
+  const R = rng(String(seed)), tol = settings.tol;
+  const atts = all.filter((a) => !a.peek), n = atts.length;
+  const absOn = atts.map((a) => Math.abs(a.onset));
+  const out = { ...summarise2(atts, tol), voided: all.length - n, findings: [], quiet: [] };
+  const pAtts = (prior || []).filter((a) => !a.peek);
+  out.prior = pAtts.length >= 5 ? summarise2(pAtts, tol) : null;
+  const F = (key, level, title, body) => out.findings.push({ key, level, title, body });
+  const test = (p, label, fn) => { const lv = p < 0.05 ? 'clear' : p < 0.15 ? 'maybe' : null; if (lv) fn(lv); else out.quiet.push(label); };
+  const mode = (arr) => { const m = new Map(); let best = null, bc = 0; for (const v of arr) { if (v == null) continue; const c = (m.get(v) || 0) + 1; m.set(v, c); if (c > bc) { bc = c; best = v; } } return best; };
+
+  if (n < 8) F('few', 'info', 'Not much to go on yet', `Only ${n} attempt${n === 1 ? '' : 's'} counted. Most of the checks need 8 to 12, so patterns show up after a longer session.`);
+
+  // compared with earlier sessions
+  if (pAtts.length >= 10 && n >= 5) {
+    const cfgA = mode(atts.map((a) => a.cfg)), cfgB = mode(pAtts.map((a) => a.cfg));
+    const caveat = cfgA && cfgB && cfgA !== cfgB ? ' Your range or hold time differed from before, so this isn’t a like-for-like comparison.' : '';
+    test(permMedians(absOn, pAtts.map((a) => Math.abs(a.onset)), R), 'change from earlier sessions', (lv) => {
+      const better = out.medOn < out.prior.medOn;
+      F(better ? 'better' : 'worse', lv, better ? 'Better than your earlier sessions' : 'Worse than your earlier sessions',
+        `Median onset error was ${Math.round(out.medOn)}¢, against ${Math.round(out.prior.medOn)}¢ across ${pAtts.length} earlier attempts.${caveat}`);
+    });
+  }
+
+  // sharp / flat bias
+  { const nz = atts.filter((a) => Math.abs(a.onset) >= 1);
+    if (nz.length >= 8) {
+      const below = nz.filter((a) => a.onset < 0).length, flat = below * 2 > nz.length, k = flat ? below : nz.length - below;
+      test(signTest(below, nz.length), 'a sharp or flat tendency', (lv) => F(flat ? 'bias-flat' : 'bias-sharp', lv,
+        flat ? 'You tend to start flat' : 'You tend to start sharp',
+        `${k} of ${nz.length} onsets came in ${flat ? 'below' : 'above'} the target, with a median of ${fmtC(median(nz.map((a) => a.onset)))}.`));
+    } }
+
+  // which way corrections go
+  { const cs = atts.filter((a) => a.corr != null && Math.abs(a.corr) >= 5);
+    if (cs.length >= 6) {
+      const up = cs.filter((a) => a.corr > 0).length, isUp = up * 2 > cs.length, k = isUp ? up : cs.length - up;
+      test(signTest(up, cs.length), 'which way you correct', (lv) => F(isUp ? 'scoop-up' : 'scoop-down', lv,
+        isUp ? 'You slide up into notes' : 'You slide down into notes',
+        `${k} of ${cs.length} held notes moved ${isUp ? 'up' : 'down'} after the onset, by a median of ${Math.round(median(cs.map((a) => Math.abs(a.corr))))}¢.${isUp ? ' Starting under and sliding up is the classic scoop.' : ''}`));
+    } }
+
+  // effect of register
+  { const notes = new Set(atts.map((a) => a.midi));
+    if (n >= 10 && notes.size >= 3) {
+      const x = atts.map((a) => a.midi), y = atts.map((a) => a.onset), { r, p } = permCorr(x, y, R), sl = slope(x, y);
+      test(p, 'an effect of how high the note is', (lv) => F(sl < 0 ? 'register-centre' : 'register-spread', lv,
+        sl < 0 ? 'Your onsets lean toward the middle of your range' : 'You overshoot toward the edges of your range',
+        `${sl < 0 ? 'Low notes came out sharp and high notes flat' : 'High notes came out sharp and low notes flat'}, by about ${Math.abs(sl).toFixed(1)}¢ per semitone (r = ${r.toFixed(2)}).`));
+    } }
+
+  // pull from the previous note
+  { const ch = atts.filter((a) => a.prev != null && a.prev !== a.midi && Math.abs(a.onset) >= 1);
+    if (ch.length >= 8) {
+      const under = ch.filter((a) => a.onset * Math.sign(a.midi - a.prev) < 0).length, pulled = under * 2 > ch.length, k = pulled ? under : ch.length - under;
+      test(signTest(under, ch.length), 'a pull from the previous note', (lv) => F(pulled ? 'carryover' : 'overshoot-jump', lv,
+        pulled ? 'The previous note pulls on you' : 'You overshoot note changes',
+        pulled ? `After a jump up you tended to land low, and after a jump down, high. That happened on ${k} of ${ch.length} note changes.`
+               : `After a jump you tended to go past the new note, on ${k} of ${ch.length} note changes.`));
+    } }
+
+  // change within the session
+  if (n >= 12) {
+    const h = Math.floor(n / 2), a = absOn.slice(0, h), b = absOn.slice(n - h);
+    test(permMedians(a, b, R), 'change during the session', (lv) => {
+      const ma = median(a), mb = median(b);
+      F(mb < ma ? 'warmup' : 'fatigue', lv, mb < ma ? 'You got better as you went' : 'You got worse as you went',
+        `Median onset error went from ${Math.round(ma)}¢ in the first half to ${Math.round(mb)}¢ in the second.`);
+    });
+  }
+
+  // hold time (only when it varied, e.g. the random setting)
+  { const hs = atts.filter((a) => typeof a.hold === 'number'), distinct = new Set(hs.map((a) => Math.round(a.hold * 10)));
+    if (hs.length >= 10 && distinct.size >= 3) {
+      const { r, p } = permCorr(ranks(hs.map((a) => a.hold)), ranks(hs.map((a) => Math.abs(a.onset))), R);
+      test(p, 'an effect of hold time', (lv) => F(r > 0 ? 'hold-cost' : 'hold-help', lv,
+        r > 0 ? 'Longer holds cost you accuracy' : 'Longer holds helped',
+        `Onset error ${r > 0 ? 'grew' : 'shrank'} with the time you kept the note in your head (rank correlation ${r.toFixed(2)}).`));
+    } }
+
+  // onset vs settled
+  { const ws = atts.filter((a) => a.settled != null);
+    if (ws.length >= 5) {
+      const mo = median(ws.map((a) => Math.abs(a.onset))), ms = median(ws.map((a) => Math.abs(a.settled)));
+      if (ms > tol) F('settled-off', 'info', 'Your settled pitch is off too', `Even after correcting, you ended up ${Math.round(ms)}¢ from the target. Some of the error is in matching the pitch at all, not only in the first moment.`);
+      else if (mo > ms * 1.5 && mo - ms >= 5) F('ear-fixes', 'info', 'Your ear fixes the rest', `Onsets were ${Math.round(mo)}¢ off but you settled within ${Math.round(ms)}¢. You know where the note is. The gap is in reaching it before you can hear yourself.`);
+      else F('clean-onset', 'info', 'Little correction happening', `Your onsets (${Math.round(mo)}¢) were about as accurate as where you ended up (${Math.round(ms)}¢).`);
+    } }
+
+  // hardest note
+  { const by = new Map();
+    for (const a of atts) { if (!by.has(a.midi)) by.set(a.midi, []); by.get(a.midi).push(Math.abs(a.onset)); }
+    let worst = null;
+    for (const [m, v] of by) { if (v.length < 3) continue; const md = median(v); if (!worst || md > worst.md) worst = { m, md, n: v.length }; }
+    if (worst && out.medOn != null && worst.md >= Math.max(tol, out.medOn * 1.5))
+      F('hard-' + worst.m, 'info', `Hardest note: ${nname(worst.m)}`, `Median ${Math.round(worst.md)}¢ off over ${worst.n} tries, against ${Math.round(out.medOn)}¢ overall.`); }
+
+  // octave switches
+  { const oc = atts.filter((a) => a.oct).length;
+    if (oc >= 2 && oc / n >= 0.2) F('octave', 'info', 'You often sang in a different octave', `${oc} of ${n} onsets were an octave or more from the tone. They count as the same note while "Any octave counts" is on.`); }
+
+  const order = { clear: 0, maybe: 1, info: 2 };
+  out.findings.sort((a, b) => order[a.level] - order[b.level]);
+  return out;
+}
+
+/* ---------- report ---------- */
+let reportSid = null;
+const fmtWhen = (ts) => new Date(ts).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+function showReport(sid, scroll) {
+  reportSid = sid; $('#report').hidden = false; renderReport();
+  if (scroll) { const rm = matchMedia('(prefers-reduced-motion: reduce)').matches; $('#report').scrollIntoView({ behavior: rm ? 'auto' : 'smooth', block: 'start' }); }
+}
+function renderReport() {
+  if (!reportSid) return;
+  const idx = sessions.findIndex((s) => s.id === reportSid);
+  if (idx < 0) { reportSid = null; $('#report').hidden = true; return; }
+  const s = sessions[idx], tol = settings.tol;
+  const earlier = new Set(sessions.slice(0, idx).map((x) => x.id));
+  const all = sessAtts(s.id), prior = history.filter((a) => earlier.has(a.sid));
+  const A = analyseSession(all, prior, s.id + ':' + all.length);
+  const prevKeys = new Set();
+  if (idx > 0) {
+    const ps = sessions[idx - 1], pa = sessAtts(ps.id);
+    analyseSession(pa, [], ps.id + ':' + pa.length).findings.filter((f) => f.level !== 'info').forEach((f) => prevKeys.add(f.key));
+  }
+  const mins = Math.max(1, Math.round((s.end - s.start) / 60000));
+  $('#repTitle').textContent = `Session ${idx + 1}${s.closed ? '' : ', so far'}`;
+  $('#repMeta').textContent = `${fmtWhen(s.start)} · ${A.n} attempt${A.n === 1 ? '' : 's'} counted${A.voided ? `, ${A.voided} voided` : ''} · ${mins} min`;
+  const P = A.prior;
+  const stat = (v, label, was) => `<div class="stat"><div class="v">${v}</div><div class="s">${label}</div>${was ? `<div class="s">${was}</div>` : ''}</div>`;
+  $('#repStats').innerHTML =
+    stat(pct(A.hit), `onsets within ±${tol}¢`, P ? `earlier: ${pct(P.hit)}` : '') +
+    stat(cents0(A.medOn), 'typical onset error', P ? `earlier: ${cents0(P.medOn)}` : '') +
+    stat(cents0(A.medSet), 'typical settled error', P ? `earlier: ${cents0(P.medSet)}` : '') +
+    stat(cents0(A.medCorr), 'typical correction', P ? `earlier: ${cents0(P.medCorr)}` : '');
+  const LV = { clear: 'Clear', maybe: 'Possible', info: 'Note' };
+  $('#repFindings').innerHTML = A.findings.length
+    ? A.findings.map((f) => `<div class="finding"><span class="lv lv-${f.level}">${LV[f.level]}</span><div><h3>${f.title}${f.level !== 'info' && prevKeys.has(f.key) ? '<span class="again">also last session</span>' : ''}</h3><p>${f.body}</p></div></div>`).join('')
+    : `<div class="finding"><span class="lv lv-info">Note</span><div><h3>No clear patterns</h3><p>Nothing in this session stood out from ordinary variation.</p></div></div>`;
+  $('#repFoot').textContent = (A.quiet.length ? `Checked with nothing clear: ${A.quiet.join(', ')}. ` : '') +
+    'Clear means unlikely to be chance (p < 0.05). Possible means worth watching (p < 0.15). Each report runs several checks, so the odd fluke is expected. Trust patterns that come back across sessions.';
+  drawNotes(all.filter((a) => !a.peek), tol);
+}
+
+function drawNotes(atts, tol) {
+  const { g, w, h } = prep($('#repNotes'));
+  if (!w) return;
+  const C = { ink: tok('--ink'), muted: tok('--muted'), line: tok('--line'), band: tok('--band'), hit: tok('--hit'), near: tok('--near'), miss: tok('--miss') };
+  const padL = 46, padR = 10, padT = 8, padB = 24;
+  g.font = `11px ${tok('--mono') || 'monospace'}`;
+  if (!atts.length) { g.fillStyle = C.muted; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('No counted attempts', w / 2, h / 2); return; }
+  const lo = Math.min(...atts.map((a) => a.midi)), hi = Math.max(...atts.map((a) => a.midi)), cols = hi - lo + 1;
+  const maxAbs = Math.max(...atts.map((a) => Math.abs(a.onset)));
+  const range = Math.min(300, Math.max(75, Math.ceil((maxAbs + 10) / 25) * 25));
+  const colW = (w - padL - padR) / cols;
+  const X = (m) => padL + (m - lo + 0.5) * colW;
+  const Y = (c) => padT + (range - Math.max(-range, Math.min(range, c))) / (2 * range) * (h - padT - padB);
+  g.fillStyle = C.band; g.fillRect(padL, Y(tol), w - padL - padR, Y(-tol) - Y(tol));
+  g.textBaseline = 'middle'; g.textAlign = 'right'; g.lineWidth = 1;
+  for (const c of [-range, 0, range]) {
+    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(c)) + 0.5); g.lineTo(w - padR, Math.round(Y(c)) + 0.5); g.stroke();
+    g.fillStyle = C.muted; g.fillText(c === 0 ? '0¢' : fmtC(c), padL - 8, Y(c));
+  }
+  const every = colW < 30 ? Math.ceil(30 / colW) : 1;
+  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = C.muted;
+  for (let m = lo; m <= hi; m++) if ((m - lo) % every === 0) g.fillText(nname(m), X(m), h - padB + 7);
+  const byNote = new Map();
+  atts.forEach((a, i) => {
+    if (!byNote.has(a.midi)) byNote.set(a.midi, []);
+    const list = byNote.get(a.midi); list.push(a.onset);
+    const jit = ((i * 0.618) % 1 - 0.5) * Math.min(14, colW * 0.5);
+    g.fillStyle = C[cls(a.onset, tol)]; g.globalAlpha = 0.85;
+    g.beginPath(); g.arc(X(a.midi) + jit, Y(a.onset), 3.5, 0, Math.PI * 2); g.fill();
+  });
+  g.globalAlpha = 1; g.strokeStyle = C.ink; g.lineWidth = 2.5;
+  for (const [m, v] of byNote) { const md = median(v), hw = Math.min(11, colW * 0.4); g.beginPath(); g.moveTo(X(m) - hw, Y(md)); g.lineTo(X(m) + hw, Y(md)); g.stroke(); }
+}
+
+/* ---------- progress ---------- */
+function sessionRows() {
+  return sessions.map((s, i) => {
+    const at = sessAtts(s.id).filter((a) => !a.peek);
+    return { s, i, ...summarise2(at, settings.tol) };
+  }).filter((x) => x.n > 0);
+}
+function renderProgress() {
+  const S = sessionRows();
+  $('#progMeta').textContent = S.length ? `${S.length} session${S.length === 1 ? '' : 's'}` : '';
+  drawProgress(S);
+  $('#progTable').innerHTML = S.length ? `<table><thead><tr><th>Session</th><th>Attempts</th><th>Hits</th><th>Onset</th><th>Settled</th><th>Correction</th><th></th></tr></thead><tbody>${
+    [...S].reverse().map((x) => `<tr><td>#${x.i + 1} · ${new Date(x.s.start).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}${x.s.closed ? '' : ' · now'}</td><td>${x.n}</td><td>${pct(x.hit)}</td><td>${cents0(x.medOn)}</td><td>${cents0(x.medSet)}</td><td>${cents0(x.medCorr)}</td><td><button class="linkbtn" type="button" data-sid="${x.s.id}">Report</button></td></tr>`).join('')
+  }</tbody></table>` : '<p class="empty">Each session you finish shows up here.</p>';
+}
+function drawProgress(S) {
+  const { g, w, h } = prep($('#progChart'));
+  if (!w) return;
+  const C = { ink: tok('--trace'), muted: tok('--muted'), line: tok('--line'), accent: tok('--accent') };
+  const padL = 46, padR = 16, padT = 10, padB = 24;
+  g.font = `11px ${tok('--mono') || 'monospace'}`;
+  if (!S.length) { g.fillStyle = C.muted; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `13px ${tok('--sans') || 'sans-serif'}`; g.fillText('Your sessions will be charted here', w / 2, h / 2); return; }
+  const vals = S.flatMap((x) => [x.medOn, x.medSet]).filter((v) => v != null);
+  const top = Math.max(40, Math.ceil((Math.max(...vals) + 5) / 20) * 20);
+  const X = (i) => S.length === 1 ? (padL + w - padR) / 2 : padL + 12 + i / (S.length - 1) * (w - padL - padR - 24);
+  const Y = (v) => padT + (1 - v / top) * (h - padT - padB);
+  g.textBaseline = 'middle'; g.textAlign = 'right'; g.lineWidth = 1;
+  for (const v of [0, top / 2, top]) {
+    g.strokeStyle = C.line; g.beginPath(); g.moveTo(padL, Math.round(Y(v)) + 0.5); g.lineTo(w - padR, Math.round(Y(v)) + 0.5); g.stroke();
+    g.fillStyle = C.muted; g.fillText(Math.round(v) + '¢', padL - 8, Y(v));
+  }
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  const every = Math.ceil(S.length / Math.max(1, Math.floor((w - padL - padR) / 40)));
+  S.forEach((x, i) => { if (i % every === 0 || i === S.length - 1) g.fillText('#' + (x.i + 1), X(i), h - padB + 7); });
+  const line = (key, color, dash, dot) => {
+    g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 2; g.setLineDash(dash); g.beginPath(); let pen = false;
+    S.forEach((x, i) => { const v = x[key]; if (v == null) { pen = false; return; } if (!pen) { g.moveTo(X(i), Y(v)); pen = true; } else g.lineTo(X(i), Y(v)); });
+    g.stroke(); g.setLineDash([]);
+    if (dot) S.forEach((x, i) => { if (x[key] != null) { g.beginPath(); g.arc(X(i), Y(x[key]), i === S.length - 1 ? 4.5 : 3, 0, Math.PI * 2); g.fill(); } });
+  };
+  line('medSet', C.muted, [5, 4], false);
+  line('medOn', C.accent, [], true);
+}
+
+function finishSession() {
+  if (busyPhase()) return;
+  const s = currentSession(); if (!s) return;
+  clearTimeout(autoTimer);
+  s.closed = true; save();
+  renderSession(); renderProgress(); showReport(s.id, true);
+  setPhase(phase === 'intro' || phase === 'lost' ? phase : 'scored');
+}
+
+/* ---------- wiring ---------- */
+$('#finish').addEventListener('click', finishSession);
+$('#repClose').addEventListener('click', () => { $('#report').hidden = true; reportSid = null; });
+$('#progTable').addEventListener('click', (e) => { const b = e.target.closest('[data-sid]'); if (b) showReport(b.dataset.sid, true); });
+$('#export').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ app: 'cold-pitch', version: 1, exported: new Date().toISOString(), settings, sessions, history })], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cold-pitch-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  $('#ioMsg').textContent = `Exported ${history.length} attempts.`;
+});
+$('#import').addEventListener('click', () => $('#importFile').click());
+$('#importFile').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!Array.isArray(d.history)) throw new Error('bad');
+    const seen = new Set(history.map((a) => a.ts + ':' + a.midi)); let added = 0;
+    for (const a of d.history) if (a && typeof a.onset === 'number' && typeof a.midi === 'number' && !seen.has(a.ts + ':' + a.midi)) { history.push(a); added++; }
+    const ids = new Set(sessions.map((s) => s.id));
+    for (const s of d.sessions || []) if (s && s.id && !ids.has(s.id)) sessions.push({ id: s.id, start: s.start, end: s.end, closed: true });
+    history.sort((a, b) => a.ts - b.ts); tidySessions(); save();
+    renderSession(); renderProgress(); renderReport();
+    $('#ioMsg').textContent = `Imported ${added} new attempt${added === 1 ? '' : 's'}.`;
+  } catch (err) { $('#ioMsg').textContent = 'That file couldn’t be read as Cold Pitch data.'; }
+  e.target.value = '';
+});
+$('#go').addEventListener('click', () => next(false));
+$('#same').addEventListener('click', () => next(true));
+$('#hear').addEventListener('click', hearAgain);
+$('#recal').addEventListener('click', () => { if (ctx && (!round || round.state === 'done')) calibrate().then((ok) => { if (ok) setPhase(lastMidi == null ? 'intro' : 'scored'); }); });
+document.addEventListener('keydown', (e) => {
+  if (e.target.closest && e.target.closest('input,select,textarea,button,summary')) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const busy = ['calib', 'tone', 'hold', 'sing', 'capture'].includes(phase);
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!busy) next(false); }
+  else if ((e.key === 'r' || e.key === 'R') && !busy && lastMidi != null) next(true);
+  else if ((e.key === 'h' || e.key === 'H') && !busy) hearAgain();
+});
+let rz = null;
+const redraw = () => { clearTimeout(rz); rz = setTimeout(() => { renderResult(); renderSession(); renderProgress(); renderReport(); }, 60); };
+window.addEventListener('resize', redraw);
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw); } catch (e) {}
+new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+
+updateMeta(); setPhase('intro'); renderResult(); renderSession(); renderProgress();
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
