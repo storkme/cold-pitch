@@ -44,3 +44,5 @@ Two self-contained HTML files. There's no build step and no dependencies; fonts 
     python3 -m http.server
 
 GitHub Pages serves `main` from the repo root. `.nojekyll` skips the Jekyll build.
+
+Motion follows a small design language, written at the top of `index.html`'s styles: principles, shared duration and easing values (`--t-*`, `--ease-*`), and named patterns (enter, pop, exit, swap, glide, reveal, count, press, ambient). New animations should use those values rather than their own timings. Reduced motion sets every duration to zero.

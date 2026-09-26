@@ -10,6 +10,32 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
+/* ---------- motion language ----------
+   1. Motion explains a change: where something came from, what moved, what's new. Nothing loops except while
+      the page is waiting on your voice (the listening ripples, the room check, the current note's segment).
+   2. Three speeds. Feedback is instant (hover, press, following the pointer). Components ease in and out.
+      Data replays: pitch lines draw in time order, scores count up, charts draw in.
+   3. One physical feel. Things you touch, and things that pop into place, have a little spring. Content settles
+      without overshoot. Exits are quicker than entrances and accelerate away.
+   4. Follow the finger. Anything under the pointer tracks it directly; only jumps between fixed positions glide.
+   5. Order means something. Staggers run in reading order, one step apart, and a sequence is done in ~half a second.
+   6. Reduced motion sets every duration to zero: everything lands in its final state and nothing is lost.
+   Patterns: enter (fade and rise), pop (scale up, spring), exit (fade and sink), swap (new content enters, the old
+   goes at once), glide (snap to snap), reveal (data drawn left to right), count (numbers run up), press (down at
+   once, spring back), ambient (a slow loop, waiting states only). Entrances use fill-mode `backwards`, so once
+   they finish, hover and press transitions work normally. */
+:root{
+  --t-instant:90ms; --t-quick:160ms; --t-base:280ms; --t-slow:420ms; --t-data:800ms; --t-step:35ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1); --ease-spring:cubic-bezier(.3,1.5,.5,1);
+}
+@media (prefers-reduced-motion: reduce){
+  :root{--t-instant:0ms;--t-quick:0ms;--t-base:0ms;--t-slow:0ms;--t-data:0ms;--t-step:0ms}
+}
+@keyframes enter{from{opacity:0;transform:translateY(10px)}}
+@keyframes pop{from{opacity:0;transform:scale(.6)}}
+@keyframes pop-soft{from{opacity:0;transform:scale(.88)}}
+@keyframes sink{to{opacity:0;transform:translateY(30%)}}
+@keyframes draw{to{stroke-dashoffset:0}}
 :root{
   --bg:#ECEEF8; --surface:#FFFFFF; --surface-2:#F3F4FB; --ink:#17163A; --ink-2:#4A4870; --muted:#6F6D96; --line:#DCDDEC;
   --accent:#3B45E8; --accent-deep:#252CB0; --accent-ink:#FFFFFF; --accent-wash:rgba(59,69,232,.13); --accent-soft:#D9DCFB;
@@ -52,13 +78,20 @@ button{font-family:inherit}
 
 /* buttons: chunky, pressable */
 .btn{font:800 16px/1 var(--sans);padding:14px 20px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);
-  box-shadow:0 3px 0 var(--line);cursor:pointer;transition:transform .06s,box-shadow .06s}
+  box-shadow:0 3px 0 var(--line);cursor:pointer;
+  transition:transform var(--t-instant) var(--ease-out),box-shadow var(--t-instant) var(--ease-out),background-color var(--t-quick),border-color var(--t-quick),color var(--t-quick),filter var(--t-quick)}
+.btn:not(.primary):hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.btn.primary:hover{filter:brightness(1.07)}
 .btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--line)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 4px 0 var(--accent-deep)}
 .btn.primary:active{transform:translateY(4px);box-shadow:0 0 0 var(--accent-deep)}
 .btn.big{width:100%;font-size:18px;padding:18px 20px;border-radius:16px}
-.linkbtn{font:700 15px var(--sans);color:var(--accent);background:none;border:0;padding:6px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.iconbtn{width:40px;height:40px;border-radius:12px;border:0;background:none;color:var(--muted);font:800 20px/1 var(--sans);cursor:pointer;flex:none}
+.linkbtn{font:700 15px var(--sans);color:var(--accent);background:none;border:0;padding:6px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);transition:text-decoration-color var(--t-quick),color var(--t-quick)}
+.linkbtn:hover{text-decoration-color:currentColor}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:0;background:none;color:var(--muted);font:800 20px/1 var(--sans);cursor:pointer;flex:none;
+  transition:background-color var(--t-quick),color var(--t-quick),transform var(--t-instant) var(--ease-out)}
+.iconbtn:active{transform:scale(.92)}
 .iconbtn:hover{background:var(--surface-2);color:var(--ink)}
 
 /* brand row */
@@ -66,7 +99,8 @@ button{font-family:inherit}
 .brand .logo{width:28px;height:28px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
 .brand .logo i{width:12px;height:12px;border-radius:50%;background:var(--accent-ink)}
 .brand b{font:800 17px var(--sans);letter-spacing:-.01em}
-.brand a{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:14px;text-underline-offset:3px}
+.brand a{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:14px;text-underline-offset:3px;transition:color var(--t-quick)}
+.brand a:hover{color:var(--ink)}
 
 /* home */
 .hero h1{font:400 42px/1.02 var(--display);letter-spacing:-.01em;text-wrap:balance}
@@ -82,31 +116,31 @@ button{font-family:inherit}
 .rangeright{display:flex;align-items:center;gap:8px}
 .rangeval{font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
 .reset{position:relative;width:30px;height:30px;padding:0;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none;
-  transition:opacity .22s ease,transform .35s cubic-bezier(.3,1.5,.5,1),background-color .15s,color .15s}
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),background-color var(--t-quick),color var(--t-quick)}
 .reset::after{content:"";position:absolute;inset:-7px;border-radius:50%}
 .reset:hover{background:var(--accent-soft);color:var(--ink)}
 .reset:disabled{opacity:0;transform:scale(.5) rotate(90deg);cursor:default}
 .rangeval b{display:inline-block;color:var(--ink);font-weight:800;font-size:17px}
-.rangeval.tick b{animation:tick .28s cubic-bezier(.3,1.6,.5,1)}
+.rangeval.tick b{animation:tick var(--t-base) var(--ease-spring)}
 @keyframes tick{from{transform:scale(1.14)}}
 .picker{position:relative;margin-top:6px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
 .pkeys{position:relative;display:flex;height:84px;border-radius:10px;overflow:hidden;background:var(--key-bed);cursor:pointer}
 .pkeys .wk{flex:1;background:var(--key-white);border-right:1px solid var(--key-bed);border-radius:0 0 5px 5px;transform-origin:50% 0;
-  transition:background-color .2s ease,transform .12s ease,box-shadow .12s ease}
+  transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out),box-shadow var(--t-instant) var(--ease-out)}
 .pkeys .wk:last-child{border-right:0}
 .pkeys .bk{position:absolute;top:0;height:58%;background:var(--key-black);border-radius:0 0 4px 4px;z-index:1;transform-origin:50% 0;
-  transition:background-color .2s ease,transform .12s ease}
+  transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out)}
 .pkeys .wk.in{background:var(--key-in)}
 .pkeys .bk.in{background:var(--accent)}
 .pkeys .wk.hot{background:var(--key-hot);transform:scaleY(.975);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
 .pkeys .bk.hot{background:var(--accent-deep);transform:scaleY(.95)}
 .ptrack{position:relative;height:44px}
 .ptrack::before{content:"";position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--line)}
-.pfill{position:absolute;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--accent);cursor:grab;transition:left .12s ease-out,width .12s ease-out}
+.pfill{position:absolute;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--accent);cursor:grab;transition:left var(--t-instant) var(--ease-out),width var(--t-instant) var(--ease-out)}
 .pfill::before{content:"";position:absolute;left:0;right:0;top:-18px;bottom:-18px}
 .knob{position:absolute;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;padding:0;border-radius:50%;border:3px solid var(--accent);background:var(--surface);
   box-shadow:0 2px 0 var(--accent-deep),0 4px 12px rgba(23,22,58,.16);cursor:grab;touch-action:none;z-index:2;
-  transition:left .12s ease-out,transform .22s cubic-bezier(.3,1.6,.5,1),box-shadow .22s ease}
+  transition:left var(--t-instant) var(--ease-out),transform var(--t-base) var(--ease-spring),box-shadow var(--t-base) var(--ease-out)}
 .knob::after{content:"";position:absolute;inset:-12px;border-radius:50%}
 .knob:hover{transform:scale(1.06)}
 .picker.dragging .knob.active{transform:scale(1.2);box-shadow:0 0 0 9px var(--accent-wash),0 6px 16px rgba(23,22,58,.2)}
@@ -115,7 +149,7 @@ button{font-family:inherit}
 .poct span{position:absolute;top:0;transform:translateX(-50%)}
 .bubble{position:absolute;top:0;left:0;z-index:4;pointer-events:none;background:var(--ink);color:var(--surface);border-radius:14px;padding:8px 14px 9px;text-align:center;white-space:nowrap;
   opacity:0;transform:translate(-50%,calc(-100% + 4px)) scale(.6);transform-origin:50% 100%;
-  transition:opacity .14s ease,transform .24s cubic-bezier(.3,1.5,.5,1),left .1s ease-out}
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),left var(--t-instant) var(--ease-out)}
 .bubble b{display:block;font:800 26px/1 var(--sans);letter-spacing:-.01em}
 .bubble small{display:block;margin-top:5px;font:800 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:.7}
 .bubble i{position:absolute;bottom:-5px;left:var(--ax,50%);width:12px;height:12px;margin-left:-6px;background:inherit;transform:rotate(45deg);border-radius:2px}
@@ -128,7 +162,18 @@ button{font-family:inherit}
 .chart svg{display:block;width:100%}
 .empty{color:var(--ink-2);font-weight:700;font-size:14px;padding:6px 0 2px}
 .tbl{margin-top:10px}
-.tbl summary{cursor:pointer;font-weight:800;font-size:14px;color:var(--ink-2)}
+.tbl{interpolate-size:allow-keywords}
+.tbl summary{cursor:pointer;font-weight:800;font-size:14px;color:var(--ink-2);list-style:none;display:inline-flex;align-items:center;gap:7px;transition:color var(--t-quick)}
+.tbl summary::-webkit-details-marker{display:none}
+.tbl summary::before{content:"";border-left:6px solid currentColor;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;transition:transform var(--t-quick) var(--ease-out)}
+.tbl summary:hover{color:var(--ink)}
+.tbl[open] summary::before{transform:rotate(90deg)}
+.tbl::details-content{height:0;overflow:clip;transition:height var(--t-base) var(--ease-out),content-visibility var(--t-base) allow-discrete}
+.tbl[open]::details-content{height:auto}
+.kbd .mk{animation:pop var(--t-base) var(--ease-spring) backwards;animation-delay:calc(var(--i,0) * var(--t-step) * .6);transform-box:fill-box;transform-origin:center}
+.chart .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw var(--t-data) var(--ease-out) forwards}
+.chart .dot-in{animation:pop var(--t-base) var(--ease-spring) backwards;animation-delay:calc(var(--t-data) * .5 + var(--i,0) * var(--t-step) * .3);transform-box:fill-box;transform-origin:center}
+.xh-glide{transition:transform var(--t-instant) var(--ease-out)}
 .tbl table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px;font-variant-numeric:tabular-nums}
 .tbl th{text-align:right;color:var(--muted);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
 .tbl td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:700}
@@ -149,9 +194,10 @@ button{font-family:inherit}
 .progress{flex:1;display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
 .seg{height:16px;border-radius:5px;background:var(--line);display:grid;place-items:center;font:800 10px/1 var(--sans);color:var(--tone-ink)}
 .seg.done{background:var(--tone)}
-.seg.now{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.seg.now{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent);animation:nowring 1.6s ease-in-out infinite}
+@keyframes nowring{50%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 3px var(--accent-wash)}}
 .mic{display:flex;align-items:flex-end;gap:2px;height:18px;width:22px;flex:none}
-.mic i{flex:1;background:var(--line);border-radius:2px}
+.mic i{flex:1;background:var(--line);border-radius:2px;transition:background-color var(--t-instant)}
 .mic i:nth-child(1){height:30%}.mic i:nth-child(2){height:55%}.mic i:nth-child(3){height:78%}.mic i:nth-child(4){height:100%}
 .mic i.lit{background:var(--muted)}
 .mic.voice i.lit{background:var(--accent)}
@@ -161,10 +207,10 @@ button{font-family:inherit}
 .orb{width:176px;height:176px;margin:10px 0 6px}
 .orb svg{width:100%;height:100%;overflow:visible}
 .orb .ring{fill:none;stroke:var(--accent);stroke-width:3;opacity:0;transform-origin:88px 88px}
-.orb .track{fill:none;stroke:var(--line);stroke-width:8}
-.orb .hold{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:88px 88px;opacity:0}
-.orb .core{fill:var(--surface-2);transform-origin:88px 88px;transition:fill .15s}
-.orb .glyph{font:800 44px var(--sans);fill:var(--tone-ink,var(--ink));dominant-baseline:central;text-anchor:middle;opacity:0}
+.orb .track{fill:none;stroke:var(--line);stroke-width:8;transition:opacity var(--t-quick) var(--ease-out)}
+.orb .hold{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transform:rotate(-90deg);transform-origin:88px 88px;opacity:0;transition:opacity var(--t-quick) var(--ease-out)}
+.orb .core{fill:var(--surface-2);transform-origin:88px 88px;transition:fill var(--t-quick) var(--ease-out)}
+.orb .glyph{font:800 44px var(--sans);fill:var(--tone-ink,var(--ink));dominant-baseline:central;text-anchor:middle;opacity:0;transform-box:fill-box;transform-origin:center}
 .stage[data-phase="calib"] .core{animation:breathe 1.6s ease-in-out infinite}
 .stage[data-phase="tone"] .core{fill:var(--accent-wash)}
 .stage[data-phase="tone"] .ring{animation:ripple 1.2s ease-out infinite}
@@ -172,26 +218,35 @@ button{font-family:inherit}
 .stage[data-phase="tone"] .ring:nth-of-type(3){animation-delay:.8s}
 .stage[data-phase="hold"] .hold{opacity:1}
 .stage[data-phase="sing"] .core,.stage[data-phase="capture"] .core{fill:var(--accent)}
-.stage[data-phase="sing"] .core{animation:pop .22s cubic-bezier(.3,1.6,.5,1)}
+.stage[data-phase="sing"] .core{animation:pop var(--t-base) var(--ease-spring)}
 .stage[data-phase="done"] .core{fill:var(--tone)}
+.stage[data-phase="done"]:not([data-split]) .core,.stage[data-phase="done"] .glyph{animation:pop var(--t-base) var(--ease-spring)}
 .orb .halves{opacity:0;transform-origin:88px 88px}
 .orb .half{fill:var(--tone)}
 .orb .seam{stroke:var(--bg);stroke-width:5}
 .orb .hglyph{font:800 30px var(--sans);fill:var(--tone-ink);dominant-baseline:central;text-anchor:middle}
 .stage[data-phase="done"][data-split] .core{opacity:0}
-.stage[data-phase="done"][data-split] .halves{opacity:1;animation:pop .34s cubic-bezier(.3,1.6,.5,1)}
+.stage[data-phase="done"][data-split] .halves{opacity:1;animation:pop var(--t-base) var(--ease-spring)}
 .stage[data-phase="done"] .glyph{opacity:1}
 .stage[data-phase="done"] .say,.stage[data-phase="done"] .sub{visibility:hidden}
 @keyframes ripple{from{opacity:.55;transform:scale(1)}to{opacity:0;transform:scale(1.75)}}
 @keyframes breathe{50%{transform:scale(.9)}}
-@keyframes pop{from{transform:scale(.7)}}
 .say{font:400 46px/1.05 var(--display);letter-spacing:-.01em;min-height:48px}
 .stage[data-phase="sing"] .say,.stage[data-phase="capture"] .say{color:var(--accent)}
 .sub{color:var(--ink-2);font-weight:700;min-height:1.5em}
+.say.swap,.sub.swap,.notenum.swap{animation:enter var(--t-quick) var(--ease-out)}
+.steps{position:relative;display:flex;gap:2px;margin:2px 0 4px;padding:4px;list-style:none;background:var(--surface);border-radius:12px;box-shadow:0 2px 0 var(--line);
+  transition:opacity var(--t-quick) var(--ease-out)}
+.steps li{position:relative;z-index:1;padding:7px 12px;font:800 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
+.steps li.past{color:var(--ink-2)}
+.steps li.on{color:var(--accent-ink)}
+.steps .thumb{position:absolute;top:4px;bottom:4px;left:0;border-radius:9px;background:var(--accent);transition:transform var(--t-base) var(--ease-spring),width var(--t-base) var(--ease-spring)}
+.stage[data-phase="calib"] .steps,.stage[data-phase="done"] .steps{opacity:0}
 
 /* bottom sheet */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);
-  box-shadow:0 -10px 30px rgba(23,22,58,.10);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:rise .26s cubic-bezier(.2,.8,.2,1)}
+  box-shadow:0 -10px 30px rgba(23,22,58,.10);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:rise var(--t-base) var(--ease-out)}
+.sheet.leaving{animation:sink var(--t-quick) var(--ease-in) forwards}
 .sheet[data-tone]{background:color-mix(in srgb,var(--tone) 14%,var(--surface));border-top:3px solid color-mix(in srgb,var(--tone) 45%,var(--surface))}
 .sheet-in{max-width:560px;margin:0 auto;display:grid;gap:10px}
 @keyframes rise{from{transform:translateY(40%);opacity:0}}
@@ -202,9 +257,8 @@ button{font-family:inherit}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mini{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:2px;align-items:center;padding:10px 12px;border-radius:16px;
   background:color-mix(in srgb,var(--tone) 13%,var(--surface));box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tone) 32%,var(--surface));
-  animation:minipop .38s cubic-bezier(.3,1.5,.5,1) both}
-.mini+.mini{animation-delay:.07s}
-@keyframes minipop{from{transform:scale(.85);opacity:0}}
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards}
+.mini+.mini{animation-delay:calc(2 * var(--t-step))}
 .mini .mi{grid-row:1/3;width:36px;height:36px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 17px/1 var(--sans)}
 .mini .mv{font:800 26px/1 var(--sans);letter-spacing:-.02em;color:var(--ink)}
 .mini .ml{font-size:13px;font-weight:700;color:var(--ink-2);line-height:1.2}
@@ -222,16 +276,21 @@ button{font-family:inherit}
 /* piano roll */
 .roll{position:relative}
 .roll svg{display:block;width:100%;touch-action:pan-y}
-.rkey{fill:var(--ink);fill-opacity:0;cursor:pointer;touch-action:none;transition:fill-opacity .12s}
+.rkey{fill:var(--ink);fill-opacity:0;cursor:pointer;touch-action:none;transition:fill-opacity var(--t-instant)}
 .rkey:hover{fill-opacity:.07}
 .rkey.down{fill:var(--accent);fill-opacity:.45}
 .kbd .hit{cursor:pointer;touch-action:none}
-.kbd path.wkey,.kbd path.bkey{transition:fill .12s}
+.kbd path.wkey,.kbd path.bkey{transition:fill var(--t-instant)}
 .kbd path.wkey.down{fill:var(--key-hot)}
 .kbd path.bkey.down{fill:var(--accent)}
 .rollcap{margin-top:0}
 .roll .cap{font-size:12.5px;color:var(--ink-2);font-weight:700;margin-top:4px}
-.tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:800 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:9px;white-space:nowrap;transform:translate(-50%,-100%);z-index:2}
+.tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:800 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:9px;white-space:nowrap;z-index:2;
+  opacity:0;visibility:hidden;transform:translate(-50%,-100%) translateY(4px) scale(.96);
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-quick) var(--ease-out),visibility 0s linear var(--t-quick),left var(--t-instant) var(--ease-out),top var(--t-instant) var(--ease-out)}
+.tip-pop.on{opacity:1;visibility:visible;transform:translate(-50%,-100%);transition-delay:0s}
+.tip-pop.track{transition-property:opacity,transform,visibility}   /* follows the pointer directly: no glide */
+.sdot{animation:pop var(--t-base) var(--ease-spring) backwards;transform-box:fill-box;transform-origin:center}
 
 /* summary */
 .done-title{font:400 44px/1 var(--display);letter-spacing:-.01em}
@@ -246,55 +305,60 @@ button{font-family:inherit}
 .bestchip{display:inline-block;margin-left:8px;font:800 13px/1 var(--sans);padding:7px 10px;border-radius:9px;background:var(--accent);color:var(--accent-ink)}
 .bestchip.quiet{background:var(--surface);color:var(--ink-2)}
 .tally{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
-.tal{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border-radius:12px;padding:6px 10px 6px 6px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.tal{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border-radius:12px;padding:6px 10px 6px 6px;font-weight:700;font-size:14px;color:var(--ink-2);
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards;animation-delay:calc((4 + var(--i,0)) * var(--t-step))}
 .tal i{font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 12px/1 var(--sans)}
 .tal b{color:var(--ink);font-weight:800}
 .sum-grid{display:grid;gap:14px}
 .caption{font-size:13px;color:var(--ink-2);font-weight:700;margin-top:10px}
 .insights{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:14px}
-.insights li{display:grid;gap:2px}
+.insights li{display:grid;gap:2px;animation:enter var(--t-base) var(--ease-out) backwards;animation-delay:calc((9 + 2 * var(--i,0)) * var(--t-step))}
 .insights b{font-weight:800;font-size:16px}
 .insights span{color:var(--ink-2);font-weight:700;font-size:15px}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px;margin-top:4px}
-.chip{display:grid;justify-items:center;gap:4px;border:2px solid transparent;background:var(--surface-2);border-radius:14px;padding:8px 2px 6px;cursor:pointer;color:var(--ink);font:800 12.5px var(--sans)}
+.chip{display:grid;justify-items:center;gap:4px;border:2px solid transparent;background:var(--surface-2);border-radius:14px;padding:8px 2px 6px;cursor:pointer;color:var(--ink);font:800 12.5px var(--sans);
+  transition:transform var(--t-instant) var(--ease-out),border-color var(--t-quick),background-color var(--t-quick);
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards;animation-delay:calc((11 + .6 * var(--i,0)) * var(--t-step))}
+.chip:hover{transform:translateY(-2px)}
+.chip:active{transform:scale(.95)}
 .chip i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 14px/1 var(--sans)}
 .chip[aria-pressed="true"]{border-color:var(--accent);background:var(--surface)}
 .detail{margin-top:14px;display:grid;gap:8px}
 .detail .verdict .vword{font-size:24px}
 .detail .vicon{width:32px;height:32px;font-size:16px}
 .detail .lead{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.detail.swap>*{animation:enter var(--t-base) var(--ease-out) backwards}
+.detail.swap>:nth-child(2){animation-delay:var(--t-step)}
+.detail.swap>:nth-child(3){animation-delay:calc(2 * var(--t-step))}
+.detail.swap>:nth-child(n+4){animation-delay:calc(3 * var(--t-step))}
+.btn.play{background-image:linear-gradient(90deg,var(--accent-soft) calc(var(--p,0) * 100%),transparent 0)}
 .actions{display:grid;gap:10px;margin-top:18px}
 .demo-note{color:var(--ink-2);font-weight:700;font-size:14px}
 
-.card-head .opts{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
-.card-head .opts button{border:0;background:none;color:var(--ink-2);font:800 13px var(--sans);padding:7px 10px;border-radius:8px;cursor:pointer}
-.card-head .opts button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
+.card-head .opts{position:relative;display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
+.card-head .opts .thumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:8px;background:var(--surface);box-shadow:0 2px 0 var(--line);
+  transition:transform var(--t-base) var(--ease-spring),width var(--t-base) var(--ease-spring)}
+.card-head .opts button{position:relative;z-index:1;border:0;background:none;color:var(--ink-2);font:800 13px var(--sans);padding:7px 10px;border-radius:8px;cursor:pointer;transition:color var(--t-quick)}
+.card-head .opts button[aria-pressed="true"]{color:var(--ink)}
 @media (max-width:420px){
   .hero h1{font-size:36px}
   .say{font-size:40px}
   .orb{width:150px;height:150px}
   .scorebox .score{font-size:46px}
 }
-/* motion: screens rise in, the summary arrives in order, finished notes pop into the progress bar */
-.screen:not([hidden]){animation:enter .34s cubic-bezier(.2,.8,.2,1)}
-@keyframes enter{from{opacity:0;transform:translateY(10px)}}
-#summary:not([hidden]) :is(.scores,.sumsub,.tally,.sum-grid>.card,.actions){animation:enter .45s cubic-bezier(.2,.8,.2,1) both}
-#summary:not([hidden]) .scores{animation-delay:.05s}
-#summary:not([hidden]) .sumsub{animation-delay:.1s}
-#summary:not([hidden]) .tally{animation-delay:.15s}
-#summary:not([hidden]) .sum-grid>.card:nth-child(1){animation-delay:.21s}
-#summary:not([hidden]) .sum-grid>.card:nth-child(2){animation-delay:.27s}
-#summary:not([hidden]) .sum-grid>.card:nth-child(3){animation-delay:.33s}
-#summary:not([hidden]) .actions{animation-delay:.39s}
-.seg.pop{animation:segpop .4s cubic-bezier(.3,1.6,.5,1)}
-@keyframes segpop{from{transform:scale(.3);opacity:.2}}
+/* entrances: screens rise in, the summary arrives in reading order, finished notes pop into the progress bar */
+.screen:not([hidden]){animation:enter var(--t-slow) var(--ease-out)}
+#summary:not([hidden]) :is(.scores,.sumsub,.sum-grid>.card,.actions){animation:enter var(--t-slow) var(--ease-out) backwards}
+#summary:not([hidden]) .scores{animation-delay:var(--t-step)}
+#summary:not([hidden]) .sumsub{animation-delay:calc(2 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(1){animation-delay:calc(5 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(2){animation-delay:calc(7 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(3){animation-delay:calc(9 * var(--t-step))}
+#summary:not([hidden]) .actions{animation-delay:calc(11 * var(--t-step))}
+.seg.pop{animation:pop var(--t-base) var(--ease-spring)}
 @media (prefers-reduced-motion: reduce){
-  .stage .core,.stage .ring{animation:none!important}
-  .sheet{animation:none}
-  .btn,.btn:active{transition:none}
-  .screen,#summary *,.seg,.rangeval b,.mini,.orb *{animation:none!important}
-  .reset{transition:none}
-  .pkeys *,.pfill,.knob,.bubble{transition:none!important}
+  /* durations are already zero; ambient loops have their own, so stop them */
+  .stage .core,.stage .ring,.seg.now{animation:none!important}
 }
 </style>
 </head>
@@ -362,6 +426,7 @@ button{font-family:inherit}
         <text class="glyph" x="88" y="90" id="glyph"></text>
       </svg>
     </div>
+    <ol class="steps" id="steps" aria-hidden="true"><span class="thumb"></span><li data-s="tone">Listen</li><li data-s="hold">Hold</li><li data-s="sing">Sing</li></ol>
     <h2 class="say" id="say"></h2>
     <p class="sub" id="sub"></p>
   </div>
@@ -380,7 +445,7 @@ button{font-family:inherit}
   <p class="demo-note" id="demoNote" hidden>This was a demo with a made-up singer who struggles up high. It isn’t saved.</p>
   <div class="tally" id="tally"></div>
   <div class="sum-grid">
-    <div class="card"><div class="card-head"><h2>Across your range</h2><div class="opts" role="group" aria-label="Show on the keyboard"><button type="button" data-map="start" aria-pressed="true">Start</button><button type="button" data-map="land" aria-pressed="false">Landing</button></div></div>
+    <div class="card"><div class="card-head"><h2>Across your range</h2><div class="opts" id="mapOpts" role="group" aria-label="Show on the keyboard"><span class="thumb" aria-hidden="true"></span><button type="button" data-map="start" aria-pressed="true">Start</button><button type="button" data-map="land" aria-pressed="false">Landing</button></div></div>
       <div class="kbd" id="keysMap"></div>
       <p class="caption" id="mapCap"></p></div>
     <div class="card"><div class="card-head"><h2>What stood out</h2></div><ul class="insights" id="insights"></ul>
@@ -945,17 +1010,26 @@ for (const [id, which] of [['#knobLo', 'lo'], ['#knobHi', 'hi']]) $(id).addEvent
   pk.classList.add('peek'); clearTimeout(pk._peek); pk._peek = setTimeout(() => pk.classList.remove('peek'), 900);
 });
 
-// Tooltips are centred over the point, but kept inside their chart using their real width.
+// Motion durations live in CSS (see the motion language at the top of the styles); read them from there.
+// Under reduced motion they're all zero.
+const motion = (name) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
+const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+// Tooltips are centred over the point, but kept inside their chart using their real width. The first time one
+// shows it appears in place; after that it glides between snapped points (unless it tracks the pointer).
 function placeTip(tip, x, y, width) {
-  tip.hidden = false;
+  const was = tip.classList.contains('on');
+  if (!was) tip.style.transition = 'none';
   const half = tip.offsetWidth / 2;
   tip.style.left = clamp(x, half, Math.max(half, width - half)) + 'px'; tip.style.top = y + 'px';
+  if (!was) { void tip.offsetWidth; tip.style.transition = ''; }
+  tip.classList.add('on');
 }
+const hideTip = (tip) => { if (tip) tip.classList.remove('on'); };
 
 /* ---------- piano roll ---------- */
 function mountRoll(el, n, H) {
   el._n = n; el._H = H;
-  drawRoll(el);
+  drawRoll(el, true);
   if (el._wired) return; el._wired = true;
   playable(el, keyUnder(el, '.rkey'), (m, on) => { const k = el.querySelector(`.rkey[data-m="${m}"]`); if (k) k.classList.toggle('down', on); });
   const move = (e) => {
@@ -963,7 +1037,7 @@ function mountRoll(el, n, H) {
     const box = el.querySelector('svg').getBoundingClientRect(), x = (e.clientX - box.left) * (g.Wd / box.width);
     const t = (x - g.keyW) / (g.Wd - g.keyW - g.padR) * g.tMax;
     const tip = el.querySelector('.tip-pop'), xh = el.querySelector('.xh');
-    if (t < 0 || t > g.tMax || !g.pts.length) { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); return; }
+    if (t < 0 || t > g.tMax || !g.pts.length) { hideTip(tip); xh.setAttribute('visibility', 'hidden'); return; }
     let best = g.pts[0]; for (const p of g.pts) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p;
     const px = g.X(best.t), py = g.Y(best.c / 100);
     xh.setAttribute('visibility', 'visible');
@@ -975,9 +1049,10 @@ function mountRoll(el, n, H) {
   };
   el.addEventListener('pointermove', move);
   el.addEventListener('pointerdown', move);
-  el.addEventListener('pointerleave', () => { const t = el.querySelector('.tip-pop'); if (t) t.hidden = true; const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
+  el.addEventListener('pointerleave', () => { hideTip(el.querySelector('.tip-pop')); const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
 }
-function drawRoll(el) {
+let rollSeq = 0;
+function drawRoll(el, replay) {
   const n = el._n, H = el._H, Wd = Math.max(260, el.clientWidth || 480), keyW = 46, padR = 6, axisH = 20, plotH = H - axisH;
   const pts = (n.trace || []).filter((p) => p.c != null && p.t >= 0 && p.t <= 1.35);
   const tMax = Math.max(1, Math.min(1.35, pts.length ? pts[pts.length - 1].t : 1));
@@ -1005,13 +1080,15 @@ function drawRoll(el) {
   s += `<rect x="${X(0)}" y="0" width="${X(WIN) - X(0)}" height="${plotH}" fill="var(--ink)" opacity=".08"/>`;
   let d = '', prev = null;
   for (const p of pts) { d += `${prev && p.t - prev.t <= 0.04 ? 'L' : 'M'}${X(p.t).toFixed(1)},${Y(p.c / 100).toFixed(1)}`; prev = p; }
-  s += `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if (n.onset != null) s += `<circle cx="${X(WIN / 2)}" cy="${Y(n.onset / 100)}" r="6" fill="var(--tone,var(--ink))" stroke="var(--surface)" stroke-width="2" data-tone="${tierFor(n).tone}"/>`;
+  const dur = replay ? motion('--t-data') : 0, wait = motion('--t-quick'), id = 'reveal' + (++rollSeq);
+  s += `<clipPath id="${id}"><rect x="0" y="0" height="${H}" width="${dur ? X(0) : Wd}">${dur ? `<animate attributeName="width" from="${X(0)}" to="${Wd}" begin="${wait}ms" dur="${dur}ms" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".2 .8 .2 1"/>` : ''}</rect></clipPath>`;
+  s += `<path clip-path="url(#${id})" d="${d}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (n.onset != null) s += `<circle${dur ? ` class="sdot" style="animation-delay:${Math.round(wait + dur * 0.12)}ms"` : ''} cx="${X(WIN / 2)}" cy="${Y(n.onset / 100)}" r="6" fill="var(--tone,var(--ink))" stroke="var(--surface)" stroke-width="2" data-tone="${tierFor(n).tone}"/>`;
   s += `<text x="${X(0)}" y="${H - 5}" font-size="11.5" font-weight="700" fill="var(--muted)">↑ scored</text>`;
   s += `<text x="${X(1)}" y="${H - 5}" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--muted)">1 second</text>`;
   s += `<g class="xh" visibility="hidden"><line y1="0" y2="${plotH}" stroke="var(--ink)" stroke-opacity=".35"/><circle r="5" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/></g>`;
   s += `<line class="playhead" visibility="hidden" y1="0" y2="${plotH}" stroke="var(--accent)" stroke-width="2.5"/>`;
-  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Piano roll of your pitch over the note. ${sentence(n)}">${s}</svg><div class="tip-pop" hidden></div>`;
+  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Piano roll of your pitch over the note. ${sentence(n)}">${s}</svg><div class="tip-pop track"></div>`;
   el._g = { Wd, H, keyW, padR, tMax, X, Y, pts };
 }
 
@@ -1065,7 +1142,7 @@ function playNext() {
   if (!run) return;
   clearTimeout(run.timer);
   if (run.notes.length >= ROUND_LEN) return endRound();
-  $('#sheet').hidden = true;
+  closeSheet($('#sheet'));
   const m = pick(); run.last = m;
   const T = ctx.currentTime + 0.35;
   const hold = HOLD;
@@ -1080,7 +1157,7 @@ function playNext() {
     frames: [], run: 0, peek: 0, state: 'tone', sim: run.sim };
   lastFrameAt = performance.now();
   $('#stage').dataset.midi = m;
-  $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`;
+  $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`; restart($('#noteNum'), 'swap');
   setStage('tone'); renderProgress();
 }
 
@@ -1116,7 +1193,7 @@ function showSheet(n) {
   $('#sIcon').textContent = n.tier.icon; $('#sWord').textContent = n.tier.word;
   $('#sDuo').innerHTML = ok ? duo(n) : '';
   $('#sText').textContent = sentence(n);
-  sh.hidden = false;
+  openSheet(sh);
   const rollEl = $('#sRoll');
   rollEl.hidden = !n.trace;
   if (n.trace) mountRoll(rollEl, n, window.innerHeight < 700 ? 150 : 176);
@@ -1163,19 +1240,28 @@ function micLost() {
 }
 
 function showMsg(title, body, first, second) {
-  $('#sheet').hidden = true;
+  closeSheet($('#sheet'));
   $('#mTitle').textContent = title; $('#mBody').textContent = body;
   $('#mFirst').textContent = first[0]; $('#mFirst').onclick = first[1];
   $('#mSecond').textContent = second[0]; $('#mSecond').onclick = second[1];
-  $('#msg').hidden = false; $('#mFirst').focus();
+  openSheet($('#msg')); $('#mFirst').focus();
 }
-function hideMsg() { $('#msg').hidden = true; }
+function hideMsg() { closeSheet($('#msg')); }
+// Sheets sink away (the exit pattern) rather than vanishing; showing one again cancels a pending exit.
+function closeSheet(el) {
+  if (el.hidden || el.classList.contains('leaving')) return;
+  const d = motion('--t-quick');
+  if (!d) { el.hidden = true; return; }
+  el.classList.add('leaving');
+  el._leave = setTimeout(() => { el.hidden = true; el.classList.remove('leaving'); }, d);
+}
+function openSheet(el) { clearTimeout(el._leave); el.classList.remove('leaving'); el.hidden = false; }
 
 /* ---------- stage ---------- */
 const STAGE = {
   calib: ['Shh…', 'Listening to the room for a second.'],
-  tone: ['Listen', 'Don’t hum along.'],
-  hold: ['In your head', 'Keep it silent.'],
+  tone: ['Listen', 'Just listen for now.'],
+  hold: ['Hold it', 'Hear the note in your head. Sing on the cue.'],
   sing: ['Sing!', 'Straight onto the note, on “da” or “ba”.'],
   capture: ['Keep going', 'About a second is plenty.'],
   done: ['', ''],
@@ -1186,6 +1272,15 @@ function setStage(p) {
   const st = $('#stage'); st.dataset.phase = p;
   if (p !== 'done') { delete st.dataset.tone; delete st.dataset.split; $('#glyph').textContent = ''; }
   $('#say').textContent = STAGE[p][0]; $('#sub').textContent = STAGE[p][1];
+  if (p !== 'done') { restart($('#say'), 'swap'); restart($('#sub'), 'swap'); }
+  const STEPS = ['tone', 'hold', 'sing'], step = p === 'capture' ? 'sing' : p;
+  if (STEPS.includes(step)) {                      // Listen · Hold · Sing: where you are, and what comes next
+    for (const li of $('#steps').querySelectorAll('li')) {
+      li.classList.toggle('on', li.dataset.s === step);
+      li.classList.toggle('past', STEPS.indexOf(li.dataset.s) < STEPS.indexOf(step));
+    }
+    slideThumb($('#steps'), '.on', step === 'tone');   // a new note starts from Listen without sliding back across
+  }
   $('#track').style.opacity = p === 'hold' ? 1 : 0;
   if (p !== 'capture') $('#core').style.transform = '';
   if (p === 'sing' && navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
@@ -1308,12 +1403,12 @@ function endRound() {
       .catch(() => { $('#saveErr').hidden = false; });
   }
 }
-const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function countUp(el, v) {
-  if (v == null || calm()) { el.textContent = v == null ? '—' : v + '%'; return; }
-  const d = 750; let t0 = null;     // start timing on the first frame: drawing the summary can hold up the page for a moment
+  const d = motion('--t-data');
+  if (v == null || !d) { el.textContent = v == null ? '—' : v + '%'; return; }
+  let t0 = null;                    // start timing on the first frame: drawing the summary can hold up the page for a moment
   el.textContent = '0%';
-  const step = () => { const now = performance.now(); if (t0 == null) t0 = now + 120; const k = clamp((now - t0) / d, 0, 1); el.textContent = Math.round(v * (1 - Math.pow(1 - k, 3))) + '%'; if (k < 1) requestAnimationFrame(step); };
+  const step = () => { const now = performance.now(); if (t0 == null) t0 = now + motion('--t-quick'); const k = clamp((now - t0) / d, 0, 1); el.textContent = Math.round(v * (1 - Math.pow(1 - k, 3))) + '%'; if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 // Shared by a round just sung and one reopened from the progress table.
@@ -1343,12 +1438,12 @@ function renderSummary(r, o) {
   $('#doneTitle').textContent = !o.fresh ? `Round from ${fmtDay(r.ts)}` : score == null ? 'Round over' : 'Round complete';
   const counts = new Map(); for (const n of r.notes) counts.set(n.tier.key, (counts.get(n.tier.key) || 0) + 1);
   $('#tally').innerHTML = [...TIERS, OTHER.void, OTHER.silent].filter((t) => counts.get(t.key) || TIERS.includes(t))
-    .map((t) => `<span class="tal"><i data-tone="${t.tone}">${t.icon}</i>${t.word} <b>${counts.get(t.key) || 0}</b></span>`).join('');
-  $('#insights').innerHTML = insights(r.notes).map((f) => `<li><b>${f.title}</b><span>${f.body}</span></li>`).join('');
+    .map((t, i) => `<span class="tal" style="--i:${i}"><i data-tone="${t.tone}">${t.icon}</i>${t.word} <b>${counts.get(t.key) || 0}</b></span>`).join('');
+  $('#insights').innerHTML = insights(r.notes).map((f, i) => `<li style="--i:${i}"><b>${f.title}</b><span>${f.body}</span></li>`).join('');
   summaryRun = r;
   drawKeysMap();
   const chips = $('#chips');
-  chips.innerHTML = r.notes.map((n, i) => `<button type="button" class="chip" data-i="${i}" aria-pressed="false" aria-label="Note ${i + 1}: ${nname(n.midi)}, ${n.tier.word}"><i data-tone="${n.tier.tone}">${n.tier.icon}</i>${nname(n.midi)}</button>`).join('');
+  chips.innerHTML = r.notes.map((n, i) => `<button type="button" class="chip" style="--i:${i}" data-i="${i}" aria-pressed="false" aria-label="Note ${i + 1}: ${nname(n.midi)}, ${n.tier.word}"><i data-tone="${n.tier.tone}">${n.tier.icon}</i>${nname(n.midi)}</button>`).join('');
   const worst = ok.length ? r.notes.indexOf(ok.reduce((a, b) => (b.acc < a.acc ? b : a))) : 0;
   pickDetail(worst, true);
   $('#doneTitle').focus({ preventScroll: true });
@@ -1363,6 +1458,7 @@ function pickDetail(i, isWorst) {
     ${n.kind === 'ok' ? `<div class="duo">${duo(n)}</div>` : `<div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span></div>`}
     <p class="vtext"></p><div class="roll"></div><p class="caption rollcap">Tap the keys on the left to hear those notes.</p>`;
   d.querySelector('.vtext').textContent = sentence(n);
+  restart(d, 'swap');
   const rollEl = d.querySelector('.roll');
   if (n.trace) mountRoll(rollEl, n, 190); else { rollEl.remove(); d.querySelector('.rollcap').remove(); }
   const btn = d.querySelector('.play');
@@ -1399,6 +1495,7 @@ async function playClip(r, i, rollEl, btn) {
       line.setAttribute('visibility', vis ? 'visible' : 'hidden');
       if (vis) { line.setAttribute('x1', g2.X(pos)); line.setAttribute('x2', g2.X(pos)); }
     }
+    btn.style.setProperty('--p', clamp((ac.currentTime - t) / buf.duration, 0, 1).toFixed(3));
     p.raf = requestAnimationFrame(head);
   };
   head();
@@ -1409,14 +1506,25 @@ function stopClip() {
   const p = playing; playing = null;
   cancelAnimationFrame(p.raf);
   try { p.src.stop(); } catch (e) {}
-  p.btn.textContent = '▶ Hear it';
+  p.btn.textContent = '▶ Hear it'; p.btn.style.setProperty('--p', 0);
   const line = p.rollEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
 }
 let mapMode = 'start';
+// A thumb behind the chosen item of a group, gliding between items (the glide pattern). It's placed without
+// sliding the first time, or when `jump` is set.
+function slideThumb(group, sel = '[aria-pressed="true"]', jump = false) {
+  const th = group.querySelector('.thumb'), on = group.querySelector(sel);
+  if (!th || !on) return;
+  const still = jump || !th.style.width;
+  if (still) th.style.transition = 'none';
+  th.style.width = on.offsetWidth + 'px'; th.style.transform = `translateX(${on.offsetLeft}px)`;
+  if (still) { void th.offsetWidth; th.style.transition = ''; }
+}
 function drawKeysMap() {
   const r = summaryRun; if (!r) return;
   const land = mapMode === 'land', val = (n) => land ? n.settled : n.onset, score = (n) => land ? n.landAcc : n.acc;
   for (const b of document.querySelectorAll('[data-map]')) b.setAttribute('aria-pressed', String(b.dataset.map === mapMode));
+  slideThumb($('#mapOpts'));
   $('#mapCap').textContent = land ? 'Each dot is where that note ended up. ▼ means you landed flat, ▲ sharp. Tap a key to hear it.'
     : 'Each dot is how you started that note. ▼ means you started flat, ▲ sharp. Tap a key to hear it.';
   const by = new Map();
@@ -1428,29 +1536,29 @@ function drawKeysMap() {
     label: (m) => m === r.lo || m === r.hi ? 'bold' : pc(m) === 0 ? 'muted' : null,
     marks: (g, kw) => {
       let s = '';
-      for (const [m, list] of by) {
+      [...by].sort((a, b) => a[0] - b[0]).forEach(([m, list], i) => {
         const k = g.get(m), c = median(list.map(val)), t = tierOf(c), rad = clamp(kw * (k.white ? 0.34 : 0.26), 5, 11);
-        s += `<g data-tone="${t.tone}"><circle cx="${k.x}" cy="${k.y}" r="${rad}" fill="var(--tone)" stroke="var(--surface)" stroke-width="2"/>`;
+        s += `<g class="mk" style="--i:${i}" data-tone="${t.tone}"><circle cx="${k.x}" cy="${k.y}" r="${rad}" fill="var(--tone)" stroke="var(--surface)" stroke-width="2"/>`;
         if (rad >= 8) s += `<text x="${k.x}" y="${k.y + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${rad * 1.05}" font-weight="800" fill="var(--tone-ink)">${t.icon}</text>`;
         s += '</g>';
-        if (Math.abs(c) >= 15) s += `<text x="${k.x}" y="${k.y - rad - 5}" text-anchor="middle" font-size="${clamp(rad, 8, 11)}" fill="var(${k.white ? '--ink-2' : '--key-white'})">${c < 0 ? '▼' : '▲'}</text>`;
-      }
+        if (Math.abs(c) >= 15) s += `<text class="mk" style="--i:${i}" x="${k.x}" y="${k.y - rad - 5}" text-anchor="middle" font-size="${clamp(rad, 8, 11)}" fill="var(${k.white ? '--ink-2' : '--key-white'})">${c < 0 ? '▼' : '▲'}</text>`;
+      });
       for (const [m, k] of g) s += `<rect class="hit" data-m="${m}" x="${k.x0}" y="0" width="${k.w}" height="${k.h}" fill="transparent"/>`;
       return s;
     },
   });
   // key tooltips: black keys are drawn last, so they win where they overlap white keys
-  let tip = el.querySelector('.tip-pop'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip-pop'; tip.hidden = true; el.style.position = 'relative'; el.appendChild(tip); }
+  let tip = el.querySelector('.tip-pop'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip-pop'; el.style.position = 'relative'; el.appendChild(tip); }
   const svg = el.querySelector('svg');
   const hover = (e) => {
-    const h = e.target.closest && e.target.closest('.hit'); if (!h) { tip.hidden = true; return; }
+    const h = e.target.closest && e.target.closest('.hit'); if (!h) { hideTip(tip); return; }
     const m = +h.dataset.m, list = by.get(m) || [], k = geo.get(m), box = svg.getBoundingClientRect(), sc = box.width / svg.viewBox.baseVal.width;
     tip.textContent = list.length ? `${nname(m)} · ${land ? 'landing' : 'start'} ${Math.round(mean(list.map(score)))}% · ${land ? 'ended' : 'started'} ${off(median(list.map(val)))}${list.length > 1 ? ` · ${list.length} notes` : ''}` : `${nname(m)} · ${land ? 'no landing scored' : 'not sung'} this round`;
     placeTip(tip, k.x * sc, k.y * sc - 16, box.width);
   };
   svg.addEventListener('pointermove', hover); svg.addEventListener('pointerdown', hover);
   if (!el._playable) { el._playable = true; playable(el, keyUnder(el, '.hit'), (m, on) => { const k = el.querySelector(`[data-k="${m}"]`); if (k) k.classList.toggle('down', on); }); }
-  svg.addEventListener('pointerleave', () => { tip.hidden = true; });
+  svg.addEventListener('pointerleave', () => hideTip(tip));
 }
 
 /* ---------- progress across rounds ---------- */
@@ -1466,16 +1574,17 @@ function renderHistory() {
   const Y = (v) => padT + (1 - v / 100) * (H - padT - padB);
   let s = '';
   for (const v of [0, 50, 100]) s += `<line x1="${padL}" x2="${Wd - padR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${padL - 8}" y="${Y(v)}" text-anchor="end" dominant-baseline="central" font-size="11" font-weight="700" fill="var(--muted)">${v}%</text>`;
+  const fresh = el._count !== n; el._count = n;       // replay only when the rounds changed, not on every redraw
   for (const [k, col] of [['landing', 'var(--ink-2)'], ['score', 'var(--accent)']]) {   // start drawn last, on top
     let d = '';
     rounds.forEach((r, i) => { if (r[k] != null) d += `${d ? 'L' : 'M'}${X(i).toFixed(1)},${Y(r[k]).toFixed(1)}`; });
-    s += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-    rounds.forEach((r, i) => { if (r[k] != null && (n <= 40 || i === n - 1)) s += `<circle cx="${X(i)}" cy="${Y(r[k])}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>`; });
+    s += `<path${fresh ? ' class="draw" pathLength="1"' : ''} d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    rounds.forEach((r, i) => { if (r[k] != null && (n <= 40 || i === n - 1)) s += `<circle${fresh ? ` class="dot-in" style="--i:${Math.min(i, 40)}"` : ''} cx="${X(i)}" cy="${Y(r[k])}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>`; });
   }
   s += `<text x="${X(0)}" y="${H - 6}" font-size="11" font-weight="700" fill="var(--muted)" text-anchor="${n === 1 ? 'middle' : 'start'}">${fmtDay(rounds[0].ts)}</text>`;
   if (n > 1) s += `<text x="${X(n - 1)}" y="${H - 6}" font-size="11" font-weight="700" fill="var(--muted)" text-anchor="end">${fmtDay(rounds[n - 1].ts)}</text>`;
-  s += `<g class="xh" visibility="hidden"><line y1="${padT}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity=".3"/></g>`;
-  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Start and landing score for each round">${s}</svg><div class="tip-pop" hidden></div>`;
+  s += `<g class="xh xh-glide" visibility="hidden"><line x1="0" x2="0" y1="${padT}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity=".3"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${H}" height="${H}" role="img" aria-label="Start and landing score for each round">${s}</svg><div class="tip-pop"></div>`;
   el._g = { Wd, H, X, Y, n };
   if (!el._wired) {
     el._wired = true;
@@ -1483,13 +1592,16 @@ function renderHistory() {
       const g = el._g; if (!g) return;
       const svg = el.querySelector('svg'), box = svg.getBoundingClientRect(), x = (e.clientX - box.left) * g.Wd / box.width;
       let i = 0; for (let j = 0; j < g.n; j++) if (Math.abs(g.X(j) - x) < Math.abs(g.X(i) - x)) i = j;
-      const r = rounds[i], tip = el.querySelector('.tip-pop'), xh = el.querySelector('.xh line');
-      xh.setAttribute('x1', g.X(i)); xh.setAttribute('x2', g.X(i)); el.querySelector('.xh').setAttribute('visibility', 'visible');
+      const r = rounds[i], tip = el.querySelector('.tip-pop'), xh = el.querySelector('.xh');
+      const showing = xh.getAttribute('visibility') === 'visible';
+      if (!showing) xh.style.transition = 'none';
+      xh.style.transform = `translateX(${g.X(i)}px)`; xh.setAttribute('visibility', 'visible');
+      if (!showing) { void xh.getBoundingClientRect(); xh.style.transition = ''; }
       tip.textContent = `${fmtWhen(r.ts)} · start ${r.score}% · landing ${r.landing == null ? '—' : r.landing + '%'}`;
       placeTip(tip, g.X(i) * box.width / g.Wd, g.Y(Math.max(r.score, r.landing ?? 0)) * box.height / g.H - 12, box.width);
     };
     el.addEventListener('pointermove', move); el.addEventListener('pointerdown', move);
-    el.addEventListener('pointerleave', () => { const t = el.querySelector('.tip-pop'); if (t) t.hidden = true; const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
+    el.addEventListener('pointerleave', () => { hideTip(el.querySelector('.tip-pop')); const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
   }
   if (n >= 6) {
     const k = Math.min(5, Math.floor(n / 2)), a = rounds.slice(-2 * k, -k), b = rounds.slice(-k);
@@ -1578,7 +1690,7 @@ document.addEventListener('keydown', (e) => {
 let rz = null;
 window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => {
   renderRange(); if (!$('#summary').hidden) drawKeysMap();
-  for (const el of document.querySelectorAll('.roll')) if (el._n && el.offsetParent) drawRoll(el);
+  for (const el of document.querySelectorAll('.roll')) if (el._n && el.offsetParent) drawRoll(el, false);
 }, 80); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
 
