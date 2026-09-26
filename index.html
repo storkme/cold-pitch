@@ -13,7 +13,7 @@
 :root{
   --bg:#ECEEF8; --surface:#FFFFFF; --surface-2:#F3F4FB; --ink:#17163A; --ink-2:#4A4870; --muted:#6F6D96; --line:#DCDDEC;
   --accent:#3B45E8; --accent-deep:#252CB0; --accent-ink:#FFFFFF; --accent-wash:rgba(59,69,232,.13); --accent-soft:#D9DCFB;
-  --key-bed:#C9CBE0; --key-white:#FFFFFF; --key-black:#24224A; --key-out:#E6E7F2; --roll-white:#FFFFFF; --roll-black:#F1F2FA; --roll-sep:#D9DAEA;
+  --key-bed:#C9CBE0; --key-white:#FFFFFF; --key-black:#24224A; --key-out:#E6E7F2; --key-in:#D9DCFB; --key-hot:#9FA5F5; --roll-white:#FFFFFF; --roll-black:#F1F2FA; --roll-sep:#D9DAEA;
   --good:#0CA30C; --warn:#FAB219; --crit:#D03B3B; --none:#A3A1C2;
   --display:"Bagel Fat One","Arial Rounded MT Bold",system-ui,sans-serif;
   --sans:"M PLUS Rounded 1c",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -23,7 +23,7 @@
   :root:not([data-theme="light"]){
     --bg:#0E0D20; --surface:#191833; --surface-2:#221F40; --ink:#F1F0FF; --ink-2:#C4C2E6; --muted:#9794BF; --line:#2E2C52;
     --accent:#8189FF; --accent-deep:#4F57D8; --accent-ink:#0E0D20; --accent-wash:rgba(129,137,255,.17); --accent-soft:#34357A;
-    --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
+    --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --key-in:#5256B3; --key-hot:#8A91FF; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
     --none:#6E6B96;
     color-scheme:dark;
   }
@@ -31,7 +31,7 @@
 :root[data-theme="dark"]{
   --bg:#0E0D20; --surface:#191833; --surface-2:#221F40; --ink:#F1F0FF; --ink-2:#C4C2E6; --muted:#9794BF; --line:#2E2C52;
   --accent:#8189FF; --accent-deep:#4F57D8; --accent-ink:#0E0D20; --accent-wash:rgba(129,137,255,.17); --accent-soft:#34357A;
-  --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
+  --key-bed:#0B0A1A; --key-white:#3A3868; --key-black:#100F24; --key-out:#23213F; --key-in:#5256B3; --key-hot:#8A91FF; --roll-white:#221F40; --roll-black:#191833; --roll-sep:#34315C;
   --none:#6E6B96;
   color-scheme:dark;
 }
@@ -77,19 +77,44 @@ button{font-family:inherit}
 .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
 .card-head span{color:var(--ink-2);font-size:14px;font-weight:700}
 .kbd svg{display:block;width:100%;height:auto;overflow:visible}
-.steppers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.stepper{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;background:var(--surface-2);border-radius:14px;padding:6px}
-.stepper .lab{grid-column:1/-1;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px 0}
-.stepper b{text-align:center;font:800 20px var(--sans)}
-.stepper button{width:40px;height:40px;border-radius:11px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:800 20px/1 var(--sans);cursor:pointer;box-shadow:0 2px 0 var(--line)}
-.stepper button:active{transform:translateY(2px);box-shadow:none}
-.stepper button:disabled{opacity:.35;cursor:default}
-.segctl{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
-.segctl .lab{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.segctl .opts{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
-.segctl button{border:0;background:none;color:var(--ink-2);font:800 14px var(--sans);padding:8px 12px;border-radius:9px;cursor:pointer}
-.seghint{font-size:13px;font-weight:700;color:var(--muted)}
-.segctl button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
+
+/* range picker: the keyboard is the control */
+.rangeval{font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.rangeval b{display:inline-block;color:var(--ink);font-weight:800;font-size:17px}
+.rangeval.tick b{animation:tick .28s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tick{from{transform:scale(1.14)}}
+.picker{position:relative;margin-top:6px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
+.pkeys{position:relative;display:flex;height:84px;border-radius:10px;overflow:hidden;background:var(--key-bed);cursor:pointer}
+.pkeys .wk{flex:1;background:var(--key-white);border-right:1px solid var(--key-bed);border-radius:0 0 5px 5px;transform-origin:50% 0;
+  transition:background-color .2s ease,transform .12s ease,box-shadow .12s ease}
+.pkeys .wk:last-child{border-right:0}
+.pkeys .bk{position:absolute;top:0;height:58%;background:var(--key-black);border-radius:0 0 4px 4px;z-index:1;transform-origin:50% 0;
+  transition:background-color .2s ease,transform .12s ease}
+.pkeys .wk.in{background:var(--key-in)}
+.pkeys .bk.in{background:var(--accent)}
+.pkeys .wk.hot{background:var(--key-hot);transform:scaleY(.975);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+.pkeys .bk.hot{background:var(--accent-deep);transform:scaleY(.95)}
+.ptrack{position:relative;height:44px}
+.ptrack::before{content:"";position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--line)}
+.pfill{position:absolute;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--accent);cursor:grab;transition:left .12s ease-out,width .12s ease-out}
+.pfill::before{content:"";position:absolute;left:0;right:0;top:-18px;bottom:-18px}
+.knob{position:absolute;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;padding:0;border-radius:50%;border:3px solid var(--accent);background:var(--surface);
+  box-shadow:0 2px 0 var(--accent-deep),0 4px 12px rgba(23,22,58,.16);cursor:grab;touch-action:none;z-index:2;
+  transition:left .12s ease-out,transform .22s cubic-bezier(.3,1.6,.5,1),box-shadow .22s ease}
+.knob::after{content:"";position:absolute;inset:-12px;border-radius:50%}
+.knob:hover{transform:scale(1.06)}
+.picker.dragging .knob.active{transform:scale(1.2);box-shadow:0 0 0 9px var(--accent-wash),0 6px 16px rgba(23,22,58,.2)}
+.picker.dragging,.picker.dragging *{cursor:grabbing}
+.poct{position:relative;height:16px;font-size:11.5px;font-weight:800;color:var(--muted)}
+.poct span{position:absolute;top:0;transform:translateX(-50%)}
+.bubble{position:absolute;top:0;left:0;z-index:4;pointer-events:none;background:var(--ink);color:var(--surface);border-radius:14px;padding:8px 14px 9px;text-align:center;white-space:nowrap;
+  opacity:0;transform:translate(-50%,calc(-100% + 4px)) scale(.6);transform-origin:50% 100%;
+  transition:opacity .14s ease,transform .24s cubic-bezier(.3,1.5,.5,1),left .1s ease-out}
+.bubble b{display:block;font:800 26px/1 var(--sans);letter-spacing:-.01em}
+.bubble small{display:block;margin-top:5px;font:800 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.bubble i{position:absolute;bottom:-5px;left:var(--ax,50%);width:12px;height:12px;margin-left:-6px;background:inherit;transform:rotate(45deg);border-radius:2px}
+.picker.dragging .bubble,.picker.peek .bubble{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}
+.phint{font-size:13px;font-weight:700;color:var(--muted);margin-top:2px}
 .legend{display:flex;gap:14px;font-size:13px;font-weight:800;color:var(--ink-2);margin:-2px 0 6px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:16px;height:3px;border-radius:2px}
@@ -224,10 +249,25 @@ button{font-family:inherit}
   .orb{width:150px;height:150px}
   .scorebox .score{font-size:46px}
 }
+/* motion: screens rise in, the summary arrives in order, finished notes pop into the progress bar */
+.screen:not([hidden]){animation:enter .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateY(10px)}}
+#summary:not([hidden]) :is(.scores,.sumsub,.tally,.sum-grid>.card,.actions){animation:enter .45s cubic-bezier(.2,.8,.2,1) both}
+#summary:not([hidden]) .scores{animation-delay:.05s}
+#summary:not([hidden]) .sumsub{animation-delay:.1s}
+#summary:not([hidden]) .tally{animation-delay:.15s}
+#summary:not([hidden]) .sum-grid>.card:nth-child(1){animation-delay:.21s}
+#summary:not([hidden]) .sum-grid>.card:nth-child(2){animation-delay:.27s}
+#summary:not([hidden]) .sum-grid>.card:nth-child(3){animation-delay:.33s}
+#summary:not([hidden]) .actions{animation-delay:.39s}
+.seg.pop{animation:segpop .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes segpop{from{transform:scale(.3);opacity:.2}}
 @media (prefers-reduced-motion: reduce){
   .stage .core,.stage .ring{animation:none!important}
   .sheet{animation:none}
   .btn,.btn:active{transition:none}
+  .screen,#summary *,.seg,.rangeval b{animation:none!important}
+  .pkeys *,.pfill,.knob,.bubble{transition:none!important}
 }
 </style>
 </head>
@@ -243,17 +283,17 @@ button{font-family:inherit}
   </div>
   <div class="home-grid">
     <div class="card">
-      <div class="card-head"><h2>Your range</h2><span id="rangeText"></span></div>
-      <div class="kbd" id="rangeKeys"></div>
-      <div class="steppers">
-        <div class="stepper"><span class="lab">Lowest</span><button type="button" id="loDown" aria-label="Lower the lowest note">−</button><b id="loName"></b><button type="button" id="loUp" aria-label="Raise the lowest note">+</button></div>
-        <div class="stepper"><span class="lab">Highest</span><button type="button" id="hiDown" aria-label="Lower the highest note">−</button><b id="hiName"></b><button type="button" id="hiUp" aria-label="Raise the highest note">+</button></div>
+      <div class="card-head"><h2>Your range</h2><span class="rangeval" id="rangeVal"><b id="rangeName"></b> · <span id="rangeCount"></span></span></div>
+      <div class="picker" id="picker">
+        <div class="bubble" id="bubble" aria-hidden="true"><b></b><small></small><i></i></div>
+        <div class="pkeys" id="pkeys"></div>
+        <div class="ptrack"><div class="pfill" id="pfill"></div>
+          <button type="button" class="knob" id="knobLo" role="slider" aria-label="Lowest note" aria-valuemin="36" aria-valuemax="84"></button>
+          <button type="button" class="knob" id="knobHi" role="slider" aria-label="Highest note" aria-valuemin="36" aria-valuemax="84"></button>
+        </div>
+        <div class="poct" id="poct" aria-hidden="true"></div>
       </div>
-      <div class="segctl"><span class="lab" id="holdLab">Silent hold</span><div class="opts" role="group" aria-labelledby="holdLab">
-        <button type="button" data-hold="1">1 s</button><button type="button" data-hold="2">2 s</button><button type="button" data-hold="rand">1–3 s</button></div></div>
-      <div class="segctl"><span class="lab" id="voiceLab">Reference tone</span><div class="opts" role="group" aria-labelledby="voiceLab">
-        <button type="button" data-voice="hum">Hum</button><button type="button" data-voice="ooh">Ooh</button><button type="button" data-voice="pure">Pure</button></div>
-        <span class="seghint">Tap one to hear it</span></div>
+      <p class="phint">Drag the handles to set your range, or drag the bar between them to move it.</p>
     </div>
     <button class="btn primary big" id="startBtn" type="button">Start round</button>
     <p class="err" id="homeErr" hidden></p>
@@ -356,13 +396,13 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const r1 = (v) => v == null ? null : Math.round(v * 10) / 10;
 const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 
-const ROUND_LEN = 15, WIN = 0.1, TONE = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84;
+const ROUND_LEN = 15, WIN = 0.1, TONE = 1, HOLD = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84, MIN_SPAN = 2;
 
 /* ---------- storage ---------- */
 // Settings live in localStorage. Finished rounds, with every note's full pitch curve, live in IndexedDB,
 // which has room for years of them. Both belong to this site only, so Export/Import moves them between browsers.
 const STORE = 'coldpitch.play.v1';
-let settings = { lo: 48, hi: 60, hold: '1', voice: 'hum', keepAudio: true };
+let settings = { lo: 48, hi: 60, keepAudio: true };
 let rounds = [];      // oldest first
 try {
   const p = JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -372,6 +412,8 @@ try {
     if (v1 && v1.settings && v1.settings.low != null) { settings.lo = +v1.settings.low; settings.hi = +v1.settings.high; }
   }
 } catch (e) {}
+delete settings.hold; delete settings.voice;                        // no longer choosable
+settings.lo = clamp(settings.lo, MIN_NOTE, MAX_NOTE - MIN_SPAN); settings.hi = clamp(settings.hi, settings.lo + MIN_SPAN, MAX_NOTE);
 function saveSettings() { try { localStorage.setItem(STORE, JSON.stringify({ settings })); } catch (e) {} }
 
 const DB = (() => {
@@ -570,18 +612,14 @@ function calibrate() {
     calib = c;
   });
 }
-// Reference voices. Hum and Ooh imitate a sung note: a voice-like source whose harmonics fall away (1/n^slope),
-// shaped by fixed resonances (a closed-mouth nasal hum, or an "oo" vowel), with a soft onset and a slight vibrato
-// that fades in. The vibrato is symmetric, so the average pitch is exactly the target.
+// The reference voice imitates a closed-mouth hum: a voice-like source whose harmonics fall away (1/n^slope),
+// shaped by fixed resonances (a nasal peak, a closed-mouth notch, a gentle high cut), with a soft onset and a slight
+// vibrato that fades in. The vibrato is symmetric, so the average pitch is exactly the target.
 // Filters are [type, Hz, Q, dB]. `level` is the target loudness (RMS); playTone works out the gain that
 // hits it at each pitch, so notes don't get louder or quieter as they pass through a resonance.
-const VOICES = {
-  hum:  { slope: 1.4, vib: 7, rate: 5.2, attack: 0.09, release: 0.14, level: 0.11,
-          filters: [['lowpass', 650, 0.6], ['peaking', 240, 1.4, 4], ['notch', 1150, 1.6]] },
-  ooh:  { slope: 1.2, vib: 10, rate: 5.4, attack: 0.07, release: 0.12, level: 0.11,
-          filters: [['lowpass', 1000, 0.7], ['peaking', 310, 2.5, 7], ['peaking', 850, 3, 3]] },
-  pure: { slope: null, vib: 0, attack: 0.03, release: 0.08, level: 0.11, filters: [] },
-};
+// (An "ooh" and a pure sine were tried too; see git history for their settings.)
+const HUM = { slope: 1.4, vib: 7, rate: 5.2, attack: 0.09, release: 0.14, level: 0.11,
+              filters: [['lowpass', 650, 0.6], ['peaking', 240, 1.4, 4], ['notch', 1150, 1.6]] };
 function sourceWave(ac, slope) {
   if (!ac._waves) ac._waves = new Map();
   if (!ac._waves.has(slope)) {
@@ -599,8 +637,8 @@ function toneRms(ac, v, f, filters) {
   let e = 0; for (let i = 0; i < n; i++) e += (mag[i] / Math.pow(i + 1, v.slope ?? 1)) ** 2;
   return Math.sqrt(e / 2);
 }
-function playTone(ac, midi, T, dur, voice) {
-  const v = VOICES[voice] || VOICES.hum, f = hz(midi);
+function playTone(ac, midi, T, dur) {
+  const v = HUM, f = hz(midi);
   const filters = v.filters.map(([type, freq, q, db]) => {
     const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = freq; b.Q.value = q; if (db != null) b.gain.value = db; return b;
   });
@@ -629,6 +667,7 @@ function playTone(ac, midi, T, dur, voice) {
   for (const b of filters) { node.connect(b); node = b; }
   node.connect(out);
   o.start(T); o.stop(T + dur + 0.2);
+  return out;
 }
 function summarise(trace) {
   const v = trace.filter((p) => p.c !== null && p.t >= 0);
@@ -703,28 +742,113 @@ function keyboard(el, a, b, o) {
 }
 
 function renderRange() {
-  const { lo, hi } = settings;
-  $('#loName').textContent = nname(lo); $('#hiName').textContent = nname(hi);
-  $('#rangeText').textContent = `${hi - lo + 1} note${hi === lo ? '' : 's'}`;
-  $('#loDown').disabled = lo <= MIN_NOTE; $('#loUp').disabled = lo >= hi;
-  $('#hiDown').disabled = hi <= lo; $('#hiUp').disabled = hi >= MAX_NOTE;
-  const a = clamp(lo - 5, MIN_NOTE, MAX_NOTE), b = clamp(hi + 5, MIN_NOTE, MAX_NOTE);
-  keyboard($('#rangeKeys'), a, b, {
-    H: 64, aria: `Keyboard with your range, ${nname(lo)} to ${nname(hi)}, highlighted`,
-    fill: (m) => m >= lo && m <= hi ? (isBlack(m) ? 'var(--accent)' : 'var(--accent-soft)') : null,
-    label: (m) => m === lo || m === hi ? 'bold' : pc(m) === 0 && (m < lo - 1 || m > hi + 1) ? 'muted' : null,
-  });
-  for (const b2 of document.querySelectorAll('[data-hold]')) b2.setAttribute('aria-pressed', String(b2.dataset.hold === settings.hold));
-  for (const b2 of document.querySelectorAll('[data-voice]')) b2.setAttribute('aria-pressed', String(b2.dataset.voice === settings.voice));
+  paintPicker();
   $('#keepAudio').checked = !!settings.keepAudio;
   renderHistory();
 }
 const bestScore = () => rounds.length ? Math.max(...rounds.map((r) => r.score)) : null;
-function nudge(k, d) {
-  settings[k] = clamp(settings[k] + d, MIN_NOTE, MAX_NOTE);
-  if (settings.lo > settings.hi) settings[k === 'lo' ? 'hi' : 'lo'] = settings[k];
-  saveSettings(); renderRange();
+
+/* ---------- range picker: the keyboard with two handles under it ---------- */
+// Every key from C2 to C6 is drawn once; handles snap to key centres. Key centres run left to right in pitch
+// order (a black key sits between its neighbours), so the nearest centre to the pointer is the note.
+const PK = { x: new Map(), el: new Map() };
+let pctx = null;     // a small audio context for sounds outside a round (key blips, playing back recordings)
+function buildPicker() {
+  const whites = []; for (let m = MIN_NOTE; m <= MAX_NOTE; m++) if (!isBlack(m)) whites.push(m);
+  const kw = 1 / whites.length; let keys = '', oct = '';
+  whites.forEach((m, i) => {
+    PK.x.set(m, (i + 0.5) * kw); keys += `<i class="wk" data-m="${m}"></i>`;
+    if (pc(m) === 0) oct += `<span style="left:${((i + 0.5) * kw * 100).toFixed(3)}%">${nname(m)}</span>`;
+  });
+  for (let m = MIN_NOTE; m <= MAX_NOTE; m++) if (isBlack(m)) {
+    const x = (whites.indexOf(m - 1) + 1) * kw; PK.x.set(m, x);
+    keys += `<i class="bk" data-m="${m}" style="left:${((x - kw * 0.31) * 100).toFixed(3)}%;width:${(kw * 62).toFixed(3)}%"></i>`;
+  }
+  $('#pkeys').innerHTML = keys; $('#poct').innerHTML = oct;
+  for (const el of $('#pkeys').children) PK.el.set(+el.dataset.m, el);
 }
+const keyAt = (fx) => { let best = MIN_NOTE, d = Infinity; for (const [m, x] of PK.x) { const dd = Math.abs(x - fx); if (dd < d) { d = dd; best = m; } } return best; };
+function paintPicker() {
+  const { lo, hi } = settings, xl = PK.x.get(lo) * 100, xh = PK.x.get(hi) * 100;
+  for (const [m, el] of PK.el) el.classList.toggle('in', m >= lo && m <= hi);
+  $('#knobLo').style.left = xl + '%'; $('#knobHi').style.left = xh + '%';
+  $('#pfill').style.left = xl + '%'; $('#pfill').style.width = (xh - xl) + '%';
+  for (const [id, m] of [['#knobLo', lo], ['#knobHi', hi]]) { $(id).setAttribute('aria-valuenow', m); $(id).setAttribute('aria-valuetext', nname(m)); }
+  const name = `${nname(lo)} – ${nname(hi)}`;
+  if ($('#rangeName').textContent !== name) {
+    $('#rangeName').textContent = name;
+    const rv = $('#rangeVal'); rv.classList.remove('tick'); void rv.offsetWidth; rv.classList.add('tick');
+  }
+  $('#rangeCount').textContent = `${hi - lo + 1} notes`;
+}
+function showBubble(m, label, text) {
+  const b = $('#bubble'), W = $('#pkeys').clientWidth;
+  b.querySelector('b').textContent = text || nname(m); b.querySelector('small').textContent = label;
+  const x = PK.x.get(m) * W, w = b.offsetWidth, bx = clamp(x, w / 2, W - w / 2);   // keep it on the card, arrow still on the key
+  b.style.left = bx + 'px'; b.style.setProperty('--ax', (x - bx + w / 2) + 'px');
+}
+let hotKey = null;
+function press(m) { if (hotKey) hotKey.classList.remove('hot'); hotKey = m == null ? null : PK.el.get(m); if (hotKey) hotKey.classList.add('hot'); }
+// Each key sounds softly as a handle reaches it, cutting off the one before, like running a finger along a piano.
+let blipOut = null;
+function blip(m) {
+  try {
+    const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
+    if (ac.state !== 'running') ac.resume().catch(() => {});
+    if (blipOut) { blipOut.gain.cancelScheduledValues(ac.currentTime); blipOut.gain.setTargetAtTime(0, ac.currentTime, 0.02); }
+    blipOut = playTone(ac, m, ac.currentTime + 0.01, 0.5);
+  } catch (e) {}
+}
+let drag = null;
+const pickFrac = (e) => { const r = $('#pkeys').getBoundingClientRect(); return clamp((e.clientX - r.left) / r.width, 0, 1); };
+function dragTo(fx) {
+  const m = keyAt(fx); let { lo, hi } = settings;
+  if (drag.which === 'lo') lo = clamp(m, MIN_NOTE, hi - MIN_SPAN);
+  else if (drag.which === 'hi') hi = clamp(m, lo + MIN_SPAN, MAX_NOTE);
+  else { lo = clamp(m - drag.grab, MIN_NOTE, MAX_NOTE - drag.span); hi = lo + drag.span; }
+  if (lo !== settings.lo || hi !== settings.hi) { settings.lo = lo; settings.hi = hi; paintPicker(); }
+  const note = drag.which === 'hi' ? hi : lo;
+  if (drag.which === 'both') { showBubble(Math.round((lo + hi) / 2), 'Range', `${nname(lo)} – ${nname(hi)}`); press(null); }
+  else { showBubble(note, drag.which === 'lo' ? 'Lowest' : 'Highest'); press(note); }
+  if (note !== drag.note) {
+    if (drag.note != null && navigator.vibrate) { try { navigator.vibrate(4); } catch (e) {} }
+    if (drag.which !== 'both') blip(note);
+    drag.note = note;
+  }
+}
+$('#picker').addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 || drag) return;
+  const fx = pickFrac(e), { lo, hi } = settings, knob = e.target.closest('.knob');
+  let which;
+  if (knob) which = knob.id === 'knobLo' ? 'lo' : 'hi';
+  else if (e.target.closest('#pfill')) which = 'both';                  // grab the bar: move the whole range
+  else which = Math.abs(fx - PK.x.get(lo)) <= Math.abs(fx - PK.x.get(hi)) ? 'lo' : 'hi';   // tap a key: the nearer handle jumps there
+  drag = { which, id: e.pointerId, span: hi - lo, grab: keyAt(fx) - lo, note: null };
+  const pk = $('#picker'); pk.setPointerCapture(e.pointerId); pk.classList.add('dragging');
+  $('#knobLo').classList.toggle('active', which !== 'hi'); $('#knobHi').classList.toggle('active', which !== 'lo');
+  e.preventDefault();
+  dragTo(fx);
+});
+$('#picker').addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) dragTo(pickFrac(e)); });
+const dragEnd = (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  drag = null; press(null); saveSettings();
+  $('#picker').classList.remove('dragging');
+  for (const k of document.querySelectorAll('.knob')) k.classList.remove('active');
+};
+$('#picker').addEventListener('pointerup', dragEnd);
+$('#picker').addEventListener('pointercancel', dragEnd);
+for (const [id, which] of [['#knobLo', 'lo'], ['#knobHi', 'hi']]) $(id).addEventListener('keydown', (e) => {
+  const step = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1, PageDown: -12, PageUp: 12 }[e.key];
+  let v = settings[which];
+  if (step) v += step; else if (e.key === 'Home') v = MIN_NOTE; else if (e.key === 'End') v = MAX_NOTE; else return;
+  e.preventDefault();
+  v = which === 'lo' ? clamp(v, MIN_NOTE, settings.hi - MIN_SPAN) : clamp(v, settings.lo + MIN_SPAN, MAX_NOTE);
+  if (v === settings[which]) return;
+  settings[which] = v; paintPicker(); saveSettings(); blip(v);
+  const pk = $('#picker'); showBubble(v, which === 'lo' ? 'Lowest' : 'Highest');
+  pk.classList.add('peek'); clearTimeout(pk._peek); pk._peek = setTimeout(() => pk.classList.remove('peek'), 900);
+});
 
 // Tooltips are centred over the point, but kept inside their chart using their real width.
 function placeTip(tip, x, y, width) {
@@ -813,7 +937,7 @@ async function startRound(sim) {
   hideMsg(); $('#homeErr').hidden = true;
   stopClip();
   if (pctx) { pctx.close().catch(() => {}); pctx = null; }
-  run = { sim, keepAudio: !sim && settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: settings.hold, voice: settings.voice, notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 };
+  run = { sim, keepAudio: !sim && settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: HOLD, voice: 'hum', notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 };
   show('run'); $('#demoChip').hidden = !sim; $('#mic').hidden = sim;
   renderProgress(); setStage('calib'); $('#noteNum').textContent = 'Getting ready';
   if (await ensureAudio()) playNext();
@@ -847,8 +971,8 @@ function playNext() {
   $('#sheet').hidden = true;
   const m = pick(); run.last = m;
   const T = ctx.currentTime + 0.35;
-  const hold = run.hold === 'rand' ? 1 + Math.random() * 2 : +run.hold;
-  playTone(ctx, m, T, TONE, run.voice);
+  const hold = HOLD;
+  playTone(ctx, m, T, TONE);
   // Time the hold from when the tone is heard to end, not when the page finishes playing it. Through a phone
   // speaker or Bluetooth that can be a few tenths of a second later, and the tail also takes a while to come back
   // in through the mic, so ignore what the mic hears until then. Browsers that don't report latency get 0.
@@ -867,7 +991,7 @@ function noteDone(n) {
   if (!run) return;
   scoreNote(n);
   n.hold = round ? r1(round.go - round.toneEnd) : null;
-  run.notes.push(n);
+  run.notes.push(n); run.pop = run.notes.length - 1;
   run.silent = n.kind === 'silent' ? run.silent + 1 : 0;
   renderProgress();
   $('#stage').dataset.tone = n.tier.tone; $('#glyph').textContent = n.tier.icon;
@@ -962,10 +1086,10 @@ function renderProgress() {
   let h = '';
   for (let i = 0; i < ROUND_LEN; i++) {
     const n = run.notes[i];
-    if (n) h += `<span class="seg done" data-tone="${n.tier.tone}" title="${nname(n.midi)}: ${n.tier.word}">${n.tier.icon}</span>`;
+    if (n) h += `<span class="seg done${i === run.pop ? ' pop' : ''}" data-tone="${n.tier.tone}" title="${nname(n.midi)}: ${n.tier.word}">${n.tier.icon}</span>`;
     else h += `<span class="seg${i === run.notes.length ? ' now' : ''}"></span>`;
   }
-  $('#progress').innerHTML = h;
+  $('#progress').innerHTML = h; run.pop = null;
   $('#progress').setAttribute('aria-label', `${run.notes.length} of ${ROUND_LEN} notes sung`);
 }
 
@@ -1075,6 +1199,14 @@ function endRound() {
       .catch(() => { $('#saveErr').hidden = false; });
   }
 }
+const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(el, v) {
+  if (v == null || calm()) { el.textContent = v == null ? '—' : v + '%'; return; }
+  const d = 750; let t0 = null;     // start timing on the first frame: drawing the summary can hold up the page for a moment
+  el.textContent = '0%';
+  const step = () => { const now = performance.now(); if (t0 == null) t0 = now + 120; const k = clamp((now - t0) / d, 0, 1); el.textContent = Math.round(v * (1 - Math.pow(1 - k, 3))) + '%'; if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
 // Shared by a round just sung and one reopened from the progress table.
 function renderSummary(r, o) {
   const ok = r.notes.filter((n) => n.kind === 'ok'), landed = ok.filter((n) => n.landAcc != null);
@@ -1082,8 +1214,7 @@ function renderSummary(r, o) {
   stopClip(); show('summary');
   $('#saveErr').hidden = true;
   $('#homeBtn').textContent = o.fresh ? 'Change range' : 'Back';
-  $('#sumStart').textContent = score == null ? '—' : score + '%';
-  $('#sumLand').textContent = landing == null ? '—' : landing + '%';
+  countUp($('#sumStart'), score); countUp($('#sumLand'), landing);
   const bs = mean(before.map((x) => x.score)), bl = mean(before.filter((x) => x.landing != null).map((x) => x.landing));
   $('#sumSub').textContent = `Averages over ${ok.length} of ${ROUND_LEN} notes${landed.length < ok.length ? `, ${ok.length - landed.length} too short to score the landing` : ''}.`
     + (!r.sim && before.length ? ` ${o.fresh ? 'Your last' : 'The'} ${before.length === 1 ? 'round' : before.length + ' rounds'}${o.fresh ? '' : ' before it'}: ${Math.round(bs)}% and ${bl == null ? '—' : Math.round(bl) + '%'}.` : '');
@@ -1314,19 +1445,6 @@ DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistor
   .catch(() => { $('#dataMsg').textContent = 'This browser won’t let the page store rounds, so they’ll be lost when it closes. Export after each session to keep them.'; });
 
 /* ---------- wiring ---------- */
-$('#loDown').addEventListener('click', () => nudge('lo', -1));
-$('#loUp').addEventListener('click', () => nudge('lo', 1));
-$('#hiDown').addEventListener('click', () => nudge('hi', -1));
-$('#hiUp').addEventListener('click', () => nudge('hi', 1));
-for (const b of document.querySelectorAll('[data-hold]')) b.addEventListener('click', () => { settings.hold = b.dataset.hold; saveSettings(); renderRange(); });
-// Preview a voice in the middle of the range. Before a round there's no audio context yet, so make a small one.
-let pctx = null;
-for (const b of document.querySelectorAll('[data-voice]')) b.addEventListener('click', () => {
-  settings.voice = b.dataset.voice; saveSettings(); renderRange();
-  const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
-  if (ac.state !== 'running') ac.resume().catch(() => {});
-  playTone(ac, Math.round((settings.lo + settings.hi) / 2), ac.currentTime + 0.05, TONE, settings.voice);
-});
 $('#startBtn').addEventListener('click', () => startRound(false));
 $('#demoBtn').addEventListener('click', () => startRound(true));
 $('#quitBtn').addEventListener('click', askQuit);
@@ -1350,6 +1468,7 @@ window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() =
 }, 80); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
 
+buildPicker();
 renderRange();
 requestAnimationFrame(tick);
 })();
