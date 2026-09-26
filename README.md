@@ -26,15 +26,28 @@ Nothing is uploaded. Everything stays in the browser, per site:
 
 - Headphones work best: the reference tone stays out of the mic. On iPhone they also stop the tone going quiet while the mic is open. Wired is better than Bluetooth.
 - A phone speaker works too. The page times the hold from when you actually hear the tone end (using the latency the browser reports) and ignores the mic while the tone's tail is still arriving. Low notes are thin through a phone speaker.
-- The mic needs a secure page: the hosted https version, localhost, or the file opened directly in Chrome.
+- The mic needs a secure page: the hosted https version, or localhost.
 - If the mic or audio stops mid-round (screen lock, a call, another app taking the mic), the page says so and reconnects on the next tap instead of hanging.
 
 ## Development
 
-One self-contained HTML file, with the piano samples embedded. There's no build step and no dependencies; fonts come from Google Fonts, with system fallbacks. Open it directly, or serve the folder:
+Plain files: no build step and no dependencies. Fonts come from Google Fonts, with system fallbacks. The scripts are ES modules and the piano samples are fetched, so the page needs a web server; opening `index.html` from disk won't work. Any static server does:
 
     python3 -m http.server
 
 GitHub Pages serves `main` from the repo root. `.nojekyll` skips the Jekyll build.
 
-Motion follows a small design language, written at the top of `index.html`'s styles: principles, shared duration and easing values (`--t-*`, `--ease-*`), and named patterns (enter, pop, exit, swap, glide, reveal, count, press, ambient). New animations should use those values rather than their own timings. Reduced motion sets every duration to zero.
+What lives where:
+
+- `index.html`: the markup.
+- `css/app.css`: all the styles, starting with the motion language and the colour tokens.
+- `js/main.js`: start-up, buttons, keyboard shortcuts, redrawing on resize, and the frame loop.
+- `js/state.js`: the state that several modules change (the round, the note in progress), with a setter for each.
+- `js/util.js`: helpers, the round's constants, and the motion helpers. `js/scoring.js`: how a note is scored and described.
+- `js/storage.js`: settings, rounds and recordings in IndexedDB, Export and Import.
+- `js/home.js`, `js/round.js`, `js/stage.js`, `js/summary.js`: the home screen, a round, the stage during a note, and the summary. `js/roll.js` and `js/keyboard.js` draw the piano roll and the keyboards, and make their keys playable.
+- `js/audio/mic.js`: the mic, pitch detection (YIN) and the room check. Its tap is `tap.worklet.js`.
+- `js/audio/piano.js`: loading the samples, the hum stand-in, the sound button and held notes. `engine.js` is the page's side of the AudioWorklet that plays every note, `voices.worklet.js`.
+- `samples/salamander/`: one MP3 every three semitones, and `manifest.json` with each sample's tuning and level. Its README says where they came from and how they were edited.
+
+Motion follows a small design language, written at the top of `css/app.css`: principles, shared duration and easing values (`--t-*`, `--ease-*`), and named patterns (enter, pop, exit, swap, glide, reveal, count, press, ambient). New animations should use those values rather than their own timings. Reduced motion sets every duration to zero.

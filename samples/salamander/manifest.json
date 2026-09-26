@@ -1,0 +1,23 @@
+{
+  "attribution": "Piano: Salamander Grand Piano V3 by Alexander Holm, CC BY 3.0",
+  "sourceRate": 44100, "seconds": 2.5, "preroll": 0.003, "level": 0.11,
+  "samples": [
+    {"name": "C2", "midi": 36, "cents": -9.17, "gain": 0.4624, "peak": 0.391, "offset": 0.0, "file": "C2.mp3"},
+    {"name": "Ds2", "midi": 39, "cents": -9.02, "gain": 0.446, "peak": 0.377, "offset": 0.0, "file": "Ds2.mp3"},
+    {"name": "Fs2", "midi": 42, "cents": -5.63, "gain": 0.4197, "peak": 0.354, "offset": 0.0, "file": "Fs2.mp3"},
+    {"name": "A2", "midi": 45, "cents": -5.71, "gain": 0.5559, "peak": 0.47, "offset": 0.0, "file": "A2.mp3"},
+    {"name": "C3", "midi": 48, "cents": -9.61, "gain": 0.3952, "peak": 0.334, "offset": 0.0, "file": "C3.mp3"},
+    {"name": "Ds3", "midi": 51, "cents": -1.28, "gain": 0.4185, "peak": 0.354, "offset": 0.0, "file": "Ds3.mp3"},
+    {"name": "Fs3", "midi": 54, "cents": -6.37, "gain": 0.4959, "peak": 0.419, "offset": 0.0, "file": "Fs3.mp3"},
+    {"name": "A3", "midi": 57, "cents": 0.95, "gain": 0.4938, "peak": 0.417, "offset": 0.0, "file": "A3.mp3"},
+    {"name": "C4", "midi": 60, "cents": -1.9, "gain": 0.4336, "peak": 0.367, "offset": 0.0, "file": "C4.mp3"},
+    {"name": "Ds4", "midi": 63, "cents": 1.6, "gain": 0.5998, "peak": 0.507, "offset": 0.0, "file": "Ds4.mp3"},
+    {"name": "Fs4", "midi": 66, "cents": -3.05, "gain": 0.4488, "peak": 0.38, "offset": 0.0, "file": "Fs4.mp3"},
+    {"name": "A4", "midi": 69, "cents": 2.13, "gain": 0.3921, "peak": 0.331, "offset": 0.0, "file": "A4.mp3"},
+    {"name": "C5", "midi": 72, "cents": 3.22, "gain": 0.4093, "peak": 0.349, "offset": 0.0, "file": "C5.mp3"},
+    {"name": "Ds5", "midi": 75, "cents": 3.21, "gain": 0.3842, "peak": 0.325, "offset": 0.0, "file": "Ds5.mp3"},
+    {"name": "Fs5", "midi": 78, "cents": 4.49, "gain": 0.4096, "peak": 0.346, "offset": 0.0, "file": "Fs5.mp3"},
+    {"name": "A5", "midi": 81, "cents": 7.07, "gain": 0.635, "peak": 0.535, "offset": 0.0, "file": "A5.mp3"},
+    {"name": "C6", "midi": 84, "cents": 8.06, "gain": 1.3165, "peak": 1.113, "offset": 0.0, "file": "C6.mp3"}
+  ]
+}

@@ -1,0 +1,402 @@
+/* ---------- Recital: a concert programme on blue velvet ----------
+   Ivory ink on a deep ink-blue page. A high-contrast Didone (Bodoni Moda) for the few words that matter (the hero,
+   the step you're on, verdicts, scores), a quiet grotesk (Hanken Grotesk) for everything else, small-caps labels,
+   hairline rules instead of cards. The interface itself is ivory on blue: colour only ever means a verdict on your
+   singing (the status palette), and it always comes with a mark and a word. The one exception is the progress
+   chart's two lines, which take their own series colours.
+   Signature: the programme order. Listen, the imagine step and Sing are numbered I, II, III like movements, with a
+   rule that slides under the one you're on. */
+
+/* ---------- motion language ----------
+   1. Motion explains a change: where something came from, what moved, what's new. Nothing loops except while
+      the page is waiting on your voice (the listening ripples, the room check, the current note's segment).
+   2. Three speeds. Feedback is instant (hover, press, following the pointer). Components ease in and out.
+      Data replays: pitch lines draw in time order, scores count up, charts draw in.
+   3. One physical feel. Things you touch, and things that pop into place, have a little spring. Content settles
+      without overshoot. Exits are quicker than entrances and accelerate away.
+   4. Follow the finger. Anything under the pointer tracks it directly; only jumps between fixed positions glide.
+   5. Order means something. Staggers run in reading order, one step apart, and a sequence is done in ~half a second.
+   6. Reduced motion sets every duration to zero: everything lands in its final state and nothing is lost.
+   Patterns: enter (fade and rise), pop (scale up, spring), exit (fade and sink), swap (new content enters, the old
+   goes at once), glide (snap to snap), reveal (data drawn left to right), count (numbers run up), press (down at
+   once, spring back), ambient (a slow loop, waiting states only). Entrances use fill-mode `backwards`, so once
+   they finish, hover and press transitions work normally.
+   Recital tuning: a touch slower and with less spring than the default, so things settle rather than bounce. */
+:root{
+  --t-instant:90ms; --t-quick:180ms; --t-base:320ms; --t-slow:480ms; --t-data:900ms; --t-step:40ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1); --ease-spring:cubic-bezier(.25,1.12,.5,1);
+}
+@media (prefers-reduced-motion: reduce){
+  :root{--t-instant:0ms;--t-quick:0ms;--t-base:0ms;--t-slow:0ms;--t-data:0ms;--t-step:0ms}
+}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}}
+@keyframes pop{from{opacity:0;transform:scale(.7)}}
+@keyframes pop-soft{from{opacity:0;transform:scale(.94)}}
+@keyframes sink{to{opacity:0;transform:translateY(30%)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---------- tokens ----------
+   One look for now, deep blue, whatever the system theme. A light variant (ivory paper, deep-blue ink) can be added
+   later the usual way: a :root[data-theme="light"] block plus a prefers-color-scheme: light media block that
+   override these same tokens. Verdict and chart colours were checked with the dataviz palette validator against
+   --bg (all pairs, dark band): they clear the band, chroma and contrast floors, and the normal-vision floor.
+   Verdicts: worst colour-blind separation 8.3 across all pairs (target 8); every verdict colour still ships with its
+   mark and word, never colour alone. */
+:root{
+  --bg:#0B1736; --surface:#081129; --surface-2:#13224A; --ink:#F4EFE3; --ink-2:#C4C9DB; --ink-soft:#C4C9DB; --muted:#97A1C0;
+  --line:#22315C; --rule:#D9D4C8; --shadow:rgba(2,6,20,.55);
+  --accent:#F4EFE3; --accent-deep:#FFFFFF; --accent-ink:#0B1736; --accent-wash:rgba(244,239,227,.08); --accent-soft:#1C2D5E;
+  --key-bed:#050B1E; --key-white:#1B2A57; --key-black:#070E26; --key-out:#111E43; --key-in:#1B2A57; --key-hot:#34477E;
+  /* range keyboard: out-of-range keys sink into the navy, so it reads as a range control first and a piano second */
+  --pk-w:#E6DFCF; --pk-b:#0A1026; --pk-dim-w:#132148; --pk-dim-b:#0D1938; --pk-hot-w:#C9BEA5; --pk-hot-b:#2E3F70;
+  --roll-white:#13224A; --roll-black:#0F1C3F; --roll-sep:#22315C;
+  --good:#2D9B7B; --warn:#A1790C; --crit:#F94A64; --none:#6F7DAE; --crit-text:#FF9AA5;
+  --series-1:#3DA2BE; --series-2:#8968F4;       /* progress chart: start, landing */
+  --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+[data-tone="good"]{--tone:var(--good);--tone-ink:#0B1736}
+[data-tone="warn"]{--tone:var(--warn);--tone-ink:#0B1736}
+[data-tone="crit"]{--tone:var(--crit);--tone-ink:#0B1736}
+[data-tone="none"]{--tone:var(--none);--tone-ink:#0B1736}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans);-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.app{max-width:580px;margin:0 auto;padding:18px 20px 48px;min-height:100dvh}
+h1,h2,p{margin:0}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+.smallcaps,.card h2{font:600 11.5px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+svg text{font-family:var(--sans);font-weight:500}
+:is(.hero h1,.say,.done-title,.scorebox .score){font-optical-sizing:none;font-variation-settings:"opsz" 18}
+:is(.vword,.brand b,.rangeval b,.bubble b,.mini .mv,.insights b,.msg h2,.steps li::before){font-optical-sizing:none;font-variation-settings:"opsz" 11}
+
+/* buttons: printed, not pressed */
+.btn{font:600 12.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:14px 18px;border-radius:2px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
+  transition:transform var(--t-instant) var(--ease-out),background-color var(--t-quick),border-color var(--t-quick),color var(--t-quick)}
+.btn:not(.primary):hover{background:var(--surface-2)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn.primary:hover{background:color-mix(in srgb,var(--ink) 82%,var(--bg))}
+.btn.big{width:100%;font-size:13.5px;padding:19px 20px}
+.linkbtn{font:500 15px var(--sans);color:var(--ink);background:none;border:0;padding:6px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;
+  text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);transition:text-decoration-color var(--t-quick)}
+.linkbtn:hover{text-decoration-color:currentColor}
+.iconbtn{width:40px;height:40px;border-radius:2px;border:0;background:none;color:var(--ink-2);font:300 20px/1 var(--sans);cursor:pointer;flex:none;
+  transition:background-color var(--t-quick),color var(--t-quick),transform var(--t-instant) var(--ease-out)}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn:hover{background:var(--surface-2);color:var(--ink)}
+
+/* running head */
+.brand{display:flex;align-items:baseline;gap:10px;padding:2px 0 12px;margin-bottom:22px;border-bottom:1px solid var(--rule)}
+.brand .logo{display:none}
+.brand b{font:italic 500 22px/1 var(--display);letter-spacing:-.005em}
+.brand a{margin-left:auto;color:var(--ink-2);font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;transition:color var(--t-quick)}
+.brand a:hover{color:var(--ink)}
+
+/* home */
+.hero h1{font:400 46px/1.02 var(--display);letter-spacing:-.015em;text-wrap:balance;font-optical-sizing:auto}
+.hero h1 em{font-style:italic}
+.hero p{color:var(--ink-2);margin-top:14px;max-width:38ch;font-size:17px}
+.card{background:none;border-radius:0;padding:14px 0 0;border-top:1px solid var(--rule)}
+.home-grid{display:grid;gap:22px;margin-top:30px}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.card-head span{color:var(--ink-2);font-size:14px}
+.kbd svg{display:block;width:100%;height:auto;overflow:visible}
+
+/* range picker: the keyboard is the control; out of range is greyed, your range is full black and white */
+.rangeright{display:flex;align-items:center;gap:10px}
+.rangeval{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.rangeval b{display:inline-block;color:var(--ink);font:500 22px/1 var(--display)}
+.rangecard .card-head h2{font:italic 400 30px/1.05 var(--display);letter-spacing:0;text-transform:none}
+.reset{position:relative;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none;
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),border-color var(--t-quick),color var(--t-quick)}
+.reset svg{width:14px;height:14px;stroke-width:2}
+.reset::after{content:"";position:absolute;inset:-8px;border-radius:50%}
+.reset:hover{border-color:var(--ink);color:var(--ink)}
+.reset:disabled{opacity:0;transform:scale(.5) rotate(90deg);cursor:default}
+.rangeval.tick b{animation:tick var(--t-base) var(--ease-spring)}
+@keyframes tick{from{transform:translateY(-3px);opacity:.3}}
+.picker{position:relative;margin-top:4px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
+.pkeys{position:relative;display:flex;height:60px;border-radius:2px;overflow:hidden;background:var(--key-bed);cursor:pointer;border:1px solid var(--key-bed)}
+.pkeys .wk{flex:1;background:var(--pk-dim-w);border-right:1px solid var(--key-bed);border-radius:0 0 2px 2px;transform-origin:50% 0;
+  transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out),box-shadow var(--t-instant) var(--ease-out)}
+.pkeys .wk:last-child{border-right:0}
+.pkeys .bk{position:absolute;top:0;height:60%;background:var(--pk-dim-b);border-radius:0 0 2px 2px;z-index:1;transform-origin:50% 0;
+  transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out)}
+.pkeys .wk.in{background:var(--pk-w)}
+.pkeys .bk.in{background:var(--pk-b)}
+.pkeys .wk.hot{background:var(--pk-hot-w);transform:scaleY(.985);box-shadow:inset 0 -3px 0 rgba(14,26,72,.12)}
+.pkeys .bk.hot{background:var(--pk-hot-b);transform:scaleY(.96)}
+.ptrack{position:relative;height:40px}
+.ptrack::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.pfill{position:absolute;top:50%;height:2px;margin-top:-.5px;background:var(--ink);cursor:grab;transition:left var(--t-instant) var(--ease-out),width var(--t-instant) var(--ease-out)}
+.pfill::before{content:"";position:absolute;left:0;right:0;top:-18px;bottom:-18px}
+.knob{position:absolute;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;padding:0;border-radius:50%;border:1.5px solid var(--ink);background:var(--bg);
+  cursor:grab;touch-action:none;z-index:2;
+  transition:left var(--t-instant) var(--ease-out),transform var(--t-base) var(--ease-spring),background-color var(--t-quick),box-shadow var(--t-base) var(--ease-out)}
+.knob::after{content:"";position:absolute;inset:-14px;border-radius:50%}
+.knob:hover{transform:scale(1.08)}
+.picker.dragging .knob.active{transform:scale(1.15);background:var(--ink);box-shadow:0 0 0 7px var(--accent-wash)}
+.picker.dragging,.picker.dragging *{cursor:grabbing}
+.poct{position:relative;height:16px;font:500 10.5px var(--sans);letter-spacing:.12em;color:var(--muted)}
+.poct span{position:absolute;top:0;transform:translateX(-50%)}
+.bubble{position:absolute;top:0;left:0;z-index:4;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:2px;padding:8px 14px 9px;text-align:center;white-space:nowrap;
+  opacity:0;transform:translate(-50%,calc(-100% + 4px)) scale(.8);transform-origin:50% 100%;
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),left var(--t-instant) var(--ease-out)}
+.bubble b{display:block;font:500 28px/1 var(--display)}
+.bubble small{display:block;margin-top:5px;font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+.bubble i{position:absolute;bottom:-4px;left:var(--ax,50%);width:9px;height:9px;margin-left:-4.5px;background:inherit;transform:rotate(45deg)}
+.picker.dragging .bubble,.picker.peek .bubble{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}
+.mictest{display:grid;justify-items:center;gap:10px}
+.mtlive{display:grid;justify-items:center;gap:6px;width:100%;animation:enter var(--t-base) var(--ease-out)}
+#mtWave{display:block;width:100%;height:40px}
+#mtLabel{font:600 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.phint{font-size:13.5px;color:var(--muted);margin-top:4px}
+.legend{display:flex;gap:16px;font:500 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin:-2px 0 8px}
+#histChart svg,#histLegend i{--accent:var(--series-1);--ink-2:var(--series-2);--surface:var(--bg)}   /* marks only: text keeps text colours */
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:18px;height:2px}
+.chart{position:relative}
+.chart svg{display:block;width:100%}
+.empty{color:var(--ink-2);font-size:15px;padding:4px 0 2px}
+.histempty{color:var(--muted);opacity:.75;font-size:14px;text-align:center;margin:6px 0 0}
+.histempty .linkbtn{font-size:14px;color:inherit;margin-left:4px}
+.tbl{margin-top:12px;interpolate-size:allow-keywords}
+.tbl summary{cursor:pointer;font:600 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);list-style:none;display:inline-flex;align-items:center;gap:8px;transition:color var(--t-quick)}
+.tbl summary::-webkit-details-marker{display:none}
+.tbl summary::before{content:"";border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform var(--t-quick) var(--ease-out)}
+.tbl summary:hover{color:var(--ink)}
+.tbl[open] summary::before{transform:rotate(90deg)}
+.tbl::details-content{height:0;overflow:clip;transition:height var(--t-base) var(--ease-out),content-visibility var(--t-base) allow-discrete}
+.tbl[open]::details-content{height:auto}
+.kbd .mk{animation:pop var(--t-base) var(--ease-spring) backwards;animation-delay:calc(var(--i,0) * var(--t-step) * .6);transform-box:fill-box;transform-origin:center}
+.chart .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw var(--t-data) var(--ease-out) forwards}
+.chart .dot-in{animation:pop var(--t-base) var(--ease-spring) backwards;animation-delay:calc(var(--t-data) * .5 + var(--i,0) * var(--t-step) * .3);transform-box:fill-box;transform-origin:center}
+.xh-glide{transition:transform var(--t-instant) var(--ease-out)}
+.tbl table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th{text-align:right;color:var(--muted);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--rule)}
+.tbl td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line)}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.datarow{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.switch{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;margin-top:18px;cursor:pointer}
+.switch input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--ink)}
+.switch b{display:block;font-weight:600;font-size:15px}
+.switch small{display:block;color:var(--ink-2);font-size:13.5px}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.btn.small{font-size:11px;padding:10px 12px}
+.center{text-align:center}
+.tip{color:var(--ink-2);font-size:14px;text-align:center;max-width:44ch;margin:0 auto;font-style:normal}
+.err{color:var(--crit-text);font-weight:600;text-align:center}
+
+/* run */
+.runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
+/* the sound button: pinned top right of the content column; it pulses (the nudge pattern) when the page wants sound */
+.soundbtn{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(12px,calc(50vw - 280px + 8px));width:40px;height:40px;padding:0;
+  display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);cursor:pointer;
+  transition:color var(--t-quick),border-color var(--t-quick),transform var(--t-instant) var(--ease-out)}
+.soundbtn:hover{color:var(--ink);border-color:var(--ink-2)}
+.soundbtn:active{transform:scale(.92)}
+.soundbtn .on{display:none}
+.soundbtn[aria-pressed="true"] .on{display:inline}
+.soundbtn[aria-pressed="true"] .off{display:none}
+.soundbtn[aria-pressed="true"]{color:var(--ink)}
+.soundbtn.nudge{animation:nudge 1.1s var(--ease-out) 2;color:var(--ink);border-color:var(--ink)}
+@keyframes nudge{0%{box-shadow:0 0 0 0 rgba(244,239,227,.55)}70%{box-shadow:0 0 0 14px rgba(244,239,227,0)}100%{box-shadow:0 0 0 0 rgba(244,239,227,0)}}
+.progress{flex:1;display:grid;grid-template-columns:repeat(15,1fr);gap:4px}
+/* each finished note: its mark in ink above a rule in its colour (a mark and a colour, never colour alone) */
+.seg{height:16px;background:none;border-bottom:2px solid var(--line);display:grid;place-items:center;font:600 9.5px/1 var(--sans);color:var(--ink-2)}
+.seg.done{border-bottom-color:var(--tone);color:var(--ink)}
+.seg.now{border-bottom-color:var(--ink);animation:nowring 1.6s ease-in-out infinite}
+@keyframes nowring{50%{border-bottom-color:var(--line)}}
+.mic{display:flex;align-items:flex-end;gap:2px;height:16px;width:18px;flex:none}
+.mic i{flex:1;background:var(--line);transition:background-color var(--t-instant)}
+.mic i:nth-child(1){height:30%}.mic i:nth-child(2){height:55%}.mic i:nth-child(3){height:78%}.mic i:nth-child(4){height:100%}
+.mic i.lit{background:var(--muted)}
+.mic.voice i.lit{background:var(--ink)}
+.stage{display:grid;justify-items:center;text-align:center;gap:8px;padding-top:4vh}
+.notenum{font:600 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.orb{width:176px;height:176px;margin:10px 0 8px}
+.orb svg{width:100%;height:100%;overflow:visible}
+.orb .ring{fill:none;stroke:var(--ink);stroke-width:1;opacity:0;transform-origin:88px 88px}
+.orb .track{fill:none;stroke:var(--line);stroke-width:1.5;transition:opacity var(--t-quick) var(--ease-out)}
+.orb .hold{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:butt;transform:rotate(-90deg);transform-origin:88px 88px;opacity:0;transition:opacity var(--t-quick) var(--ease-out)}
+.orb .core{fill:var(--bg);stroke:var(--ink);stroke-width:1.25;transform-origin:88px 88px;transition:fill var(--t-quick) var(--ease-out)}
+.orb .glyph{font:500 40px var(--sans);fill:var(--tone-ink,var(--ink));dominant-baseline:central;text-anchor:middle;opacity:0;transform-box:fill-box;transform-origin:center}
+.stage[data-phase="calib"] .core{animation:breathe 1.6s ease-in-out infinite}
+.stage[data-phase="tone"] .core{fill:var(--accent-wash)}
+.stage[data-phase="tone"] .ring{animation:ripple 1.4s ease-out infinite}
+.stage[data-phase="tone"] .ring:nth-of-type(2){animation-delay:.47s}
+.stage[data-phase="tone"] .ring:nth-of-type(3){animation-delay:.93s}
+.stage[data-phase="hold"] .hold{opacity:1}
+.stage[data-phase="sing"] .core,.stage[data-phase="capture"] .core{fill:var(--ink)}
+.stage[data-phase="sing"] .core{animation:pop var(--t-base) var(--ease-spring)}
+.stage[data-phase="done"] .core{fill:var(--tone);stroke:none}
+.stage[data-phase="done"]:not([data-split]) .core,.stage[data-phase="done"] .glyph{animation:pop var(--t-base) var(--ease-spring)}
+.orb .halves{opacity:0;transform-origin:88px 88px}
+.orb .half{fill:var(--tone)}
+.orb .seam{stroke:var(--bg);stroke-width:4}
+.orb .hglyph{font:500 28px var(--sans);fill:var(--tone-ink);dominant-baseline:central;text-anchor:middle}
+.stage[data-phase="done"][data-split] .core{opacity:0}
+.stage[data-phase="done"][data-split] .halves{opacity:1;animation:pop var(--t-base) var(--ease-spring)}
+.stage[data-phase="done"] .glyph{opacity:1}
+.stage[data-phase="done"] .say,.stage[data-phase="done"] .sub{visibility:hidden}
+@keyframes ripple{from{opacity:.5;transform:scale(1)}to{opacity:0;transform:scale(1.8)}}
+@keyframes breathe{50%{transform:scale(.92)}}
+.say{font:italic 400 54px/1.05 var(--display);letter-spacing:-.01em;min-height:56px}
+.stage[data-phase="sing"] .say,.stage[data-phase="capture"] .say{font-weight:600}
+.sub{color:var(--ink-2);min-height:1.5em;font-size:16px}
+.say.swap,.sub.swap,.notenum.swap{animation:enter var(--t-quick) var(--ease-out)}
+/* the silence meter: only during the imagine step. Grey is quiet, amber is noise without a pitch (fine), red is
+   anything that sounds like humming, which is what voids a note. The canvas reads --line, --warn, --crit, --muted. */
+.quiet{display:grid;justify-items:center;gap:7px;margin-top:6px;opacity:0;transform:translateY(6px);pointer-events:none;
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-quick) var(--ease-out)}
+.stage[data-phase="hold"] .quiet{opacity:1;transform:none}
+#quietWave{display:block;width:200px;height:34px}
+#quietLabel{display:inline-flex;align-items:center;gap:8px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
+#quietLabel::before{content:"";width:7px;height:7px;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--muted);transition:background-color var(--t-quick),box-shadow var(--t-quick)}
+.quiet[data-state="noise"] #quietLabel::before{background:var(--warn);box-shadow:none}
+.quiet[data-state="hum"] #quietLabel{color:var(--ink)}
+.quiet[data-state="hum"] #quietLabel::before{background:var(--crit);box-shadow:none}
+/* the programme order: I Listen, II Hold, III Sing, with a rule gliding under the current movement */
+.steps{position:relative;display:flex;gap:22px;margin:4px 0 6px;padding:0 2px 7px;list-style:none;border-bottom:1px solid var(--line);transition:opacity var(--t-quick) var(--ease-out)}
+.steps li{position:relative;z-index:1;padding:4px 0;font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
+.steps li::before{font:500 14px/1 var(--display);letter-spacing:.02em;text-transform:none;margin-right:6px}
+.steps li[data-s="tone"]::before{content:"I"}
+.steps li[data-s="hold"]::before{content:"II"}
+.steps li[data-s="sing"]::before{content:"III"}
+.steps li.swap{animation:enter var(--t-quick) var(--ease-out)}
+.steps li.past{color:var(--ink-2)}
+.steps li.on{color:var(--ink)}
+.steps .thumb{position:absolute;bottom:-1px;left:0;height:2px;background:var(--ink);transition:transform var(--t-base) var(--ease-spring),width var(--t-base) var(--ease-spring)}
+.stage[data-phase="calib"] .steps,.stage[data-phase="done"] .steps{opacity:0}
+
+/* bottom sheet: a page slipped over the stage */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--rule);
+  box-shadow:0 -16px 44px var(--shadow);padding:18px 20px calc(18px + env(safe-area-inset-bottom,0px));animation:rise var(--t-base) var(--ease-out)}
+.sheet.leaving{animation:sink var(--t-quick) var(--ease-in) forwards}
+.sheet[data-tone]{background:var(--surface-2);border-top:2px solid var(--tone)}
+.sheet-in{max-width:580px;margin:0 auto;display:grid;gap:12px}
+@keyframes rise{from{transform:translateY(40%);opacity:0}}
+/* a verdict mark: a ring in the verdict's colour around its sign */
+.vicon,.mini .mi,.tal i,.chip i,.scorebox .si{font-style:normal;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--tone);color:var(--tone);display:grid;place-items:center;flex:none}
+.verdict{display:flex;align-items:center;gap:12px}
+.vicon{width:34px;height:34px;font:600 16px/1 var(--sans)}
+.vword{font:italic 400 30px/1 var(--display)}
+.vtext{color:var(--ink);max-width:52ch;font-size:16px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:3px;align-items:center;padding:12px 0 10px;border-top:2px solid var(--tone);
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards}
+.mini+.mini{animation-delay:calc(2 * var(--t-step))}
+.mini .mi{grid-row:1/3;width:32px;height:32px;font:600 15px/1 var(--sans)}
+.mini .mv{font:500 30px/1 var(--display);color:var(--ink)}
+.mini .ml{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);line-height:1.3}
+.mini .ml span{font-weight:700;color:var(--ink)}
+.mini .ml em{display:block;margin-top:3px;font:italic 400 17px/1.1 var(--display);font-optical-sizing:none;font-variation-settings:"opsz" 11;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+.sheet-foot{display:flex;align-items:center;gap:14px}
+.countdown{flex:1;height:1px;background:var(--line);overflow:visible;position:relative}
+.countdown i{display:block;height:2px;margin-top:-.5px;width:0;background:var(--ink)}
+.sheet .btn{padding:11px 16px;font-size:11.5px}
+.msg{background:var(--surface);border-top:2px solid var(--rule)}
+.msg h2{font:italic 400 30px/1.1 var(--display)}
+.msg p{color:var(--ink)}
+.msg .row{display:flex;gap:10px;flex-wrap:wrap}
+.msg .row .btn{flex:1}
+
+/* piano roll */
+.roll{position:relative}
+.roll svg{display:block;width:100%;touch-action:pan-y}
+.roll text,.kbd text,.chart text{font-family:var(--sans);font-weight:500}
+.rkey{fill:var(--ink);fill-opacity:0;cursor:pointer;touch-action:none;transition:fill-opacity var(--t-instant)}
+.rkey:hover{fill-opacity:.06}
+.rkey.down{fill:var(--ink);fill-opacity:.28}
+.kbd .hit{cursor:pointer;touch-action:none}
+.kbd path.wkey,.kbd path.bkey{transition:fill var(--t-instant)}
+.kbd path.wkey.down{fill:var(--key-hot)}
+.kbd path.bkey.down{fill:var(--ink-2)}
+.rollcap{margin-top:0}
+.roll .cap{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font:500 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:2px;white-space:nowrap;z-index:2;
+  opacity:0;visibility:hidden;transform:translate(-50%,-100%) translateY(4px) scale(.97);
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-quick) var(--ease-out),visibility 0s linear var(--t-quick),left var(--t-instant) var(--ease-out),top var(--t-instant) var(--ease-out)}
+.tip-pop.on{opacity:1;visibility:visible;transform:translate(-50%,-100%);transition-delay:0s}
+.tip-pop.track{transition-property:opacity,transform,visibility}
+.sdot{animation:pop var(--t-base) var(--ease-spring) backwards;transform-box:fill-box;transform-origin:center}
+
+/* summary */
+.done-title{font:400 46px/1.02 var(--display);letter-spacing:-.015em;text-wrap:balance}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0 10px}
+.scorebox{background:none;border-radius:0;padding:12px 0 0;border-top:2px solid var(--rule)}
+.scorebox[data-tone]{border-top-color:var(--tone)}
+.scorebox .si{display:inline-grid;width:20px;height:20px;margin-right:8px;font:600 10px/1 var(--sans);vertical-align:-4px}
+.scorebox .score{display:block;font:400 64px/1 var(--display);letter-spacing:-.02em;color:var(--ink)}
+.scorebox b{display:block;font:600 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;margin-top:10px}
+.scorebox .what{display:block;color:var(--ink-2);font-size:13.5px;line-height:1.35;margin-top:4px}
+.sumsub{color:var(--ink-2)}
+.bestchip{display:inline-block;margin-left:8px;font:600 10.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:6px 8px;border-radius:0;background:var(--ink);color:var(--bg);vertical-align:1px}
+.bestchip.quiet{background:none;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
+.tally{display:flex;flex-wrap:wrap;gap:6px 18px;margin:16px 0 26px}
+.tal{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--ink-2);
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards;animation-delay:calc((4 + var(--i,0)) * var(--t-step))}
+.tal i{width:22px;height:22px;font:600 11px/1 var(--sans)}
+.tal b{color:var(--ink);font-weight:700}
+.sum-grid{display:grid;gap:26px}
+.caption{font-size:13px;color:var(--ink-2);margin-top:12px}
+.insights{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:16px}
+.insights li{display:grid;gap:3px;animation:enter var(--t-base) var(--ease-out) backwards;animation-delay:calc((9 + 2 * var(--i,0)) * var(--t-step))}
+.insights b{font:italic 500 21px/1.2 var(--display)}
+.insights span{color:var(--ink-2);font-size:15px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin-top:2px}
+.chip{display:grid;justify-items:center;gap:5px;border:1px solid var(--line);background:none;border-radius:2px;padding:9px 2px 7px;cursor:pointer;color:var(--ink);font:500 12.5px var(--sans);
+  transition:transform var(--t-instant) var(--ease-out),border-color var(--t-quick),background-color var(--t-quick);
+  animation:pop-soft var(--t-base) var(--ease-spring) backwards;animation-delay:calc((11 + .6 * var(--i,0)) * var(--t-step))}
+.chip:hover{border-color:var(--ink-2)}
+.chip:active{transform:scale(.97)}
+.chip i{width:26px;height:26px;font:600 12.5px/1 var(--sans)}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 .5px var(--ink)}
+.detail{margin-top:16px;display:grid;gap:10px}
+.detail .verdict .vword{font-size:26px}
+.detail .vicon{width:30px;height:30px;font-size:14px}
+.detail .lead{font:600 11px var(--sans);color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+.detail.swap>*{animation:enter var(--t-base) var(--ease-out) backwards}
+.detail.swap>:nth-child(2){animation-delay:var(--t-step)}
+.detail.swap>:nth-child(3){animation-delay:calc(2 * var(--t-step))}
+.detail.swap>:nth-child(n+4){animation-delay:calc(3 * var(--t-step))}
+.btn.play{background-image:linear-gradient(90deg,var(--accent-soft) calc(var(--p,0) * 100%),transparent 0)}
+.actions{display:grid;gap:10px;margin-top:26px}
+.credit{font-size:12px;color:var(--muted);text-align:center;max-width:52ch;margin:6px auto 0;line-height:1.5}
+.credit a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);transition:text-decoration-color var(--t-quick)}
+.credit a:hover{text-decoration-color:currentColor}
+
+.card-head .opts{position:relative;display:flex;border:1px solid var(--line);border-radius:2px;padding:2px;gap:2px}
+.card-head .opts .thumb{position:absolute;top:2px;bottom:2px;left:0;width:0;border-radius:1px;background:var(--ink);
+  transition:transform var(--t-base) var(--ease-spring),width var(--t-base) var(--ease-spring)}
+.card-head .opts button{position:relative;z-index:1;border:0;background:none;color:var(--ink-2);font:600 10.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;cursor:pointer;transition:color var(--t-quick)}
+.card-head .opts button[aria-pressed="true"]{color:var(--bg)}
+@media (max-width:420px){
+  .hero h1{font-size:40px}
+  .say{font-size:46px}
+  .orb{width:150px;height:150px}
+  .scorebox .score{font-size:54px}
+  .steps{gap:16px}
+  .done-title{font-size:40px}
+}
+/* entrances: screens rise in, the summary arrives in reading order, finished notes pop into the progress bar */
+.screen:not([hidden]){animation:enter var(--t-slow) var(--ease-out)}
+#summary:not([hidden]) :is(.scores,.sumsub,.sum-grid>.card,.actions){animation:enter var(--t-slow) var(--ease-out) backwards}
+#summary:not([hidden]) .scores{animation-delay:var(--t-step)}
+#summary:not([hidden]) .sumsub{animation-delay:calc(2 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(1){animation-delay:calc(5 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(2){animation-delay:calc(7 * var(--t-step))}
+#summary:not([hidden]) .sum-grid>.card:nth-child(3){animation-delay:calc(9 * var(--t-step))}
+#summary:not([hidden]) .actions{animation-delay:calc(11 * var(--t-step))}
+.seg.pop{animation:pop var(--t-base) var(--ease-spring)}
+@media (prefers-reduced-motion: reduce){
+  .soundbtn.nudge{animation:none}
+  /* durations are already zero; ambient loops have their own, so stop them */
+  .stage .core,.stage .ring,.seg.now{animation:none!important}
+}
