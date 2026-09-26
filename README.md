@@ -25,7 +25,7 @@ Nothing is uploaded. Everything stays in the browser, per site:
 
 ## Notes
 
-- Headphones work best: the reference tone stays out of the mic. On iPhone they also stop the tone going quiet while the mic is open. Wired is better than Bluetooth.
+- Headphones work best: the reference tone stays out of the mic. Hear yourself in them too (sidetone, or the mic monitoring your headset or system offers): with closed headphones and no sidetone you can't correct by ear, and Landing suffers, though Start doesn't. On iPhone they also stop the tone going quiet while the mic is open. Wired is better than Bluetooth.
 - A phone speaker works too. The page times the hold from when you actually hear the tone end (using the latency the browser reports) and ignores the mic while the tone's tail is still arriving. If the mic can hear the piano, the note fades sooner instead of ringing into the silent step, so it can't be mistaken for your voice. Low notes are thin through a phone speaker.
 - The mic needs a secure page: the hosted https version, or localhost.
 - Back (the browser's, or a phone's back gesture) returns to the home screen; mid-round it asks first. Back from home leaves the site.
