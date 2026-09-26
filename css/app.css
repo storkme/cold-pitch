@@ -370,7 +370,11 @@ svg text{font-family:var(--sans);font-weight:500}
 .detail.swap>:nth-child(n+4){animation-delay:calc(3 * var(--t-step))}
 .btn.play{background-image:linear-gradient(90deg,var(--accent-soft) calc(var(--p,0) * 100%),transparent 0)}
 .actions{display:grid;gap:10px;margin-top:26px}
-.credit{font-size:12px;color:var(--muted);text-align:center;max-width:52ch;margin:6px auto 0;line-height:1.5}
+/* the home screen's footer: the piano's credit and the source, quiet */
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px;margin-top:32px;padding:14px 0 4px;border-top:1px solid var(--line)}
+.gh{display:inline-flex;align-items:center;gap:7px;min-height:24px;font-size:12px;color:var(--muted);text-decoration:none;transition:color var(--t-quick)}
+.gh:hover{color:var(--ink)}
+.credit{font-size:12px;color:var(--muted);max-width:66ch;margin:0;line-height:1.5}
 .credit a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);transition:text-decoration-color var(--t-quick)}
 .credit a:hover{text-decoration-color:currentColor}
 
