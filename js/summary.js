@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=803d44b224';
-import { audioOut, outNode, wantSound } from './audio/piano.js?v=803d44b224';
-import { bestScore, fmtDay } from './home.js?v=803d44b224';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=803d44b224';
-import { SCORING } from './rescore.js?v=803d44b224';
-import { mountRoll } from './roll.js?v=803d44b224';
-import { show } from './round.js?v=803d44b224';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=803d44b224';
-import { run, setRound } from './state.js?v=803d44b224';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=803d44b224';
-import { $, clamp, mean, median, motion, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=803d44b224';
+import { floorDb, thrDb } from './audio/mic.js?v=e8290c0bfd';
+import { audioOut, outNode, wantSound } from './audio/piano.js?v=e8290c0bfd';
+import { bestScore, fmtDay } from './home.js?v=e8290c0bfd';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=e8290c0bfd';
+import { SCORING } from './rescore.js?v=e8290c0bfd';
+import { mountRoll } from './roll.js?v=e8290c0bfd';
+import { show } from './round.js?v=e8290c0bfd';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=e8290c0bfd';
+import { run, setRound } from './state.js?v=e8290c0bfd';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=e8290c0bfd';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=e8290c0bfd';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -144,7 +144,7 @@ function renderSummary(r, o) {
     box.querySelector('.si').textContent = t ? t.icon : ''; box.querySelector('.si').hidden = !t;
   }
   const bs = mean(before.map((x) => x.score)), bl = mean(before.filter((x) => x.landing != null).map((x) => x.landing));
-  $('#sumSub').textContent = `${ok.length} of ${ROUND_LEN} notes counted${landed.length < ok.length ? `, ${ok.length - landed.length} too short to land` : ''}.`
+  $('#sumSub').textContent = `${ok.length} of ${r.notes.length} notes counted${landed.length < ok.length ? `, ${ok.length - landed.length} too short to land` : ''}.`
     + (before.length ? ` ${o.fresh ? 'Last' : 'Previous'} ${before.length === 1 ? 'round' : before.length + ' rounds'}: ${Math.round(bs)}% · ${bl == null ? '—' : Math.round(bl) + '%'}.` : '');
   const chip = $('#sumBest');
   chip.hidden = score == null || !o.fresh;

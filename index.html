@@ -4,30 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cold Pitch</title>
-<meta name="description" content="Fifteen notes in a row: hear it, feel it, hit it.">
+<meta name="description" content="Ten notes in a row: hear it, feel it, hit it.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%230B1736'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23F4EFE3' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=803d44b224">
-<script type="module" src="js/main.js?v=803d44b224"></script>
+<link rel="stylesheet" href="css/app.css?v=e8290c0bfd">
+<script type="module" src="js/main.js?v=e8290c0bfd"></script>
 <!-- modules -->
-<link rel="modulepreload" href="js/audio/engine.js?v=803d44b224">
-<link rel="modulepreload" href="js/audio/mic.js?v=803d44b224">
-<link rel="modulepreload" href="js/audio/piano.js?v=803d44b224">
-<link rel="modulepreload" href="js/audio/pitch.js?v=803d44b224">
-<link rel="modulepreload" href="js/home.js?v=803d44b224">
-<link rel="modulepreload" href="js/keyboard.js?v=803d44b224">
-<link rel="modulepreload" href="js/main.js?v=803d44b224">
-<link rel="modulepreload" href="js/rescore.js?v=803d44b224">
-<link rel="modulepreload" href="js/roll.js?v=803d44b224">
-<link rel="modulepreload" href="js/round.js?v=803d44b224">
-<link rel="modulepreload" href="js/scoring.js?v=803d44b224">
-<link rel="modulepreload" href="js/stage.js?v=803d44b224">
-<link rel="modulepreload" href="js/state.js?v=803d44b224">
-<link rel="modulepreload" href="js/storage.js?v=803d44b224">
-<link rel="modulepreload" href="js/summary.js?v=803d44b224">
-<link rel="modulepreload" href="js/util.js?v=803d44b224">
+<link rel="modulepreload" href="js/audio/engine.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/audio/mic.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/audio/piano.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/audio/pitch.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/home.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/keyboard.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/main.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/rescore.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/roll.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/round.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/scoring.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/stage.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/state.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/storage.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/summary.js?v=e8290c0bfd">
+<link rel="modulepreload" href="js/util.js?v=e8290c0bfd">
 <!-- /modules -->
 </head>
 <body>
@@ -76,7 +76,7 @@
       <div class="chart" id="histChart"></div>
       <p class="caption" id="histTrend" hidden></p>
       <details class="tbl" id="histTbl" hidden><summary>Show as a table</summary><div id="histTable"></div></details>
-      <label class="switch"><input type="checkbox" id="keepAudio"><span><b>Keep recordings</b><small>About 1.5 MB a round, on this device only.</small></span></label>
+      <label class="switch"><input type="checkbox" id="keepAudio"><span><b>Keep recordings</b><small>About 1 MB a round, on this device only.</small></span></label>
       <div class="datarow"><button class="btn small" id="exportBtn" type="button">Export scores</button><button class="btn small" id="exportAudioBtn" type="button">Export recordings</button><button class="btn small" id="importBtn" type="button">Import</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
       <p class="caption" id="dataMsg">Stored on this device. Export to back up or move.</p>
     </div>

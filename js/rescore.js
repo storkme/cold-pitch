@@ -6,10 +6,10 @@
 // match the new start. Notes without a recording keep their scores. A round waits until all of its recordings are
 // here, since recordings can be imported after the rounds.
 
-import { framesOf, leadIn, noteBegins, readNote, roomOf } from './audio/pitch.js?v=803d44b224';
-import { accuracy } from './scoring.js?v=803d44b224';
-import { DB, packTrace, rounds } from './storage.js?v=803d44b224';
-import { hz, mean, r1 } from './util.js?v=803d44b224';
+import { framesOf, leadIn, noteBegins, readNote, roomOf } from './audio/pitch.js?v=e8290c0bfd';
+import { accuracy } from './scoring.js?v=e8290c0bfd';
+import { DB, packTrace, rounds } from './storage.js?v=e8290c0bfd';
+import { hz, mean, r1 } from './util.js?v=e8290c0bfd';
 
 export const SCORING = 2;
 
