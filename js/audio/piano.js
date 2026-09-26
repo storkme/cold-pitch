@@ -3,17 +3,17 @@
 
 import { engineLoad, engineOff, engineOn, engineStart, engineSync } from './engine.js';
 import { ctx } from './mic.js';
-import { $, hz } from '../util.js';
+import { $, clamp, hz } from '../util.js';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
-   The voice is the Salamander Grand (samples/salamander/), one sample every three semitones. A single
-   AudioWorklet on the audio thread plays every note: the page only sends "note on" and "note off" messages, so
-   nothing is built or thrown away per note. The worklet starts each note on the exact sample it was scheduled for,
-   re-pitches the nearest recording with cubic interpolation (using each sample's measured tuning, so every note is
-   exactly equal-tempered), ends notes with a damper, caps the number of voices, and limits the mix so stacked notes
-   can't clip (engine.js, voices.worklet.js). If a browser can't run the worklet, the same samples play through
-   plain buffer sources; and for the moment before the samples have decoded, the hum stands in, so a note is never
-   silent. */
+   The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:
+   Opus where the browser decodes it, lossless FLAC otherwise. A single AudioWorklet on the audio thread plays every
+   note: the page only sends "note on" and "note off" messages, so nothing is built or thrown away per note. The
+   worklet lands each note's attack on the exact sample it was scheduled for, re-pitches the nearest recording with
+   cubic interpolation (using each sample's measured tuning, so every note is exactly equal-tempered), ends notes
+   with a damper, caps the number of voices, and limits the mix so stacked notes can't clip (engine.js,
+   voices.worklet.js). If a browser can't run the worklet, the same samples play through plain buffer sources;
+   and for the moment before the samples have decoded, the hum stands in, so a note is never silent. */
 
 // The hum (now only a stand-in for the moment before the piano samples have decoded) imitates a closed-mouth hum: a voice-like source whose harmonics fall away (1/n^slope),
 // shaped by fixed resonances (a nasal peak, a closed-mouth notch, a gentle high cut), with a soft onset and a slight
@@ -106,30 +106,46 @@ function attackAt(buf) {                          // first sample above 5% of th
   let i = 0; while (i < n && Math.abs(d[i]) < 0.05 * pk) i++;
   return i / buf.sampleRate;
 }
-// The samples' files (samples/salamander/: a manifest, then one MP3 per sample), fetched once for the page. Each
-// context decodes its own copy. If fetching fails, the next context to ask tries again.
+// The samples' files (samples/salamander/: a manifest, then one file per sample in each format), fetched once per
+// format for the page. Each context decodes its own copy. If fetching fails, the next context to ask tries again.
 const SAMPLES = new URL('../../samples/salamander/', import.meta.url);
-let grand = null;
-function grandFiles() {
-  const get = async (name) => { const r = await fetch(new URL(name, SAMPLES)); if (!r.ok) throw new Error(`${name}: ${r.status}`); return r; };
-  if (!grand) {
-    grand = (async () => {
-      const info = await (await get('manifest.json')).json();
-      return { info, mp3s: await Promise.all(info.samples.map(async (g) => (await get(g.file)).arrayBuffer())) };
-    })();
-    grand.catch(() => { grand = null; });
+const get = async (name) => { const r = await fetch(new URL(name, SAMPLES)); if (!r.ok) throw new Error(`${name}: ${r.status}`); return r; };
+let manifest = null;
+const files = new Map();         // format -> promise of every sample's bytes
+const undecodable = new Set();   // formats this browser failed to decode: don't fetch them again
+function grandInfo() {
+  if (!manifest) { manifest = (async () => (await get('manifest.json')).json())(); manifest.catch(() => { manifest = null; }); }
+  return manifest;
+}
+function grandFiles(info, fmt) {
+  if (!files.has(fmt)) {
+    const p = Promise.all(info.samples.map(async (g) => (await get(`${g.name}.${fmt}`)).arrayBuffer()));
+    p.catch(() => files.delete(fmt)); files.set(fmt, p);
   }
-  return grand;
+  return files.get(fmt);
+}
+// Opus first where the browser says it might play it, then FLAC, which every browser with Web Audio decodes.
+const opus = () => { try { return document.createElement('audio').canPlayType('audio/webm; codecs="opus"') !== ''; } catch (e) { return false; } };
+async function decodeGrand(ac) {
+  const info = await grandInfo();
+  const formats = info.formats.filter((f) => !undecodable.has(f) && (f !== 'webm' || opus()));
+  for (const [n, fmt] of formats.entries()) {
+    const bytes = await grandFiles(info, fmt);
+    try {
+      return await Promise.all(info.samples.map(async (g, i) => {
+        const buffer = await ac.decodeAudioData(bytes[i].slice(0));      // decoding takes over the bytes it's given
+        // the attack is `info.attack` into every file; a decoder that adds lead-in pushes it later, so follow it there
+        const heard = attackAt(buffer), attack = heard > info.attack + 0.01 ? heard : info.attack;
+        return { midi: g.midi, cents: g.cents, gain: g.gain, peak: g.peak, buffer, offset: g.offset, attack };
+      }));
+    } catch (e) { if (n === formats.length - 1) throw e; undecodable.add(fmt); }
+  }
+  throw new Error('no sample format to decode');
 }
 // Start the engine and decode the samples on a context, once. Resolves when the piano can play there.
 export function pianoReady(ac) {
   if (!ac._piano) ac._piano = (async () => {
-    const { info, mp3s } = await grandFiles();
-    const decoded = await Promise.all(info.samples.map(async (g, i) => {
-      const buffer = await ac.decodeAudioData(mp3s[i].slice(0));      // decoding takes over the bytes it's given
-      // Chrome skips the MP3's encoder delay; a decoder that doesn't leaves extra silence, so skip that too
-      return { midi: g.midi, cents: g.cents, gain: g.gain, peak: g.peak, buffer, offset: Math.max(g.offset, attackAt(buffer) - info.preroll) };
-    }));
+    const decoded = await decodeGrand(ac);
     const eng = await engineStart(ac);
     if (eng) { engineLoad(eng, decoded); await engineSync(eng); }
     ac._pianoSamples = decoded; ac._pianoEngine = eng;
@@ -140,10 +156,12 @@ export function pianoReady(ac) {
 // The same samples through plain buffer sources, for a browser without AudioWorklet (no limiter, so a little headroom).
 function bufferVoice(ac, midi, T, level) {
   let s = ac._pianoSamples[0]; for (const x of ac._pianoSamples) if (Math.abs(x.midi - midi) < Math.abs(s.midi - midi)) s = x;
-  const src = ac.createBufferSource(), out = ac.createGain();
-  src.buffer = s.buffer; src.playbackRate.value = Math.pow(2, (midi - s.midi) / 12 - s.cents / 1200);
+  const src = ac.createBufferSource(), out = ac.createGain(), rate = Math.pow(2, (midi - s.midi) / 12 - s.cents / 1200);
+  src.buffer = s.buffer; src.playbackRate.value = rate;
   out.gain.value = Math.min(s.gain, 0.88 * s.gain / s.peak) * level;
-  src.connect(out); out.connect(outNode(ac)); src.start(T, s.offset);
+  // start early by the pre-roll so the attack lands at T; if that's already past, start now, that far into the file
+  const t0 = T - (s.attack - s.offset) / rate, late = Math.max(0, ac.currentTime - t0);
+  src.connect(out); out.connect(outNode(ac)); src.start(t0 + late, s.offset + late * rate);
   return (t, tau = DAMPER) => { t = Math.max(t, ac.currentTime); out.gain.cancelScheduledValues(t); out.gain.setTargetAtTime(0, t, tau); try { src.stop(t + tau * 8); } catch (e) {} };
 }
 // Strike a note at T, `level` times the normal loudness. It decays by itself, like a piano; stop(t) drops the damper.
@@ -154,8 +172,15 @@ function strike(ac, midi, T, level = 1) {
   pianoReady(ac);
   const h = hum(ac, midi, T, level); return { ac, stop: (t) => endHum(h, t) };
 }
-// A note of `dur` seconds, damped so it's gone by T + dur.
-export function playTone(ac, midi, T, dur, level = 1) { const v = strike(ac, midi, T, level); v.stop(T + dur - 5 * DAMPER); return v; }
+// A round's reference note, struck at T and held `dur` seconds. It doesn't stop dead when the step changes (in
+// earphones that sounded abrupt): it rings on a moment, then dies away gently, under -60 dB before the singing step.
+// damp(t) ends it sooner, still gently, for when the mic can hear it (see heard() in mic.js).
+export function playTone(ac, midi, T, dur, level = 1) {
+  const v = strike(ac, midi, T, level);
+  v.stop(T + dur + 0.25, 0.1);
+  v.damp = (t) => v.stop(t, 0.05);
+  return v;
+}
 
 // The context for sounds outside a round: the round's own if the mic is open, otherwise a small one of our own,
 // made when the page loads (it waits, silent, for the first tap) so the piano is decoded before the first key.
@@ -168,30 +193,47 @@ export function audioOut() {
   return ac;
 }
 
+// Keys played by hand (held notes and the range handles) are released the way a hand plays, not uniformly:
+// - dampers stop bass strings more slowly than treble ones (damperTau: ~0.145 s at C2, 0.035 s from D5 up);
+// - sliding onto the next key, the last note lingers in proportion to how long it was held (a quick slide
+//   overlaps briefly, a slow one longer), never exactly the same twice;
+// - slid-to notes are struck a little lighter than the first, and each a little differently.
+// A round's reference note ends its own way (playTone): it has to be gone before the singing step.
+const damperTau = (m) => 0.035 + 0.11 * clamp((74 - m) / 38, 0, 1);
+const slideOverlap = (held) => clamp(held * 0.3, 0.02, 0.12) * (0.8 + 0.4 * Math.random());
+const slideLevel = () => 0.82 + 0.12 * Math.random();
+// Strike a key by hand. If `prev` is still sounding, this is a slide from it: it lingers a moment, then its damper drops.
+function handStrike(ac, m, level, prev) {
+  if (prev) { const t = prev.ac.currentTime; prev.stop(t + slideOverlap(t - prev.t), damperTau(prev.m)); }
+  const now = ac.currentTime, v = strike(ac, m, now + 0.005, prev ? level * slideLevel() : level);
+  v.m = m; v.t = now;
+  return v;
+}
+
 // Held notes, one per finger (pointer). Like a piano key, pressure sets how hard the note is struck, read when it's
 // pressed, where the device reports a real value; mice and most phones report a flat 0.5 (or 1) and get the normal
 // level. The note fades by itself while held and the damper drops on release. A cap ends a note if its release is lost.
 const heldNotes = new Map();
-const LEGATO = { overlap: 0.07, tau: 0.06 };      // sliding onto the next key: the last note lingers briefly, then dies away gently
 const realPressure = (p) => p > 0 && p !== 0.5 && p !== 1;
 const pressLevel = (p) => realPressure(p) ? 0.35 + 0.95 * p : 1;
 export function noteOn(id, m, pressure) {
   const prev = heldNotes.get(id);
-  if (prev) { heldNotes.delete(id); clearTimeout(prev.cap); prev.stop(prev.ac.currentTime + LEGATO.overlap, LEGATO.tau); }
-  const ac = audioOut(), v = strike(ac, m, ac.currentTime + 0.005, pressLevel(pressure));
+  if (prev) { heldNotes.delete(id); clearTimeout(prev.cap); }
+  const v = handStrike(audioOut(), m, pressLevel(pressure), prev);
   wantSound();
   v.cap = setTimeout(() => noteOff(id), 8000);
   heldNotes.set(id, v);
 }
-export function noteOff(id) { const v = heldNotes.get(id); if (!v) return; heldNotes.delete(id); clearTimeout(v.cap); v.stop(v.ac.currentTime); }
+export function noteOff(id) { const v = heldNotes.get(id); if (!v) return; heldNotes.delete(id); clearTimeout(v.cap); v.stop(v.ac.currentTime, damperTau(v.m)); }
 
-// Each key sounds softly as a handle reaches it, cutting off the one before, like running a finger along a piano.
+// Each key sounds softly as a handle reaches it, like running a finger along a piano. A key left alone is damped
+// after half a second; reaching the next one first makes it a slide.
 let blipNote = null;
 export function blip(m) {
   try {
-    const ac = audioOut();
-    if (blipNote) blipNote.stop(ac.currentTime + LEGATO.overlap, LEGATO.tau);
-    blipNote = playTone(ac, m, ac.currentTime + 0.01, 0.5, 0.5);   // quiet: these are feedback, not the lesson
+    const ac = audioOut(), prev = blipNote && blipNote.ac === ac && ac.currentTime < blipNote.t + 0.5 ? blipNote : null;
+    blipNote = handStrike(ac, m, 0.5, prev);                        // quiet: these are feedback, not the lesson
+    blipNote.stop(blipNote.t + 0.5, damperTau(m));
     wantSound();
   } catch (e) {}
 }

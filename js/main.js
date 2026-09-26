@@ -41,6 +41,16 @@ $('#quitBtn').addEventListener('click', askQuit);
 $('#pauseBtn').addEventListener('click', togglePause);
 $('#againBtn').addEventListener('click', () => startRound());
 $('#homeBtn').addEventListener('click', () => { show('home'); renderRange(); });
+// Back to home (see show()). Mid-round, Back asks before ending it, putting the entry back in case you keep going.
+// Forward onto a screen that's already been left just steps back again.
+if (history.state && history.state.cp) history.back();    // reloaded on a screen above home: the page opens at home
+addEventListener('popstate', () => {
+  const cur = document.querySelector('.screen:not([hidden])').id;
+  if (history.state && history.state.cp) { if (cur === 'home') history.back(); return; }
+  if (cur === 'home') return;
+  if (cur === 'run') { history.pushState({ cp: 'run' }, ''); askQuit(); return; }
+  show('home'); renderRange();
+});
 for (const b of document.querySelectorAll('[data-map]')) b.addEventListener('click', () => { setMapMode(b.dataset.map); drawKeysMap(); });
 $('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pickDetail(+b.dataset.i, false); });
 document.addEventListener('keydown', (e) => {

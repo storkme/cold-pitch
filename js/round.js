@@ -13,7 +13,13 @@ import { endRound, stopClip } from './summary.js';
 import { $, clamp, HOLD, hz, median, motion, PAUSE, r1, restart, ROUND_LEN, TONE, WIN } from './util.js';
 
 /* ---------- screens ---------- */
+// Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
+// (or a phone's back gesture) comes home rather than leaving the site, and Back from home leaves. Moving between
+// screens above home replaces that entry; coming home by a button takes it back off (the popstate handler in main.js).
 export function show(id) {
+  if (id === 'home') { if (history.state && history.state.cp) history.back(); }
+  else if (history.state && history.state.cp) history.replaceState({ cp: id }, '');
+  else history.pushState({ cp: id }, '');
   for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
   if (id !== 'run') { $('#sheet').hidden = true; $('#msg').hidden = true; }
   // The sound button lives on the home screen only. A round needs sound, and the summary is for listening back,
@@ -42,7 +48,7 @@ export async function startRound() {
   setMuted(false); stopTester();
   stopClip();
   if (pctx) { pctx.close().catch(() => {}); setPctx(null); }
-  setRun({ keepAudio: settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: HOLD, voice: 'hum', notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 });
+  setRun({ keepAudio: settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: HOLD, voice: 'piano', notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 });
   show('run');
   renderProgress(); setStage('calib'); $('#noteNum').textContent = 'Getting ready';
   if (await ensureAudio()) playNext();
@@ -78,7 +84,7 @@ function playNext() {
   const m = pick(); run.last = m;
   const T = ctx.currentTime + 0.35;
   const hold = HOLD;
-  playTone(ctx, m, T, TONE); wantSound();
+  const tone = playTone(ctx, m, T, TONE); wantSound();
   // Time the hold from when the tone is heard to end, not when the page finishes playing it. Through a phone
   // speaker or Bluetooth that can be a few tenths of a second later, and the tail also takes a while to come back
   // in through the mic, so ignore what the mic hears until then. Browsers that don't report latency get 0.
@@ -88,8 +94,8 @@ function playNext() {
   const qb = $('#quiet'); qb.dataset.state = 'quiet'; qb._void = false; $('#quietLabel').textContent = 'Silent';
   run.cue = CUES[run.notes.length % CUES.length];
   const li = $('#steps li[data-s="hold"]'); if (li.textContent !== run.cue[0]) { li.textContent = run.cue[0]; restart(li, 'swap'); }
-  setRound({ midi: m, T, toneEnd: heardEnd, bleedEnd: heardEnd + inLat + 0.25, go: heardEnd + Math.max(hold, inLat + 0.3),
-    frames: [], quiet: [], run: 0, peek: 0, state: 'tone' });
+  setRound({ midi: m, T, tone, toneEnd: heardEnd, bleedEnd: heardEnd + inLat + 0.25, go: heardEnd + Math.max(hold, inLat + 0.3),
+    frames: [], quiet: [], run: 0, peek: 0, hears: 0, bleed: false, state: 'tone' });
   setLastFrameAt(performance.now());
   $('#stage').dataset.midi = m;
   $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`; restart($('#noteNum'), 'swap');
@@ -100,6 +106,7 @@ function noteDone(n) {
   if (!run) return;
   scoreNote(n);
   n.hold = round ? r1(round.go - round.toneEnd) : null;
+  n.bleed = round ? round.bleed : null;          // the mic could hear the piano (speakers rather than earphones)
   n.cue = run.cue ? run.cue[0] : null;
   run.notes.push(n); run.pop = run.notes.length - 1;
   run.silent = n.kind === 'silent' ? run.silent + 1 : 0;

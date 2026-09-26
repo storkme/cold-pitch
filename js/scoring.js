@@ -37,7 +37,7 @@ export function sentence(n) {
   else if (Math.abs(s) < Math.abs(o)) txt += `, then slid ${s > o ? 'up' : 'down'}${Math.abs(s) < 15 ? ` onto ${nname(n.midi)}.` : `, ending ${off(s)}.`}`;
   else txt += `, then drifted ${s > o ? 'up' : 'down'} to ${off(s)}.`;
   if (n.oct) txt += ` You sang it an octave ${n.oct > 0 ? 'up' : 'down'}, which counts.`;
-  if (n.kind === 'void') txt = 'Hummed during the hold, so it doesn’t count. ' + txt;
+  if (n.kind === 'void') txt = 'Voice heard in the silent step, so it doesn’t count. ' + txt;
   return txt;
 }
 

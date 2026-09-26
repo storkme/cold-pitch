@@ -99,9 +99,10 @@ svg text{font-family:var(--sans);font-weight:500}
 .brand a:hover{color:var(--ink)}
 
 /* home */
-.hero h1{font:400 46px/1.02 var(--display);letter-spacing:-.015em;text-wrap:balance;font-optical-sizing:auto}
-.hero h1 em{font-style:italic}
-.hero p{color:var(--ink-2);margin-top:14px;max-width:38ch;font-size:17px}
+.hero h1{font:400 52px/1 var(--display);letter-spacing:-.015em;text-wrap:balance;font-optical-sizing:auto}
+.hero .motto{font:400 25px/1.2 var(--display);margin-top:10px}
+.hero .motto em{font-style:italic}
+.hero .about{color:var(--muted);margin-top:16px;max-width:40ch;font-size:15px;line-height:1.55}
 .card{background:none;border-radius:0;padding:14px 0 0;border-top:1px solid var(--rule)}
 .home-grid{display:grid;gap:22px;margin-top:30px}
 .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
@@ -195,11 +196,12 @@ svg text{font-family:var(--sans);font-weight:500}
 
 /* run */
 .runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
-/* the sound button: pinned top right of the content column; it pulses (the nudge pattern) when the page wants sound */
-.soundbtn{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(12px,calc(50vw - 280px + 8px));width:40px;height:40px;padding:0;
-  display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);cursor:pointer;
+/* the sound button: an icon at the top right of the home screen (it scrolls with it), softened at rest; a hairline
+   ring shows on hover. 44 px to tap, whatever the icon's size. It pulses (the nudge pattern) when the page wants sound */
+.soundbtn{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(10px,calc(50vw - 280px + 6px));width:44px;height:44px;padding:0;
+  display:grid;place-items:center;border-radius:50%;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;
   transition:color var(--t-quick),border-color var(--t-quick),transform var(--t-instant) var(--ease-out)}
-.soundbtn:hover{color:var(--ink);border-color:var(--ink-2)}
+.soundbtn:hover{color:var(--ink);border-color:var(--line)}
 .soundbtn:active{transform:scale(.92)}
 .soundbtn .on{display:none}
 .soundbtn[aria-pressed="true"] .on{display:inline}
@@ -378,7 +380,7 @@ svg text{font-family:var(--sans);font-weight:500}
 .card-head .opts button{position:relative;z-index:1;border:0;background:none;color:var(--ink-2);font:600 10.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;cursor:pointer;transition:color var(--t-quick)}
 .card-head .opts button[aria-pressed="true"]{color:var(--bg)}
 @media (max-width:420px){
-  .hero h1{font-size:40px}
+  .hero h1{font-size:44px}
   .say{font-size:46px}
   .orb{width:150px;height:150px}
   .scorebox .score{font-size:54px}

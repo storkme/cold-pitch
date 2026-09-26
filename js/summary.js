@@ -87,7 +87,7 @@ export function endRound() {
   renderSummary(r, { score, landing, prevBest, before, fresh: true });
   if (score != null) {
     const rec = { ts: r.ts, v: 1, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
-      notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, trace: packTrace(n.trace), rec: !!n.audio })) };
+      notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, bleed: n.bleed ?? null, trace: packTrace(n.trace), rec: !!n.audio })) };
     const clips = r.notes.map((n, i) => n.audio && { id: `${r.ts}:${i}`, round: r.ts, note: i, midi: n.midi, ...n.audio }).filter(Boolean);
     rounds.push(rec);
     DB.saveRound(rec, clips).then(() => { setClipCount(clipCount + clips.length); dataLine(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); })
@@ -108,7 +108,6 @@ function renderSummary(r, o) {
   const { score, landing, prevBest, before } = o;
   stopClip(); show('summary');
   $('#saveErr').hidden = true;
-  $('#homeBtn').textContent = o.fresh ? 'Change range' : 'Back';
   countUp($('#sumStart'), score); countUp($('#sumLand'), landing);
   for (const [id, v] of [['#boxStart', score], ['#boxLand', landing]]) {
     const box = $(id), t = tierFromAcc(v);

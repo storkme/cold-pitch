@@ -1,33 +1,35 @@
 # Grand piano samples for Cold Pitch
 
 Salamander Grand Piano V3 by Alexander Holm (a Yamaha C5), licensed CC BY 3.0:
-http://creativecommons.org/licenses/by/3.0/ . Changes: one microphone channel per note, trimmed to 3 ms before
-the attack, 2.5 s long with a 120 ms fade-out, peak-normalised, re-encoded as 80 kbps mono MP3 at 44.1 kHz.
-Source files: https://tonejs.github.io/audio/salamander/ (the Ogg versions).
+http://creativecommons.org/licenses/by/3.0/ . Source: https://archive.org/details/SalamanderGrandPianoV3
+(`SalamanderGrandPianoV3_48khz24bit.tar.bz2`, files `48khz24bit/<note>v8.wav`, velocity layer 8 of 16).
 
-Fixed on 2026-09-26: C3 and F#3 were rebuilt from the Ogg files. Their original right channel had a weak second
-harmonic (H2 about -14 and -11 dB re H1, against -1 to -3 dB on the neighbouring samples), and C3 also decayed
-unusually fast (-23 dB from 0.1 to 1 s). Both now use the left channel. F#3 also has one light minimum-phase cut,
--6.5 dB at its 6th harmonic, which was 13 dB stronger than on its neighbours. There's no other filtering, and
-every other sample is unchanged. C3's unison strings beat (about 9 cents apart), so its measured pitch moves by a
-few cents depending on the window (-7.6 to -10.5 on the sample alone). Its `cents` is set to -9.61, the value
-that centres B2, C3 and C#3 on pitch as the engine actually plays them.
+Changes, per note: no EQ or filtering. Every sample of real audio before the attack (8 to 16 ms in the originals) is
+kept, faded in over its first min(5 ms, half of it); leading silence pads it so the attack sits at exactly 0.020 s.
+Each is 3.0 s long, the last 0.6 s fading out with a half cosine, peak-normalised to -1 dBFS, and dithered to 16 bits.
+Both microphones are kept (the original AB pair), so every file is stereo.
+
+Two encodings of the same edit, the page uses the first its browser can decode:
+
+- `<name>.webm`: Opus, 128 kbps stereo, 48 kHz (Chrome, Firefox, Edge). About 1.1 MB for the set.
+- `<name>.flac`: FLAC, 16-bit, 48 kHz (the lossless fallback, e.g. for Safari). About 2.4 MB.
 
 ## manifest.json
 
-`attribution`, `sourceRate`, `seconds`, `preroll` (the 3 ms kept before each attack, in seconds) and `level` (the
-target RMS) describe the whole set. `samples` has one entry per sample, one every three semitones, C2 to C6:
+`attribution`, `source`, `license`, `formats` (in the order to try), `seconds` (each file's length), `attack`
+(seconds from a file's start to its attack) and `level` (the target RMS) describe the whole set. `samples` has one
+entry per sample, one every three semitones, C2 to C6:
 
-- `name`:   the note, and the MP3's file name (`file`) in this folder.
+- `name`:   the note, and the file name before the extension.
 - `midi`:   the note it was recorded at.
-- `cents`:  how far its partial 1 sits from exact equal temperament (A4 = 440), positive = sharp. Measured as the
-            envelope-weighted mean frequency of the fundamental over 0.08-0.85 s, the part a 1 s reference note
-            plays at full level before its damper (piano unisons beat, so this is the pitch you hear). Play note
-            `target` at rate 2^((target - midi)/12 - cents/1200).
-- `gain`:   multiplier that brings the first 0.5 s (after offset) to RMS 0.11 at rate 1.
-- `peak`:   the sample's peak level at that gain (C6 exceeds 1; cap or limit it).
-- `offset`: seconds of decoder lead-in to skip before the 3 ms pre-roll. Chrome's decodeAudioData trims the MP3
-            encoder delay, so this is 0 there; other decoders may not (`js/audio/piano.js` checks at decode time).
-
-Decoded, each sample is 2.5 s: 110250 frames at 44.1 kHz, 120000 at 48 kHz (decodeAudioData resamples to the
-context's rate).
+- `cents`:  how far its partial 1 sits from exact equal temperament (A4 = 440), positive = sharp: the
+            envelope-weighted mean frequency of the fundamental over 0.08-0.85 s after the attack, across both
+            channels together (what you hear in stereo). Play note `target` at rate 2^((target - midi)/12 - cents/1200).
+- `gain`:   multiplier that brings the average power of the two channels, over the 0.5 s from the attack, to RMS
+            0.11 at rate 1.
+- `peak`:   the largest sample in either channel at that gain.
+- `offset`: seconds of decoder lead-in to skip: 0 for both formats in Chrome and Firefox. `js/audio/piano.js` also
+            measures each decoded attack, so a decoder that adds lead-in still lands on time.
+- `monoChannel`, `monoGain`, `monoH1Db`: for a possible mono fold-down, not used yet. Summing L+R cancels the
+            fundamental on some notes (`monoH1Db`, F#3 -23.8 dB), because the two microphones were spaced apart;
+            `monoChannel` is the channel whose harmonic balance is closest to the stereo sound, and `monoGain` its gain.

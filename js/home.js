@@ -130,7 +130,7 @@ export async function testMic() {
   }
   btn.disabled = false;
   if (!tester || !(await calibrate())) return;
-  tester.live = true; $('#mtLabel').textContent = 'Hum to check.';
+  tester.live = true; $('#mtLabel').textContent = 'Sing or hum to check.';
 }
 export function stopTester() { tester = null; $('#mtLive').hidden = true; $('#micTestBtn').hidden = false; }
 export function feedTester(fr) {
@@ -152,7 +152,7 @@ export function drawTester() {
   });
   g.globalAlpha = 1;
   const recent = fr.slice(-30), voiced = recent.filter((q) => q.kind === 'voice');
-  let label = 'Hum to check.';
+  let label = 'Sing or hum to check.';
   if (voiced.length >= 12) {
     const f = median(voiced.map((q) => q.f)), m = Math.round(69 + 12 * Math.log2(f / 440));
     label = `Hearing you · ${nname(m)}`;

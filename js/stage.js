@@ -75,6 +75,6 @@ export function drawQuiet(r) {
   const state = r.peek ? 'hum' : r.quiet.some((q) => q.kind === 'noise') ? 'noise' : 'quiet', box = $('#quiet');
   if (box.dataset.state !== state || (state === 'hum' && r.peek >= PEEK_VOID) !== box._void) {
     box.dataset.state = state; box._void = state === 'hum' && r.peek >= PEEK_VOID;
-    $('#quietLabel').textContent = state === 'quiet' ? 'Silent' : state === 'noise' ? 'Noise is fine' : box._void ? 'Hum heard. Won’t count.' : 'Hum heard';
+    $('#quietLabel').textContent = state === 'quiet' ? 'Silent' : state === 'noise' ? 'Noise is fine' : box._void ? 'Voice heard. Won’t count.' : 'Voice heard';
   }
 }

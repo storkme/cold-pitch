@@ -5,7 +5,7 @@ import { feedTester, tester } from '../home.js';
 import { finish } from '../round.js';
 import { setStage } from '../stage.js';
 import { round, setLastFrameAt } from '../state.js';
-import { clamp } from '../util.js';
+import { clamp, hz, TONE } from '../util.js';
 
 /* ---------- audio engine: pitch detection ---------- */
 export let ctx = null, stream = null;
@@ -77,7 +77,7 @@ function onFrame(fr) {
   if (calib) { calib.dbs.push(fr.db); if (fr.t >= calib.until) { const c = calib; calib = null; c.done(); } return; }
   const r = round;
   if (!r || r.state === 'done') { if (tester && tester.live) feedTester(fr); return; }
-  if (fr.t < r.bleedEnd) return;                           // the tone may still be reaching the mic
+  if (fr.t < r.bleedEnd) { heard(r, fr); return; }         // the tone may still be reaching the mic
   if (fr.t < r.go) {
     const loud = fr.db > thrDb, hum = loud && !!fr.f;
     if (hum) r.peek++;
@@ -96,6 +96,14 @@ function onFrame(fr) {
   if (voiced) r.lastVoiced = fr.t;
   const el = fr.t - r.onsetT;
   if (el >= 1.3 || (el > 0.25 && fr.t - r.lastVoiced > 0.25)) finish('ok');
+}
+// Can the mic hear the piano (speakers, not earphones)? Then the reference note mustn't ring on into the imagine
+// step, where the mic listens for a voice: pitched frames at the note (in any octave) while it plays end it sooner,
+// fading from just before the step changes, and the mic ignores a little longer for the fade to pass.
+function heard(r, fr) {
+  if (r.bleed || fr.t > r.T + TONE - 0.2 || fr.db <= thrDb || !fr.f) return;
+  const c = 1200 * Math.log2(fr.f / hz(r.midi)), off = Math.abs(c - 1200 * Math.round(c / 1200));
+  if (off < 80 && ++r.hears >= 5) { r.bleed = true; r.tone.damp(r.T + TONE - 0.1); r.bleedEnd += 0.15; }
 }
 export function calibrate() {
   setStage('calib'); setLastFrameAt(performance.now());
