@@ -1,17 +1,17 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, and scoring what was
 // sung.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=f771651970';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=f771651970';
-import { readNote } from './audio/pitch.js?v=f771651970';
-import { renderRange, stopTester, tester } from './home.js?v=f771651970';
-import { mountRoll } from './roll.js?v=f771651970';
-import { duo, scoreNote, sentence } from './scoring.js?v=f771651970';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=f771651970';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=f771651970';
-import { settings } from './storage.js?v=f771651970';
-import { endRound, stopClip } from './summary.js?v=f771651970';
-import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, ROUND_LEN, TONE } from './util.js?v=f771651970';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=17222eed60';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=17222eed60';
+import { readNote } from './audio/pitch.js?v=17222eed60';
+import { renderRange, stopTester, tester } from './home.js?v=17222eed60';
+import { mountRoll } from './roll.js?v=17222eed60';
+import { duo, scoreNote, sentence } from './scoring.js?v=17222eed60';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=17222eed60';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=17222eed60';
+import { settings } from './storage.js?v=17222eed60';
+import { endRound, stopClip } from './summary.js?v=17222eed60';
+import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, ROUND_LEN, TONE } from './util.js?v=17222eed60';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back

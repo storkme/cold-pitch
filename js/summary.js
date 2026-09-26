@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=f771651970';
-import { audioOut, outNode, wantSound } from './audio/piano.js?v=f771651970';
-import { bestScore, fmtDay } from './home.js?v=f771651970';
-import { keyboard, keyUnder, playable } from './keyboard.js?v=f771651970';
-import { SCORING } from './rescore.js?v=f771651970';
-import { mountRoll } from './roll.js?v=f771651970';
-import { show } from './round.js?v=f771651970';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=f771651970';
-import { run, setRound } from './state.js?v=f771651970';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=f771651970';
-import { $, clamp, hideTip, mean, median, motion, nname, pc, placeTip, restart, ROUND_LEN, slideThumb } from './util.js?v=f771651970';
+import { floorDb, thrDb } from './audio/mic.js?v=17222eed60';
+import { audioOut, outNode, wantSound } from './audio/piano.js?v=17222eed60';
+import { bestScore, fmtDay } from './home.js?v=17222eed60';
+import { keyboard, keyUnder, playable } from './keyboard.js?v=17222eed60';
+import { SCORING } from './rescore.js?v=17222eed60';
+import { mountRoll } from './roll.js?v=17222eed60';
+import { show } from './round.js?v=17222eed60';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=17222eed60';
+import { run, setRound } from './state.js?v=17222eed60';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=17222eed60';
+import { $, clamp, hideTip, mean, median, motion, nname, pc, placeTip, restart, ROUND_LEN, slideThumb } from './util.js?v=17222eed60';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -22,6 +22,13 @@ function insights(notes) {
   const held = ok.filter((n) => n.settled != null);
   const medSet = held.length >= 4 ? median(held.map((n) => Math.abs(n.settled))) : null;
 
+  // a different note, held: started 4+ semitones off and stayed there (not a slide, not the wrong octave)
+  const wrong = held.filter((n) => Math.abs(n.onset) >= 400 && Math.abs(n.settled - n.onset) < 100);
+  if (wrong.length) {
+    const eg = wrong.slice(0, 2).map((n) => `${nname(n.midi)} as ${nname(n.midi + 12 * (n.oct || 0) + Math.round(n.onset / 100))}`).join(', ');
+    out.push({ title: wrong.length === 1 ? 'One note was a different note' : `${wrong.length} notes were a different note`,
+      body: `Started 4 or more semitones off and stayed there (${eg}). Listen back to hear it.` });
+  }
   // a lean one way
   const offs = ok.filter((n) => Math.abs(n.onset) >= 15);
   const flat = offs.filter((n) => n.onset < 0);
@@ -30,14 +37,33 @@ function insights(notes) {
     if (side.length / offs.length >= 0.7) out.push({ title: `You tend to start ${isFlat ? 'flat' : 'sharp'}`,
       body: `${side.length} of ${offs.length} misses started ${isFlat ? 'flat' : 'sharp'}, usually by ${size(median(side.map((n) => Math.abs(n.onset))))}.` });
   }
+  // pulled toward the middle: low notes start sharp and high notes flat, as if starting from the middle of the range
+  const midM = median(ok.map((n) => n.midi));
+  const lowMiss = ok.filter((n) => n.midi < midM - 1 && Math.abs(n.onset) >= 30), highMiss = ok.filter((n) => n.midi > midM + 1 && Math.abs(n.onset) >= 30);
+  const lowSharp = lowMiss.filter((n) => n.onset > 0).length, highFlat = highMiss.filter((n) => n.onset < 0).length;
+  if (lowMiss.length >= 3 && highMiss.length >= 3 && lowSharp / lowMiss.length >= 0.7 && highFlat / highMiss.length >= 0.7)
+    out.push({ title: 'You start toward the middle',
+      body: `Low notes started sharp (${lowSharp} of ${lowMiss.length}) and high ones flat (${highFlat} of ${highMiss.length}), pulled toward ${nname(Math.round(midM))}.` });
+  // big leaps: starts after a jump of 5 semitones or more from the note before, against smaller steps
+  const leap = (n) => { const i = notes.indexOf(n); return i > 0 ? Math.abs(n.midi - notes[i - 1].midi) : null; };
+  const big = ok.filter((n) => leap(n) >= 5), small = ok.filter((n) => leap(n) != null && leap(n) < 5);
+  if (big.length >= 4 && small.length >= 4) {
+    const aB = mean(big.map((n) => n.acc)), aS = mean(small.map((n) => n.acc));
+    if (aS - aB >= 15) out.push({ title: 'Big leaps are harder',
+      body: `Starts: ${Math.round(aB)}% after a jump of 5 semitones or more, ${Math.round(aS)}% after smaller steps.` });
+  }
   // sliding into notes: of the held notes that started well off, how many then slid toward the note
-  let slid = false;
-  for (const up of [true, false]) {
+  // (both ways at once is one habit, so one line)
+  const slides = [true, false].map((up) => {
     const cand = held.filter((n) => (up ? n.onset <= -30 : n.onset >= 30));
     const sl = cand.filter((n) => (up ? n.settled - n.onset : n.onset - n.settled) >= 30);
-    if (sl.length >= 3 && sl.length / cand.length >= 0.6) { slid = true; out.push({ title: `You slide ${up ? 'up' : 'down'} into notes`,
-      body: `${sl.length} of ${cand.length} ${up ? 'flat' : 'sharp'} starts slid ${up ? 'up' : 'down'} onto the note. Your ear finds it, just late.` }); }
-  }
+    return sl.length >= 3 && sl.length / cand.length >= 0.6 ? { up, n: sl.length, of: cand.length } : null;
+  }).filter(Boolean);
+  const slid = slides.length > 0;
+  if (slides.length === 2) out.push({ title: 'You slide into notes',
+    body: `${slides[0].n} of ${slides[0].of} flat starts slid up, and ${slides[1].n} of ${slides[1].of} sharp ones slid down. Your ear finds it, just late.` });
+  else if (slid) { const { up, n, of } = slides[0]; out.push({ title: `You slide ${up ? 'up' : 'down'} into notes`,
+    body: `${n} of ${of} ${up ? 'flat' : 'sharp'} starts slid ${up ? 'up' : 'down'} onto the note. Your ear finds it, just late.` }); }
   // where in the range
   const mids = [...new Set(ok.map((n) => n.midi))].sort((a, b) => a - b);
   if (ok.length >= 8 && mids.length >= 4 && mids[mids.length - 1] - mids[0] >= 4) {
