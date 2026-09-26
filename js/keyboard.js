@@ -1,30 +1,48 @@
-// Drawn keyboards (the summary's range map), and making the keys of any drawn keyboard playable.
+// The summary's range map, and making the keys of any drawn keyboard playable.
 
-import { noteOff, noteOn } from './audio/piano.js?v=17222eed60';
-import { pauseRound } from './round.js?v=17222eed60';
-import { run } from './state.js?v=17222eed60';
-import { $, isBlack, nname } from './util.js?v=17222eed60';
+import { noteOff, noteOn } from './audio/piano.js?v=803d44b224';
+import { pauseRound } from './round.js?v=803d44b224';
+import { run } from './state.js?v=803d44b224';
+import { $, isBlack, MAX_NOTE, MIN_NOTE, nname, pc } from './util.js?v=803d44b224';
 
-/* ---------- keyboard drawing (the summary's range map) ---------- */
+/* ---------- the range map ---------- */
 const rb = (x, y, w, h, r) => `M${x},${y}h${w}v${h - r}q0,${r} ${-r},${r}h${-(w - 2 * r)}q${-r},0 ${-r},${-r}z`;
-export function keyboard(el, a, b, o) {
-  const Wd = Math.max(240, el.clientWidth || 480);
-  if (isBlack(a)) a--; if (isBlack(b)) b++;
-  const whites = []; for (let m = a; m <= b; m++) if (!isBlack(m)) whites.push(m);
-  const kw = Wd / whites.length, H = o.H, bh = Math.round(H * 0.62), bw = kw * 0.6, labH = 22;
-  const geo = new Map();
-  let s = `<rect x="0" y="0" width="${Wd}" height="${H}" rx="2" fill="var(--key-bed)"/>`;
-  whites.forEach((m, i) => {
-    const x = i * kw; geo.set(m, { x: x + kw / 2, y: H - Math.min(22, kw * 0.55), x0: x, w: kw, h: H, white: true });
-    s += `<path data-k="${m}" class="wkey" d="${rb(x + 1, 0, kw - 2, H - 1, 2)}" fill="${o.fill(m) || 'var(--key-white)'}"/>`;
-  });
-  for (let m = a; m <= b; m++) if (isBlack(m)) {
-    const x = whites.indexOf(m - 1) * kw + kw - bw / 2; geo.set(m, { x: x + bw / 2, y: bh - Math.min(16, bw * 0.8), x0: x, w: bw, h: bh, white: false });
-    s += `<path data-k="${m}" class="bkey" d="${rb(x, 0, bw, bh, 2)}" fill="${o.fill(m) || 'var(--key-black)'}"/>`;
+// The summary's range map: a slim keyboard in the range card's style (the round's notes in ivory, the rest dimmed),
+// with each sung note's result in a lane above its key. Black keys' results sit a lane higher, as the keys do, so
+// neighbours never collide. It shows the whole C2-C6 keyboard where the keys can stay wide enough for the results,
+// otherwise the round's notes and as much either side as fits.
+// `results`: [{ m, tone, icon, dir }] (dir: -1 flat, 1 sharp, 0 on the note). Returns each key's geometry by note.
+const MIN_KEY = 26;       // px: the narrowest a white key gets, so a result still fits above it
+export function rangeMap(el, lo, hi, results, aria) {
+  const Wd = Math.max(240, el.clientWidth || 480), white = (m) => !isBlack(m);
+  let a = isBlack(lo) ? lo - 1 : lo, b = isBlack(hi) ? hi + 1 : hi;
+  const count = (x, y) => { let n = 0; for (let m = x; m <= y; m++) if (white(m)) n++; return n; };
+  const fit = Math.max(count(a, b), Math.floor(Wd / MIN_KEY));
+  for (let left = true; count(a, b) < fit && (a > MIN_NOTE || b < MAX_NOTE); left = !left) {
+    if (left && a > MIN_NOTE) { a--; if (!white(a)) a--; } else if (!left && b < MAX_NOTE) { b++; if (!white(b)) b++; }
   }
-  for (const m of whites) if (o.label(m)) s += `<text x="${geo.get(m).x}" y="${H + 16}" text-anchor="middle" font-size="12" font-weight="${o.label(m) === 'bold' ? 800 : 700}" fill="var(${o.label(m) === 'bold' ? '--ink' : '--muted'})">${nname(m)}</text>`;
-  if (o.marks) s += o.marks(geo, kw);
-  el.innerHTML = `<svg viewBox="0 -2 ${Wd} ${H + labH}" width="${Wd}" height="${H + labH}" role="img" aria-label="${o.aria}">${s}</svg>`;
+  const whites = []; for (let m = a; m <= b; m++) if (white(m)) whites.push(m);
+  const kw = Wd / whites.length, bw = kw * 0.62, r = Math.max(5, Math.min(10, kw * 0.36)), ar = 9;
+  const yB = ar + 3 + r, yW = yB + 2 * r + ar + 6, top = yW + r + 8, KH = 40, BH = Math.round(KH * 0.6), labH = 20;
+  const geo = new Map(), inR = (m) => m >= lo && m <= hi;
+  whites.forEach((m, i) => geo.set(m, { x: i * kw + kw / 2, x0: i * kw, w: kw, white: true }));
+  for (let m = a; m <= b; m++) if (!white(m)) { const x = (whites.indexOf(m - 1) + 1) * kw; geo.set(m, { x, x0: x - bw / 2, w: bw, white: false }); }
+  let s = `<rect x="0" y="${top}" width="${Wd}" height="${KH}" rx="2" fill="var(--key-bed)"/>`;
+  for (const m of whites) { const k = geo.get(m); s += `<path data-k="${m}" class="wkey${inR(m) ? ' in' : ''}" d="${rb(k.x0 + 0.5, top, kw - 1, KH, 2)}"/>`; }
+  for (const [m, k] of geo) if (!k.white) s += `<path data-k="${m}" class="bkey${inR(m) ? ' in' : ''}" d="${rb(k.x0, top, bw, BH, 2)}"/>`;
+  for (const m of whites) if (m === lo || m === hi || pc(m) === 0) s += `<text x="${geo.get(m).x}" y="${top + KH + 15}" text-anchor="middle" font-size="12" class="${m === lo || m === hi ? 'end' : 'oct'}">${nname(m)}</text>`;
+  results.forEach(({ m, tone, icon, dir }, i) => {
+    const k = geo.get(m); if (!k) return;
+    const y = k.white ? yW : yB;
+    s += `<g class="mk" data-m="${m}" style="--i:${i}" data-tone="${tone}"><line x1="${k.x}" y1="${y + r}" x2="${k.x}" y2="${top}" class="stem"/>`
+      + `<circle cx="${k.x}" cy="${y}" r="${r}" fill="var(--tone)"/><circle cx="${k.x}" cy="${y}" r="${r + 3}" class="ring"/>`
+      + (r >= 8 ? `<text x="${k.x}" y="${y + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${r * 1.05}" font-weight="800" fill="var(--tone-ink)">${icon}</text>` : '')
+      + (dir ? `<text x="${k.x}" y="${y - r - 3}" text-anchor="middle" font-size="${ar}" class="dir">${dir < 0 ? '▼' : '▲'}</text>` : '') + '</g>';
+  });
+  // hit areas: each key's whole column, lanes included; black keys last, so they win where they overlap
+  for (const [m, k] of geo) if (k.white) s += `<rect class="hit" data-m="${m}" x="${k.x0}" y="0" width="${k.w}" height="${top + KH}"/>`;
+  for (const [m, k] of geo) if (!k.white) s += `<rect class="hit" data-m="${m}" x="${k.x0}" y="0" width="${k.w}" height="${top + BH}"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${Wd} ${top + KH + labH}" width="${Wd}" height="${top + KH + labH}" role="img" aria-label="${aria}">${s}</svg>`;
   return geo;
 }
 
@@ -34,7 +52,7 @@ export function keyboard(el, a, b, o) {
 export function playable(container, keyAt, mark) {
   container.addEventListener('pointerdown', (e) => {
     const k = e.button === 0 && keyAt(e.clientX, e.clientY); if (!k) return;
-    if (run && !run.paused) { if ($('#sheet').hidden) return; pauseRound(); }
+    if (run && !run.paused && !$('#run').hidden) { if ($('#sheet').hidden) return; pauseRound(); }
     e.preventDefault(); try { container.setPointerCapture(e.pointerId); } catch (err) {}
     let m = +k.dataset.m; noteOn(e.pointerId, m, e.pressure); mark(m, true);
     const move = (ev) => {

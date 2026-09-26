@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=17222eed60';
-import { audioOut, outNode, wantSound } from './audio/piano.js?v=17222eed60';
-import { bestScore, fmtDay } from './home.js?v=17222eed60';
-import { keyboard, keyUnder, playable } from './keyboard.js?v=17222eed60';
-import { SCORING } from './rescore.js?v=17222eed60';
-import { mountRoll } from './roll.js?v=17222eed60';
-import { show } from './round.js?v=17222eed60';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=17222eed60';
-import { run, setRound } from './state.js?v=17222eed60';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=17222eed60';
-import { $, clamp, hideTip, mean, median, motion, nname, pc, placeTip, restart, ROUND_LEN, slideThumb } from './util.js?v=17222eed60';
+import { floorDb, thrDb } from './audio/mic.js?v=803d44b224';
+import { audioOut, outNode, wantSound } from './audio/piano.js?v=803d44b224';
+import { bestScore, fmtDay } from './home.js?v=803d44b224';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=803d44b224';
+import { SCORING } from './rescore.js?v=803d44b224';
+import { mountRoll } from './roll.js?v=803d44b224';
+import { show } from './round.js?v=803d44b224';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=803d44b224';
+import { run, setRound } from './state.js?v=803d44b224';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=803d44b224';
+import { $, clamp, mean, median, motion, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=803d44b224';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -60,8 +60,10 @@ function insights(notes) {
     return sl.length >= 3 && sl.length / cand.length >= 0.6 ? { up, n: sl.length, of: cand.length } : null;
   }).filter(Boolean);
   const slid = slides.length > 0;
-  if (slides.length === 2) out.push({ title: 'You slide into notes',
-    body: `${slides[0].n} of ${slides[0].of} flat starts slid up, and ${slides[1].n} of ${slides[1].of} sharp ones slid down. Your ear finds it, just late.` });
+  if (slides.length === 2) {
+    const [a, b] = slides[0].n / slides[0].of >= slides[1].n / slides[1].of ? slides : [slides[1], slides[0]], say = (s) => `${s.n} of ${s.of} ${s.up ? 'flat starts went up' : 'sharp starts came down'}`;
+    out.push({ title: 'You slide into notes', body: `Whichever side you start on, you slide onto the note: ${say(a)}, ${say(b)}. Your ear finds it, just late.` });
+  }
   else if (slid) { const { up, n, of } = slides[0]; out.push({ title: `You slide ${up ? 'up' : 'down'} into notes`,
     body: `${n} of ${of} ${up ? 'flat' : 'sharp'} starts slid ${up ? 'up' : 'down'} onto the note. Your ear finds it, just late.` }); }
   // where in the range
@@ -157,7 +159,7 @@ function renderSummary(r, o) {
     .map((t, i) => `<span class="tal" style="--i:${i}"><i data-tone="${t.tone}">${t.icon}</i>${t.word} <b>${counts.get(t.key) || 0}</b></span>`).join('');
   $('#insights').innerHTML = insights(r.notes).map((f, i) => `<li style="--i:${i}"><b>${f.title}</b><span>${f.body}</span></li>`).join('');
   summaryRun = r;
-  drawKeysMap();
+  mapPick = null; drawKeysMap();
   const chips = $('#chips');
   chips.innerHTML = r.notes.map((n, i) => `<button type="button" class="chip" style="--i:${i}" data-i="${i}" aria-pressed="false" aria-label="Note ${i + 1}: ${nname(n.midi)}, ${n.tier.word}"><i data-tone="${n.tier.tone}">${n.tier.icon}</i>${nname(n.midi)}</button>`).join('');
   const worst = ok.length ? r.notes.indexOf(ok.reduce((a, b) => (b.acc < a.acc ? b : a))) : 0;
@@ -226,7 +228,7 @@ export function stopClip() {
   p.btn.textContent = '▶ Hear it'; p.btn.style.setProperty('--p', 0);
   const line = p.rollEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
 }
-let mapMode = 'start';
+let mapMode = 'start', mapPick = null;   // which view, and the key last tapped
 export function setMapMode(m) { mapMode = m; }
 
 export function drawKeysMap() {
@@ -234,37 +236,28 @@ export function drawKeysMap() {
   const land = mapMode === 'land', val = (n) => land ? n.settled : n.onset, score = (n) => land ? n.landAcc : n.acc;
   for (const b of document.querySelectorAll('[data-map]')) b.setAttribute('aria-pressed', String(b.dataset.map === mapMode));
   slideThumb($('#mapOpts'));
-  $('#mapCap').textContent = (land ? 'Where each note settled.' : 'How you started each note.') + ' ▼ flat, ▲ sharp. Tap a key to hear it.';
   const by = new Map();
   for (const n of r.notes) if (n.kind === 'ok' && val(n) != null) { if (!by.has(n.midi)) by.set(n.midi, []); by.get(n.midi).push(n); }
-  const el = $('#keysMap');
-  const geo = keyboard(el, r.lo, r.hi, {
-    H: 118, aria: `Keyboard across your range, with a dot on each note showing ${land ? 'where you landed' : 'how you started'}`,
-    fill: (m) => m < r.lo || m > r.hi ? 'var(--key-out)' : null,
-    label: (m) => m === r.lo || m === r.hi ? 'bold' : pc(m) === 0 ? 'muted' : null,
-    marks: (g, kw) => {
-      let s = '';
-      [...by].sort((a, b) => a[0] - b[0]).forEach(([m, list], i) => {
-        const k = g.get(m), c = median(list.map(val)), t = tierOf(c), rad = clamp(kw * (k.white ? 0.34 : 0.26), 5, 11);
-        s += `<g class="mk" style="--i:${i}" data-tone="${t.tone}"><circle cx="${k.x}" cy="${k.y}" r="${rad}" fill="var(--tone)" stroke="var(--surface)" stroke-width="2"/>`;
-        if (rad >= 8) s += `<text x="${k.x}" y="${k.y + 0.5}" text-anchor="middle" dominant-baseline="central" font-size="${rad * 1.05}" font-weight="800" fill="var(--tone-ink)">${t.icon}</text>`;
-        s += '</g>';
-        if (Math.abs(c) >= 15) s += `<text class="mk" style="--i:${i}" x="${k.x}" y="${k.y - rad - 5}" text-anchor="middle" font-size="${clamp(rad, 8, 11)}" fill="var(${k.white ? '--ink-2' : '--key-white'})">${c < 0 ? '▼' : '▲'}</text>`;
-      });
-      for (const [m, k] of g) s += `<rect class="hit" data-m="${m}" x="${k.x0}" y="0" width="${k.w}" height="${k.h}" fill="transparent"/>`;
-      return s;
-    },
+  const results = [...by].sort((a, b) => a[0] - b[0]).map(([m, list]) => {
+    const c = median(list.map(val)), t = tierOf(c);
+    return { m, tone: t.tone, icon: t.icon, dir: Math.abs(c) >= 15 ? Math.sign(c) : 0 };
   });
-  // key tooltips: black keys are drawn last, so they win where they overlap white keys
-  let tip = el.querySelector('.tip-pop'); if (!tip) { tip = document.createElement('div'); tip.className = 'tip-pop'; el.style.position = 'relative'; el.appendChild(tip); }
-  const svg = el.querySelector('svg');
-  const hover = (e) => {
-    const h = e.target.closest && e.target.closest('.hit'); if (!h) { hideTip(tip); return; }
-    const m = +h.dataset.m, list = by.get(m) || [], k = geo.get(m), box = svg.getBoundingClientRect(), sc = box.width / svg.viewBox.baseVal.width;
-    tip.textContent = list.length ? `${nname(m)} · ${land ? 'landing' : 'start'} ${Math.round(mean(list.map(score)))}% · ${land ? 'ended' : 'started'} ${off(median(list.map(val)))}${list.length > 1 ? ` · ${list.length} notes` : ''}` : `${nname(m)} · ${land ? 'no landing scored' : 'not sung'} this round`;
-    placeTip(tip, k.x * sc, k.y * sc - 16, box.width);
+  const el = $('#keysMap');
+  rangeMap(el, r.lo, r.hi, results, `Keyboard across your range, with ${land ? 'where you landed' : 'how you started'} above each note sung`);
+  // Tapping a key plays it and shows its result in the caption (no hover: it's the same with a mouse or a finger).
+  const legend = (land ? 'Where each note settled.' : 'How you started each note.') + ' ▼ flat, ▲ sharp. Tap a key to hear it.';
+  const select = (m) => {
+    mapPick = m;
+    for (const g of el.querySelectorAll('.mk, .wkey, .bkey')) g.classList.toggle('sel', +(g.dataset.m ?? g.dataset.k) === m);
+    const list = by.get(m) || [];
+    $('#mapCap').textContent = m == null ? legend : list.length
+      ? `${nname(m)}: ${land ? 'landed' : 'started'} ${off(median(list.map(val)))}, ${Math.round(mean(list.map(score)))}%${list.length > 1 ? ` (${list.length} notes)` : ''}.`
+      : `${nname(m)}: ${land ? 'no landing scored' : 'not sung'} this round.`;
   };
-  svg.addEventListener('pointermove', hover); svg.addEventListener('pointerdown', hover);
-  if (!el._playable) { el._playable = true; playable(el, keyUnder(el, '.hit'), (m, on) => { const k = el.querySelector(`[data-k="${m}"]`); if (k) k.classList.toggle('down', on); }); }
-  svg.addEventListener('pointerleave', () => hideTip(tip));
+  select(mapPick != null && el.querySelector(`[data-k="${mapPick}"]`) ? mapPick : null);
+  el._select = select;
+  if (!el._playable) {
+    el._playable = true;
+    playable(el, keyUnder(el, '.hit'), (m, on) => { const k = el.querySelector(`[data-k="${m}"]`); if (k) k.classList.toggle('down', on); if (on) el._select(m); });
+  }
 }
