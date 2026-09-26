@@ -79,7 +79,13 @@ button{font-family:inherit}
 .kbd svg{display:block;width:100%;height:auto;overflow:visible}
 
 /* range picker: the keyboard is the control */
+.rangeright{display:flex;align-items:center;gap:8px}
 .rangeval{font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.reset{position:relative;width:30px;height:30px;padding:0;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none;
+  transition:opacity .22s ease,transform .35s cubic-bezier(.3,1.5,.5,1),background-color .15s,color .15s}
+.reset::after{content:"";position:absolute;inset:-7px;border-radius:50%}
+.reset:hover{background:var(--accent-soft);color:var(--ink)}
+.reset:disabled{opacity:0;transform:scale(.5) rotate(90deg);cursor:default}
 .rangeval b{display:inline-block;color:var(--ink);font-weight:800;font-size:17px}
 .rangeval.tick b{animation:tick .28s cubic-bezier(.3,1.6,.5,1)}
 @keyframes tick{from{transform:scale(1.14)}}
@@ -132,7 +138,7 @@ button{font-family:inherit}
 .switch input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent)}
 .switch b{display:block;font-weight:800;font-size:15px}
 .switch small{display:block;color:var(--ink-2);font-weight:700;font-size:13px}
-.verdict .play{margin-left:auto}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .btn.small{font-size:14px;padding:10px 14px;border-radius:12px}
 .center{text-align:center}
 .tip{color:var(--ink-2);font-size:14px;text-align:center;max-width:44ch;margin:0 auto}
@@ -168,6 +174,12 @@ button{font-family:inherit}
 .stage[data-phase="sing"] .core,.stage[data-phase="capture"] .core{fill:var(--accent)}
 .stage[data-phase="sing"] .core{animation:pop .22s cubic-bezier(.3,1.6,.5,1)}
 .stage[data-phase="done"] .core{fill:var(--tone)}
+.orb .halves{opacity:0;transform-origin:88px 88px}
+.orb .half{fill:var(--tone)}
+.orb .seam{stroke:var(--bg);stroke-width:5}
+.orb .hglyph{font:800 30px var(--sans);fill:var(--tone-ink);dominant-baseline:central;text-anchor:middle}
+.stage[data-phase="done"][data-split] .core{opacity:0}
+.stage[data-phase="done"][data-split] .halves{opacity:1;animation:pop .34s cubic-bezier(.3,1.6,.5,1)}
 .stage[data-phase="done"] .glyph{opacity:1}
 .stage[data-phase="done"] .say,.stage[data-phase="done"] .sub{visibility:hidden}
 @keyframes ripple{from{opacity:.55;transform:scale(1)}to{opacity:0;transform:scale(1.75)}}
@@ -178,25 +190,30 @@ button{font-family:inherit}
 .sub{color:var(--ink-2);font-weight:700;min-height:1.5em}
 
 /* bottom sheet */
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;background:color-mix(in srgb,var(--tone,var(--accent)) 14%,var(--surface));
-  border-top:3px solid color-mix(in srgb,var(--tone,var(--accent)) 45%,var(--surface));padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
-  animation:rise .22s ease-out}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);
+  box-shadow:0 -10px 30px rgba(23,22,58,.10);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:rise .26s cubic-bezier(.2,.8,.2,1)}
+.sheet[data-tone]{background:color-mix(in srgb,var(--tone) 14%,var(--surface));border-top:3px solid color-mix(in srgb,var(--tone) 45%,var(--surface))}
 .sheet-in{max-width:560px;margin:0 auto;display:grid;gap:10px}
 @keyframes rise{from{transform:translateY(40%);opacity:0}}
 .verdict{display:flex;align-items:center;gap:12px}
 .vicon{width:38px;height:38px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 19px/1 var(--sans);flex:none}
 .vword{font:400 30px/1 var(--display)}
-.vacc{margin-left:auto;font:800 22px/1 var(--sans);color:var(--ink-2)}
 .vtext{font-weight:700;color:var(--ink);max-width:52ch}
-.pills{display:flex;gap:8px;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border-radius:10px;padding:5px 10px 5px 7px;font-weight:700;font-size:14px;color:var(--ink-2)}
-.pill i{width:12px;height:12px;border-radius:50%;background:var(--tone)}
-.pill b{color:var(--ink);font-weight:800}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:2px;align-items:center;padding:10px 12px;border-radius:16px;
+  background:color-mix(in srgb,var(--tone) 13%,var(--surface));box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tone) 32%,var(--surface));
+  animation:minipop .38s cubic-bezier(.3,1.5,.5,1) both}
+.mini+.mini{animation-delay:.07s}
+@keyframes minipop{from{transform:scale(.85);opacity:0}}
+.mini .mi{grid-row:1/3;width:36px;height:36px;border-radius:50%;background:var(--tone);color:var(--tone-ink);display:grid;place-items:center;font:800 17px/1 var(--sans)}
+.mini .mv{font:800 26px/1 var(--sans);letter-spacing:-.02em;color:var(--ink)}
+.mini .ml{font-size:13px;font-weight:700;color:var(--ink-2);line-height:1.2}
+.mini .ml span{font-weight:800;color:var(--ink)}
 .sheet-foot{display:flex;align-items:center;gap:12px}
 .countdown{flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden}
 .countdown i{display:block;height:100%;width:0;background:var(--ink-2);border-radius:3px}
 .sheet .btn{padding:11px 16px;font-size:15px}
-.msg{--tone:var(--accent)}
+.msg{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-top:3px solid color-mix(in srgb,var(--accent) 40%,var(--surface))}
 .msg h2{font:400 26px/1.1 var(--display)}
 .msg p{color:var(--ink);font-weight:700}
 .msg .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -212,6 +229,8 @@ button{font-family:inherit}
 .done-title{font:400 44px/1 var(--display);letter-spacing:-.01em}
 .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 8px}
 .scorebox{background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:0 2px 0 var(--line)}
+.scorebox[data-tone]{background:color-mix(in srgb,var(--tone) 12%,var(--surface));box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tone) 30%,var(--surface))}
+.scorebox .si{display:inline-grid;place-items:center;width:20px;height:20px;margin-right:6px;border-radius:50%;background:var(--tone);color:var(--tone-ink);font:800 11px/1 var(--sans);font-style:normal;vertical-align:-3px}
 .scorebox .score{display:block;font:800 56px/1 var(--sans);letter-spacing:-.03em;color:var(--ink)}
 .scorebox b{display:block;font-weight:800;margin-top:6px}
 .scorebox .what{display:block;color:var(--ink-2);font-weight:700;font-size:13.5px;line-height:1.35}
@@ -235,7 +254,6 @@ button{font-family:inherit}
 .detail{margin-top:14px;display:grid;gap:8px}
 .detail .verdict .vword{font-size:24px}
 .detail .vicon{width:32px;height:32px;font-size:16px}
-.detail .vacc{font-size:18px}
 .detail .lead{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .actions{display:grid;gap:10px;margin-top:18px}
 .demo-note{color:var(--ink-2);font-weight:700;font-size:14px}
@@ -266,7 +284,8 @@ button{font-family:inherit}
   .stage .core,.stage .ring{animation:none!important}
   .sheet{animation:none}
   .btn,.btn:active{transition:none}
-  .screen,#summary *,.seg,.rangeval b{animation:none!important}
+  .screen,#summary *,.seg,.rangeval b,.mini,.orb *{animation:none!important}
+  .reset{transition:none}
   .pkeys *,.pfill,.knob,.bubble{transition:none!important}
 }
 </style>
@@ -283,7 +302,8 @@ button{font-family:inherit}
   </div>
   <div class="home-grid">
     <div class="card">
-      <div class="card-head"><h2>Your range</h2><span class="rangeval" id="rangeVal"><b id="rangeName"></b> · <span id="rangeCount"></span></span></div>
+      <div class="card-head"><h2>Your range</h2><div class="rangeright"><span class="rangeval" id="rangeVal"><b id="rangeName"></b> · <span id="rangeCount"></span></span>
+        <button type="button" class="reset" id="resetRange" aria-label="Reset range to C3 – C4" title="Reset to C3 – C4"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4v4.5H9"/></svg></button></div></div>
       <div class="picker" id="picker">
         <div class="bubble" id="bubble" aria-hidden="true"><b></b><small></small><i></i></div>
         <div class="pkeys" id="pkeys"></div>
@@ -328,6 +348,9 @@ button{font-family:inherit}
         <circle class="track" cx="88" cy="88" r="72" id="track" style="opacity:0"/>
         <circle class="hold" cx="88" cy="88" r="72" id="holdRing" stroke-dasharray="452.39" stroke-dashoffset="452.39"/>
         <circle class="core" cx="88" cy="88" r="52" id="core"/>
+        <g class="halves"><path class="half" id="halfL" d="M88,36 A52,52 0 0 0 88,140 Z"/><path class="half" id="halfR" d="M88,36 A52,52 0 0 1 88,140 Z"/>
+          <line class="seam" x1="88" y1="33" x2="88" y2="143"/>
+          <text class="hglyph" x="64" y="90" id="glyphL"></text><text class="hglyph" x="112" y="90" id="glyphR"></text></g>
         <text class="glyph" x="88" y="90" id="glyph"></text>
       </svg>
     </div>
@@ -341,8 +364,8 @@ button{font-family:inherit}
   <div class="brand"><span class="logo"><i></i></span><b>Cold Pitch</b><a href="detailed.html">Detailed view</a></div>
   <h1 class="done-title" id="doneTitle" tabindex="-1">Round complete</h1>
   <div class="scores">
-    <div class="scorebox"><span class="score" id="sumStart">—</span><b>Start</b><span class="what">how close your first moment was</span></div>
-    <div class="scorebox"><span class="score" id="sumLand">—</span><b>Landing</b><span class="what">where the note ended up</span></div>
+    <div class="scorebox" id="boxStart"><span class="score" id="sumStart">—</span><b><i class="si"></i>Start</b><span class="what">how close your first moment was</span></div>
+    <div class="scorebox" id="boxLand"><span class="score" id="sumLand">—</span><b><i class="si"></i>Landing</b><span class="what">where the note ended up</span></div>
   </div>
   <p class="sumsub"><span id="sumSub"></span><span class="bestchip" id="sumBest" hidden></span></p>
   <p class="err" id="saveErr" hidden>This round couldn’t be saved in this browser’s storage.</p>
@@ -366,8 +389,8 @@ button{font-family:inherit}
 
 <div class="sheet" id="sheet" hidden aria-live="polite">
   <div class="sheet-in">
-    <div class="verdict"><span class="vicon" id="sIcon"></span><span class="vword" id="sWord"></span></div>
-    <div class="pills" id="sPills"></div>
+    <div class="verdict" id="sVerdict"><span class="vicon" id="sIcon"></span><span class="vword" id="sWord"></span></div>
+    <div class="duo" id="sDuo"></div>
     <p class="vtext" id="sText"></p>
     <div class="roll" id="sRoll"></div>
     <div class="sheet-foot"><div class="countdown" id="countdown"><i></i></div><button class="btn" id="pauseBtn" type="button">Pause</button></div>
@@ -402,7 +425,8 @@ const ROUND_LEN = 15, WIN = 0.1, TONE = 1, HOLD = 1, PAUSE = 2800, MIN_NOTE = 36
 // Settings live in localStorage. Finished rounds, with every note's full pitch curve, live in IndexedDB,
 // which has room for years of them. Both belong to this site only, so Export/Import moves them between browsers.
 const STORE = 'coldpitch.play.v1';
-let settings = { lo: 48, hi: 60, keepAudio: true };
+const DEFAULT_LO = 48, DEFAULT_HI = 60;      // C3 to C4: a safe start for anyone, since any octave counts
+let settings = { lo: DEFAULT_LO, hi: DEFAULT_HI, keepAudio: true };
 let rounds = [];      // oldest first
 try {
   const p = JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -500,12 +524,13 @@ function scoreNote(n) {
   n.ltier = n.settled != null ? tierOf(n.settled) : null;
   return n;
 }
-function pills(n) {
-  if (n.kind !== 'ok') return '';
-  const land = n.landAcc == null ? `<span class="pill" title="Hold the note for about a second to get a landing score"><i data-tone="none" style="background:var(--none)"></i>Landing <b>—</b></span>`
-    : `<span class="pill" data-tone="${n.ltier.tone}"><i></i>Landing <b>${n.landAcc}%</b></span>`;
-  return `<span class="pill" data-tone="${n.tier.tone}"><i></i>Start <b>${n.acc}%</b></span>${land}`;
+// Two small scorecards, start and landing, each in its own colour.
+function duo(n) {
+  const card = (label, acc, t, none) => `<div class="mini" data-tone="${t ? t.tone : 'none'}"><span class="mi">${t ? t.icon : '–'}</span>`
+    + `<b class="mv">${acc == null ? '—' : acc + '%'}</b><span class="ml"><span>${label}</span> · ${t ? t.word : none}</span></div>`;
+  return card('Start', n.acc, n.tier) + card('Landing', n.landAcc, n.ltier, 'too short to tell');
 }
+const tierFromAcc = (a) => a == null ? null : a >= 94 ? TIERS[0] : a >= 78 ? TIERS[1] : a >= 50 ? TIERS[2] : TIERS[3];   // same bands as 15, 30, 50 cents
 
 /* ---------- audio engine (same analysis as the detailed view) ---------- */
 let ctx = null, stream = null, tap = null, dec = 1, dsr = 24000;
@@ -780,6 +805,7 @@ function paintPicker() {
     const rv = $('#rangeVal'); rv.classList.remove('tick'); void rv.offsetWidth; rv.classList.add('tick');
   }
   $('#rangeCount').textContent = `${hi - lo + 1} notes`;
+  $('#resetRange').disabled = lo === DEFAULT_LO && hi === DEFAULT_HI;   // only there once you've moved away from the default
 }
 function showBubble(m, label, text) {
   const b = $('#bubble'), W = $('#pkeys').clientWidth;
@@ -799,6 +825,12 @@ function blip(m) {
     blipOut = playTone(ac, m, ac.currentTime + 0.01, 0.5);
   } catch (e) {}
 }
+$('#resetRange').addEventListener('click', () => {
+  settings.lo = DEFAULT_LO; settings.hi = DEFAULT_HI; paintPicker(); saveSettings();
+  const pk = $('#picker'); showBubble(Math.round((DEFAULT_LO + DEFAULT_HI) / 2), 'Range', `${nname(DEFAULT_LO)} – ${nname(DEFAULT_HI)}`);
+  pk.classList.add('peek'); clearTimeout(pk._peek); pk._peek = setTimeout(() => pk.classList.remove('peek'), 1000);
+  $('#knobLo').focus({ preventScroll: true });     // the button disappears, so don't leave focus on nothing
+});
 let drag = null;
 const pickFrac = (e) => { const r = $('#pkeys').getBoundingClientRect(); return clamp((e.clientX - r.left) / r.width, 0, 1); };
 function dragTo(fx) {
@@ -994,7 +1026,14 @@ function noteDone(n) {
   run.notes.push(n); run.pop = run.notes.length - 1;
   run.silent = n.kind === 'silent' ? run.silent + 1 : 0;
   renderProgress();
-  $('#stage').dataset.tone = n.tier.tone; $('#glyph').textContent = n.tier.icon;
+  const st = $('#stage');
+  if (n.kind === 'ok') {     // left half: how the note started; right half: where it landed
+    st.dataset.split = ''; $('#glyph').textContent = '';
+    for (const [side, t] of [['L', n.tier], ['R', n.ltier]]) {
+      const tone = t ? t.tone : 'none';
+      $('#half' + side).dataset.tone = tone; $('#glyph' + side).dataset.tone = tone; $('#glyph' + side).textContent = t ? t.icon : '–';
+    }
+  } else { delete st.dataset.split; st.dataset.tone = n.tier.tone; $('#glyph').textContent = n.tier.icon; }
   setStage('done');
   showSheet(n);
   if (run.silent >= 2) {
@@ -1006,9 +1045,11 @@ function noteDone(n) {
 }
 
 function showSheet(n) {
-  const sh = $('#sheet'); sh.dataset.tone = n.tier.tone;
+  const sh = $('#sheet'), ok = n.kind === 'ok';
+  if (ok) delete sh.dataset.tone; else sh.dataset.tone = n.tier.tone;       // a scored note gets a neutral sheet and two coloured cards
+  $('#sVerdict').hidden = ok; $('#sDuo').hidden = !ok;
   $('#sIcon').textContent = n.tier.icon; $('#sWord').textContent = n.tier.word;
-  $('#sPills').innerHTML = pills(n); $('#sPills').hidden = n.kind !== 'ok';
+  $('#sDuo').innerHTML = ok ? duo(n) : '';
   $('#sText').textContent = sentence(n);
   sh.hidden = false;
   const rollEl = $('#sRoll');
@@ -1075,7 +1116,7 @@ let stagePhase = null;
 function setStage(p) {
   if (p === stagePhase) return; stagePhase = p;
   const st = $('#stage'); st.dataset.phase = p;
-  if (p !== 'done') { delete st.dataset.tone; $('#glyph').textContent = ''; }
+  if (p !== 'done') { delete st.dataset.tone; delete st.dataset.split; $('#glyph').textContent = ''; }
   $('#say').textContent = STAGE[p][0]; $('#sub').textContent = STAGE[p][1];
   $('#track').style.opacity = p === 'hold' ? 1 : 0;
   if (p !== 'capture') $('#core').style.transform = '';
@@ -1215,6 +1256,11 @@ function renderSummary(r, o) {
   $('#saveErr').hidden = true;
   $('#homeBtn').textContent = o.fresh ? 'Change range' : 'Back';
   countUp($('#sumStart'), score); countUp($('#sumLand'), landing);
+  for (const [id, v] of [['#boxStart', score], ['#boxLand', landing]]) {
+    const box = $(id), t = tierFromAcc(v);
+    if (t) box.dataset.tone = t.tone; else delete box.dataset.tone;
+    box.querySelector('.si').textContent = t ? t.icon : ''; box.querySelector('.si').hidden = !t;
+  }
   const bs = mean(before.map((x) => x.score)), bl = mean(before.filter((x) => x.landing != null).map((x) => x.landing));
   $('#sumSub').textContent = `Averages over ${ok.length} of ${ROUND_LEN} notes${landed.length < ok.length ? `, ${ok.length - landed.length} too short to score the landing` : ''}.`
     + (!r.sim && before.length ? ` ${o.fresh ? 'Your last' : 'The'} ${before.length === 1 ? 'round' : before.length + ' rounds'}${o.fresh ? '' : ' before it'}: ${Math.round(bs)}% and ${bl == null ? '—' : Math.round(bl) + '%'}.` : '');
@@ -1245,9 +1291,9 @@ function pickDetail(i, isWorst) {
   stopClip();
   for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(+c.dataset.i === i));
   const d = $('#detail'), canPlay = !!(n.audio || (n.rec && r.ts));
-  d.innerHTML = `<span class="lead">${isWorst && n.kind === 'ok' ? 'Your trickiest note: ' : ''}note ${i + 1}, ${nname(n.midi)}</span>
-    <div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
-    <div class="pills">${pills(n)}</div><p class="vtext"></p><div class="roll"></div>`;
+  d.innerHTML = `<div class="dhead"><span class="lead">${isWorst && n.kind === 'ok' ? 'Your trickiest note: ' : ''}note ${i + 1}, ${nname(n.midi)}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
+    ${n.kind === 'ok' ? `<div class="duo">${duo(n)}</div>` : `<div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span></div>`}
+    <p class="vtext"></p><div class="roll"></div>`;
   d.querySelector('.vtext').textContent = sentence(n);
   const rollEl = d.querySelector('.roll');
   if (n.trace) mountRoll(rollEl, n, 190); else rollEl.remove();
