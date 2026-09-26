@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cold Pitch Rounds</title>
 <meta name="description" content="Fifteen notes in a row: hear it, keep it in your head, sing it cold.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%231A2F78'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23F4EFE3' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%230B1736'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23F4EFE3' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -55,22 +55,23 @@
    Verdicts: worst colour-blind separation 8.3 across all pairs (target 8); every verdict colour still ships with its
    mark and word, never colour alone. */
 :root{
-  --bg:#1A2F78; --surface:#14265F; --surface-2:#213A8A; --ink:#F4EFE3; --ink-2:#C9CEE3; --ink-soft:#C9CEE3; --muted:#A3AED4;
-  --line:#34498F; --rule:#D9D4C8; --shadow:rgba(6,12,40,.45);
-  --accent:#F4EFE3; --accent-deep:#FFFFFF; --accent-ink:#1A2F78; --accent-wash:rgba(244,239,227,.09); --accent-soft:#2A4396;
-  --key-bed:#0E1A48; --key-white:#2E4699; --key-black:#0F1B4C; --key-out:#1E3272; --key-in:#2E4699; --key-hot:#4A62B3;
-  --pk-w:#F4EFE3; --pk-b:#10183A; --pk-dim-w:#2B4290; --pk-dim-b:#182A69; --pk-hot-w:#D9CFB8; --pk-hot-b:#3A4E8F;
-  --roll-white:#1D3380; --roll-black:#172B6E; --roll-sep:#2C4290;
+  --bg:#0B1736; --surface:#081129; --surface-2:#13224A; --ink:#F4EFE3; --ink-2:#C4C9DB; --ink-soft:#C4C9DB; --muted:#97A1C0;
+  --line:#22315C; --rule:#D9D4C8; --shadow:rgba(2,6,20,.55);
+  --accent:#F4EFE3; --accent-deep:#FFFFFF; --accent-ink:#0B1736; --accent-wash:rgba(244,239,227,.08); --accent-soft:#1C2D5E;
+  --key-bed:#050B1E; --key-white:#1B2A57; --key-black:#070E26; --key-out:#111E43; --key-in:#1B2A57; --key-hot:#34477E;
+  /* range keyboard: out-of-range keys sink into the navy, so it reads as a range control first and a piano second */
+  --pk-w:#E6DFCF; --pk-b:#0A1026; --pk-dim-w:#132148; --pk-dim-b:#0D1938; --pk-hot-w:#C9BEA5; --pk-hot-b:#2E3F70;
+  --roll-white:#13224A; --roll-black:#0F1C3F; --roll-sep:#22315C;
   --good:#2D9B7B; --warn:#A1790C; --crit:#F94A64; --none:#6F7DAE; --crit-text:#FF9AA5;
   --series-1:#3DA2BE; --series-2:#8968F4;       /* progress chart: start, landing */
   --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
   --sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
-[data-tone="good"]{--tone:var(--good);--tone-ink:#0E1A48}
-[data-tone="warn"]{--tone:var(--warn);--tone-ink:#0E1A48}
-[data-tone="crit"]{--tone:var(--crit);--tone-ink:#0E1A48}
-[data-tone="none"]{--tone:var(--none);--tone-ink:#0E1A48}
+[data-tone="good"]{--tone:var(--good);--tone-ink:#0B1736}
+[data-tone="warn"]{--tone:var(--warn);--tone-ink:#0B1736}
+[data-tone="crit"]{--tone:var(--crit);--tone-ink:#0B1736}
+[data-tone="none"]{--tone:var(--none);--tone-ink:#0B1736}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -122,7 +123,8 @@ svg text{font-family:var(--sans);font-weight:500}
 /* range picker: the keyboard is the control; out of range is greyed, your range is full black and white */
 .rangeright{display:flex;align-items:center;gap:10px}
 .rangeval{font-size:13px;color:var(--ink-2);white-space:nowrap}
-.rangeval b{display:inline-block;color:var(--ink);font:500 20px/1 var(--display)}
+.rangeval b{display:inline-block;color:var(--ink);font:500 22px/1 var(--display)}
+.rangecard .card-head h2{font:italic 400 30px/1.05 var(--display);letter-spacing:0;text-transform:none}
 .reset{position:relative;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none;
   transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),border-color var(--t-quick),color var(--t-quick)}
 .reset svg{width:14px;height:14px;stroke-width:2}
@@ -132,7 +134,7 @@ svg text{font-family:var(--sans);font-weight:500}
 .rangeval.tick b{animation:tick var(--t-base) var(--ease-spring)}
 @keyframes tick{from{transform:translateY(-3px);opacity:.3}}
 .picker{position:relative;margin-top:4px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
-.pkeys{position:relative;display:flex;height:92px;border-radius:2px;overflow:hidden;background:var(--key-bed);cursor:pointer;border:1px solid var(--key-bed)}
+.pkeys{position:relative;display:flex;height:60px;border-radius:2px;overflow:hidden;background:var(--key-bed);cursor:pointer;border:1px solid var(--key-bed)}
 .pkeys .wk{flex:1;background:var(--pk-dim-w);border-right:1px solid var(--key-bed);border-radius:0 0 2px 2px;transform-origin:50% 0;
   transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out),box-shadow var(--t-instant) var(--ease-out)}
 .pkeys .wk:last-child{border-right:0}
@@ -162,6 +164,10 @@ svg text{font-family:var(--sans);font-weight:500}
 .bubble small{display:block;margin-top:5px;font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;opacity:.7}
 .bubble i{position:absolute;bottom:-4px;left:var(--ax,50%);width:9px;height:9px;margin-left:-4.5px;background:inherit;transform:rotate(45deg)}
 .picker.dragging .bubble,.picker.peek .bubble{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}
+.mictest{display:grid;justify-items:center;gap:10px}
+.mtlive{display:grid;justify-items:center;gap:6px;width:100%;animation:enter var(--t-base) var(--ease-out)}
+#mtWave{display:block;width:100%;height:40px}
+#mtLabel{font:600 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
 .phint{font-size:13.5px;color:var(--muted);margin-top:4px}
 .legend{display:flex;gap:16px;font:500 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin:-2px 0 8px}
 #histChart svg,#histLegend i{--accent:var(--series-1);--ink-2:var(--series-2);--surface:var(--bg)}   /* marks only: text keeps text colours */
@@ -201,6 +207,18 @@ svg text{font-family:var(--sans);font-weight:500}
 
 /* run */
 .runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
+/* the sound button: pinned top right of the content column; it pulses (the nudge pattern) when the page wants sound */
+.soundbtn{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(12px,calc(50vw - 280px + 8px));width:40px;height:40px;padding:0;
+  display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);cursor:pointer;
+  transition:color var(--t-quick),border-color var(--t-quick),transform var(--t-instant) var(--ease-out)}
+.soundbtn:hover{color:var(--ink);border-color:var(--ink-2)}
+.soundbtn:active{transform:scale(.92)}
+.soundbtn .on{display:none}
+.soundbtn[aria-pressed="true"] .on{display:inline}
+.soundbtn[aria-pressed="true"] .off{display:none}
+.soundbtn[aria-pressed="true"]{color:var(--ink)}
+.soundbtn.nudge{animation:nudge 1.1s var(--ease-out) 2;color:var(--ink);border-color:var(--ink)}
+@keyframes nudge{0%{box-shadow:0 0 0 0 rgba(244,239,227,.55)}70%{box-shadow:0 0 0 14px rgba(244,239,227,0)}100%{box-shadow:0 0 0 0 rgba(244,239,227,0)}}
 .progress{flex:1;display:grid;grid-template-columns:repeat(15,1fr);gap:4px}
 /* each finished note: its mark in ink above a rule in its colour (a mark and a colour, never colour alone) */
 .seg{height:16px;background:none;border-bottom:2px solid var(--line);display:grid;place-items:center;font:600 9.5px/1 var(--sans);color:var(--ink-2)}
@@ -390,12 +408,20 @@ svg text{font-family:var(--sans);font-weight:500}
 #summary:not([hidden]) .actions{animation-delay:calc(11 * var(--t-step))}
 .seg.pop{animation:pop var(--t-base) var(--ease-spring)}
 @media (prefers-reduced-motion: reduce){
+  .soundbtn.nudge{animation:none}
   /* durations are already zero; ambient loops have their own, so stop them */
   .stage .core,.stage .ring,.seg.now{animation:none!important}
 }
 </style>
 </head>
 <body>
+<button type="button" class="soundbtn" id="soundBtn" aria-pressed="false" aria-label="Sound off. Turn sound on" title="Sound">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke="none"/>
+    <g class="on"><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.8a7.5 7.5 0 0 1 0 10.4"/></g>
+    <g class="off"><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></g>
+  </svg>
+</button>
 <div class="app">
 
 <!-- ============ home ============ -->
@@ -406,7 +432,7 @@ svg text{font-family:var(--sans);font-weight:500}
     <p>Fifteen notes. Only the first moment of each one counts.</p>
   </div>
   <div class="home-grid">
-    <div class="card">
+    <div class="card rangecard">
       <div class="card-head"><h2>Your range</h2><div class="rangeright"><span class="rangeval" id="rangeVal"><b id="rangeName"></b> · <span id="rangeCount"></span></span>
         <button type="button" class="reset" id="resetRange" aria-label="Reset range to C3 – C4" title="Reset to C3 – C4"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4v4.5H9"/></svg></button></div></div>
       <div class="picker" id="picker">
@@ -419,6 +445,10 @@ svg text{font-family:var(--sans);font-weight:500}
         <div class="poct" id="poct" aria-hidden="true"></div>
       </div>
       <p class="phint">Drag to set your range.</p>
+    </div>
+    <div class="mictest" id="micTest">
+      <button type="button" class="btn small" id="micTestBtn">Test mic</button>
+      <div class="mtlive" id="mtLive" hidden><canvas id="mtWave" aria-hidden="true"></canvas><span id="mtLabel" aria-live="polite"></span></div>
     </div>
     <button class="btn primary big" id="startBtn" type="button">Start round</button>
     <p class="err" id="homeErr" hidden></p>
@@ -780,7 +810,7 @@ function onFrame(fr) {
   lastFrameAt = performance.now();
   if (calib) { calib.dbs.push(fr.db); if (fr.t >= calib.until) { const c = calib; calib = null; c.done(); } return; }
   const r = round;
-  if (!r || r.state === 'done') return;
+  if (!r || r.state === 'done') { if (tester && tester.live) feedTester(fr); return; }
   if (fr.t < r.bleedEnd) return;                           // the tone may still be reaching the mic
   if (fr.t < r.go) {
     const loud = fr.db > thrDb, hum = loud && !!fr.f;
@@ -854,7 +884,7 @@ function hum(ac, midi, T, level = 1) {
     src = 1 / ac._peaks.get(v.slope);
   }
   const gain = v.level / (toneRms(ac, v, f, filters) * src);
-  const out = ac.createGain(); out.connect(ac.destination);
+  const out = ac.createGain(); out.connect(outNode(ac));
   out.gain.setValueAtTime(0, T);
   out.gain.setTargetAtTime(gain * level, T, v.attack / 3);            // ~95% after `attack`
   if (v.slope == null) o.type = 'sine'; else o.setPeriodicWave(sourceWave(ac, v.slope));
@@ -964,7 +994,7 @@ async function engineStart(ac) {
     try {
       await ac.audioWorklet.addModule(url());
       const node = new AudioWorkletNode(ac, 'cold-pitch-voices', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1] });
-      node.connect(ac.destination);
+      node.connect(outNode(ac));
       ac._engine = { ac, node, seq: 0, waits: new Map() };
       node.port.onmessage = (e) => { const w = ac._engine.waits.get(e.data.id); if (w) { ac._engine.waits.delete(e.data.id); w(e.data); } };
       return ac._engine;
@@ -983,7 +1013,26 @@ function engineOn(eng, midi, when, level = 1, id = ++eng.seq) { eng.node.port.po
 function engineOff(eng, id, when, tau = 0.03) { eng.node.port.postMessage({ type: 'off', id, when, tau }); }
 // A note of `dur` seconds whose damper has it gone (<1%) by when + dur.
 function enginePlay(eng, midi, when, dur, level = 1, tau = 0.03) { const id = engineOn(eng, midi, when, level); engineOff(eng, id, when + dur - 5 * tau, tau); return id; }
-const DAMPER = 0.03;                               // the damper's time constant: under 1% after 5 of these
+const DAMPER = 0.03;
+// Sound on/off. Every visit starts silent: no page should make noise you didn't expect. Every sound goes through one
+// master volume per context, so muting catches everything. When something tries to play while muted, the sound
+// button (home screen only) pulses. Leaving home for a round or a summary turns sound on (see show()).
+let muted = true;
+function outNode(ac) {
+  if (!ac._master) { ac._master = ac.createGain(); ac._master.gain.value = muted ? 0 : 1; ac._master.connect(ac.destination); }
+  return ac._master;
+}
+function setMuted(v) {
+  muted = v;
+  for (const ac of [ctx, pctx]) if (ac && ac._master) ac._master.gain.setTargetAtTime(v ? 0 : 1, ac.currentTime, 0.02);
+  const b = $('#soundBtn'); b.setAttribute('aria-pressed', String(!v)); b.setAttribute('aria-label', v ? 'Sound off. Turn sound on' : 'Sound on. Turn sound off');
+  b.classList.remove('nudge');
+}
+function wantSound() {
+  const b = $('#soundBtn');
+  if (!muted || b.classList.contains('nudge')) return;   // don't restart the pulse on every key of a drag
+  b.classList.add('nudge');
+}                               // the damper's time constant: under 1% after 5 of these
 function attackAt(buf) {                          // first sample above 5% of the opening peak
   const d = buf.getChannelData(0), n = Math.min(d.length, Math.round(buf.sampleRate * 0.4));
   let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i]));
@@ -1011,7 +1060,7 @@ function bufferVoice(ac, midi, T, level) {
   const src = ac.createBufferSource(), out = ac.createGain();
   src.buffer = s.buffer; src.playbackRate.value = Math.pow(2, (midi - s.midi) / 12 - s.cents / 1200);
   out.gain.value = Math.min(s.gain, 0.88 * s.gain / s.peak) * level;
-  src.connect(out); out.connect(ac.destination); src.start(T, s.offset);
+  src.connect(out); out.connect(outNode(ac)); src.start(T, s.offset);
   return (t, tau = DAMPER) => { t = Math.max(t, ac.currentTime); out.gain.cancelScheduledValues(t); out.gain.setTargetAtTime(0, t, tau); try { src.stop(t + tau * 8); } catch (e) {} };
 }
 // Strike a note at T, `level` times the normal loudness. It decays by itself, like a piano; stop(t) drops the damper.
@@ -1023,7 +1072,7 @@ function strike(ac, midi, T, level = 1) {
   const h = hum(ac, midi, T, level); return { ac, stop: (t) => endHum(h, t) };
 }
 // A note of `dur` seconds, damped so it's gone by T + dur.
-function playTone(ac, midi, T, dur) { const v = strike(ac, midi, T); v.stop(T + dur - 5 * DAMPER); return v; }
+function playTone(ac, midi, T, dur, level = 1) { const v = strike(ac, midi, T, level); v.stop(T + dur - 5 * DAMPER); return v; }
 
 // The context for sounds outside a round: the round's own if the mic is open, otherwise a small one of our own,
 // made when the page loads (it waits, silent, for the first tap) so the piano is decoded before the first key.
@@ -1045,6 +1094,7 @@ function noteOn(id, m, pressure) {
   const prev = heldNotes.get(id);
   if (prev) { heldNotes.delete(id); clearTimeout(prev.cap); prev.stop(prev.ac.currentTime + LEGATO.overlap, LEGATO.tau); }
   const ac = audioOut(), v = strike(ac, m, ac.currentTime + 0.005, pressLevel(pressure));
+  wantSound();
   v.cap = setTimeout(() => noteOff(id), 8000);
   heldNotes.set(id, v);
 }
@@ -1108,6 +1158,10 @@ function finish(kind) {
 function show(id) {
   for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
   if (id !== 'run') { $('#sheet').hidden = true; $('#msg').hidden = true; }
+  // The sound button lives on the home screen only. A round needs sound, and the summary is for listening back,
+  // so both turn it on.
+  $('#soundBtn').hidden = id !== 'home';
+  if (id !== 'home' && muted) setMuted(false);
   window.scrollTo(0, 0);
 }
 
@@ -1189,7 +1243,8 @@ function blip(m) {
   try {
     const ac = audioOut();
     if (blipNote) blipNote.stop(ac.currentTime + LEGATO.overlap, LEGATO.tau);
-    blipNote = playTone(ac, m, ac.currentTime + 0.01, 0.5);
+    blipNote = playTone(ac, m, ac.currentTime + 0.01, 0.5, 0.5);   // quiet: these are feedback, not the lesson
+    wantSound();
   } catch (e) {}
 }
 $('#resetRange').addEventListener('click', () => {
@@ -1348,6 +1403,7 @@ function pick() {   // every note in the range comes up before any repeats
 
 async function startRound() {
   hideMsg(); $('#homeErr').hidden = true;
+  setMuted(false); stopTester();
   stopClip();
   if (pctx) { pctx.close().catch(() => {}); pctx = null; }
   run = { keepAudio: settings.keepAudio, lo: settings.lo, hi: settings.hi, hold: HOLD, voice: 'hum', notes: [], bag: [], last: null, paused: false, timer: null, silent: 0 };
@@ -1369,7 +1425,7 @@ async function ensureAudio() {
   return run === r;
 }
 function failStart(e) {
-  run = null; show('home');
+  run = null; stopTester(); show('home');
   let msg;
   if (e && e.name === 'Insecure') msg = 'The mic needs a secure (https) page.';
   else if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) msg = 'Mic blocked. Allow it in site settings, then try again.';
@@ -1386,7 +1442,7 @@ function playNext() {
   const m = pick(); run.last = m;
   const T = ctx.currentTime + 0.35;
   const hold = HOLD;
-  playTone(ctx, m, T, TONE);
+  playTone(ctx, m, T, TONE); wantSound();
   // Time the hold from when the tone is heard to end, not when the page finishes playing it. Through a phone
   // speaker or Bluetooth that can be a few tenths of a second later, and the tail also takes a while to come back
   // in through the mic, so ignore what the mic hears until then. Browsers that don't report latency get 0.
@@ -1474,6 +1530,7 @@ function quitRound() { if (run) clearTimeout(run.timer); run = null; round = nul
 // Nothing but incoming audio ends a note or a room measurement, so if it stops, say so rather than hang.
 function micLost() {
   const c = calib;
+  if (tester) { stopTester(); $('#micTestBtn').hidden = false; $('#homeErr').textContent = 'Mic stopped.'; $('#homeErr').hidden = false; }
   if (round) round.state = 'done';
   stopAudio();
   if (c) c.res(false);
@@ -1576,8 +1633,55 @@ function drawQuiet(r) {
     $('#quietLabel').textContent = state === 'quiet' ? 'Silent' : state === 'noise' ? 'Noise is fine' : box._void ? 'Hum heard. Won’t count.' : 'Hum heard';
   }
 }
+// The mic tester: opens the mic and measures the room before a round (the round then reuses both), and shows a
+// scrolling waveform of the last couple of seconds. A voice (loud and pitched) is bright with the note it hears;
+// background noise stays faint.
+let tester = null;
+async function testMic() {
+  if (tester) return;
+  $('#homeErr').hidden = true;
+  const btn = $('#micTestBtn'); btn.disabled = true;
+  tester = { frames: [], live: false };
+  $('#mtLive').hidden = false; $('#mtLabel').textContent = 'Measuring the room…'; btn.hidden = true;
+  if (!(ctx && micAlive())) {
+    stopAudio();
+    try { await initAudio(); } catch (e) { stopAudio(); btn.disabled = false; btn.hidden = false; failStart(e); return; }
+    pianoReady(ctx);
+  }
+  btn.disabled = false;
+  if (!tester || !(await calibrate())) return;
+  tester.live = true; $('#mtLabel').textContent = 'Hum to check.';
+}
+function stopTester() { tester = null; $('#mtLive').hidden = true; $('#micTestBtn').hidden = false; }
+function feedTester(fr) {
+  const loud = fr.db > thrDb;
+  tester.frames.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: loud && fr.f ? 'voice' : loud ? 'noise' : 'quiet', f: loud ? fr.f : null });
+  if (tester.frames.length > 200) tester.frames.shift();
+}
+function drawTester() {
+  const cv = $('#mtWave'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const cs = getComputedStyle(document.documentElement), col = { voice: cs.getPropertyValue('--ink').trim(), noise: cs.getPropertyValue('--muted').trim(), quiet: cs.getPropertyValue('--line').trim() };
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const slots = 200, bw = w / slots, fr = tester.frames, off = slots - fr.length;
+  g.fillStyle = col.quiet; g.fillRect(0, h / 2 - 0.5, w, 1);
+  fr.forEach((q, i) => {
+    const bh = q.kind === 'quiet' ? 1 : Math.max(2, q.lv * (h - 2));
+    g.fillStyle = col[q.kind]; g.globalAlpha = q.kind === 'noise' ? 0.5 : 1;
+    g.fillRect((off + i) * bw, (h - bh) / 2, Math.max(1, bw - 0.5), bh);
+  });
+  g.globalAlpha = 1;
+  const recent = fr.slice(-30), voiced = recent.filter((q) => q.kind === 'voice');
+  let label = 'Hum to check.';
+  if (voiced.length >= 12) {
+    const f = median(voiced.map((q) => q.f)), m = Math.round(69 + 12 * Math.log2(f / 440));
+    label = `Hearing you · ${nname(m)}`;
+  } else if (recent.filter((q) => q.kind === 'noise').length >= 12) label = 'Background noise';
+  if ($('#mtLabel').textContent !== label) $('#mtLabel').textContent = label;
+}
 function tick() {
   requestAnimationFrame(tick);
+  if (tester && tester.live) drawTester();
   if ((calib || (round && round.state !== 'done')) && performance.now() - lastFrameAt > 2000) micLost();
   const lv = ctx && stream ? clamp((lastDb + 80) / 60, 0, 1) : 0;
   const bars = $('#mic').children;
@@ -1758,7 +1862,8 @@ async function playClip(r, i, rollEl, btn) {
   let pk = 1e-4; for (let k = 0; k < a.pcm.length; k++) { ch[k] = a.pcm[k] / 32768; pk = Math.max(pk, Math.abs(ch[k])); }
   const src = ac.createBufferSource(), g = ac.createGain();
   g.gain.value = Math.min(12, 0.7 / pk);            // mic recordings are often quiet; bring them up to a comfortable level
-  src.buffer = buf; src.connect(g); g.connect(ac.destination);
+  src.buffer = buf; src.connect(g); g.connect(outNode(ac));
+  wantSound();
   const t = ac.currentTime + 0.05; src.start(t);
   btn.textContent = '■ Stop';
   const p = playing = { src, btn, rollEl, raf: 0 };
@@ -1948,6 +2053,9 @@ DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistor
 
 /* ---------- wiring ---------- */
 $('#startBtn').addEventListener('click', () => startRound());
+$('#micTestBtn').addEventListener('click', testMic);
+$('#soundBtn').addEventListener('click', () => { setMuted(!muted); if (!muted) { try { audioOut(); } catch (e) {} } });
+$('#soundBtn').addEventListener('animationend', () => $('#soundBtn').classList.remove('nudge'));
 $('#quitBtn').addEventListener('click', askQuit);
 $('#pauseBtn').addEventListener('click', togglePause);
 $('#againBtn').addEventListener('click', () => startRound());
