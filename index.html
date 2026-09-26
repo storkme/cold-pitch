@@ -222,6 +222,14 @@ button{font-family:inherit}
 /* piano roll */
 .roll{position:relative}
 .roll svg{display:block;width:100%;touch-action:pan-y}
+.rkey{fill:var(--ink);fill-opacity:0;cursor:pointer;touch-action:none;transition:fill-opacity .12s}
+.rkey:hover{fill-opacity:.07}
+.rkey.down{fill:var(--accent);fill-opacity:.45}
+.kbd .hit{cursor:pointer;touch-action:none}
+.kbd path.wkey,.kbd path.bkey{transition:fill .12s}
+.kbd path.wkey.down{fill:var(--key-hot)}
+.kbd path.bkey.down{fill:var(--accent)}
+.rollcap{margin-top:0}
 .roll .cap{font-size:12.5px;color:var(--ink-2);font-weight:700;margin-top:4px}
 .tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:800 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:9px;white-space:nowrap;transform:translate(-50%,-100%);z-index:2}
 
@@ -662,7 +670,8 @@ function toneRms(ac, v, f, filters) {
   let e = 0; for (let i = 0; i < n; i++) e += (mag[i] / Math.pow(i + 1, v.slope ?? 1)) ** 2;
   return Math.sqrt(e / 2);
 }
-function playTone(ac, midi, T, dur) {
+// One hum voice starting at T, at `level` times the normal loudness. It sounds until endHum(); playTone gives it a length.
+function hum(ac, midi, T, level = 1) {
   const v = HUM, f = hz(midi);
   const filters = v.filters.map(([type, freq, q, db]) => {
     const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = freq; b.Q.value = q; if (db != null) b.gain.value = db; return b;
@@ -678,22 +687,77 @@ function playTone(ac, midi, T, dur) {
   const gain = v.level / (toneRms(ac, v, f, filters) * src);
   const out = ac.createGain(); out.connect(ac.destination);
   out.gain.setValueAtTime(0, T);
-  out.gain.setTargetAtTime(gain, T, v.attack / 3);                    // ~95% after `attack`
-  out.gain.setTargetAtTime(0, T + dur - v.release, v.release / 5);    // <1% by the end of `dur`
+  out.gain.setTargetAtTime(gain * level, T, v.attack / 3);            // ~95% after `attack`
   if (v.slope == null) o.type = 'sine'; else o.setPeriodicWave(sourceWave(ac, v.slope));
   o.frequency.setValueAtTime(f, T);
+  let lfo = null;
   if (v.vib) {
-    const lfo = ac.createOscillator(), depth = ac.createGain();
+    const depth = ac.createGain(); lfo = ac.createOscillator();
     lfo.frequency.value = v.rate;
     depth.gain.setValueAtTime(0, T + 0.3); depth.gain.linearRampToValueAtTime(f * (Math.pow(2, v.vib / 1200) - 1), T + 0.65);
-    lfo.connect(depth); depth.connect(o.frequency); lfo.start(T); lfo.stop(T + dur + 0.2);
+    lfo.connect(depth); depth.connect(o.frequency); lfo.start(T);
   }
   let node = o;
   for (const b of filters) { node.connect(b); node = b; }
   node.connect(out);
-  o.start(T); o.stop(T + dur + 0.2);
-  return out;
+  o.start(T);
+  return { ac, out, o, lfo, gain };
 }
+function endHum(h, t) {
+  t = Math.max(t, h.ac.currentTime);
+  h.out.gain.cancelScheduledValues(t);
+  h.out.gain.setTargetAtTime(0, t, HUM.release / 5);                 // <1% after `release`
+  for (const n of [h.o, h.lfo]) if (n) { try { n.stop(t + HUM.release + 0.2); } catch (e) {} }
+}
+function playTone(ac, midi, T, dur) { const h = hum(ac, midi, T); endHum(h, T + dur - HUM.release); return h; }
+
+// The context for sounds outside a round: the round's own if the mic is open, otherwise a small one of our own.
+function audioOut() {
+  const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
+  if (ac.state !== 'running') ac.resume().catch(() => {});
+  return ac;
+}
+
+// Held notes, one per finger (pointer). Pressure sets the volume where the device reports a real value; mice and
+// most phones report a flat 0.5 (or 1) and get the normal level. A cap stops a note if its release is ever lost.
+const heldNotes = new Map();
+const realPressure = (p) => p > 0 && p !== 0.5 && p !== 1;
+const pressLevel = (p) => realPressure(p) ? 0.35 + 0.95 * p : 1;
+function noteOn(id, m, pressure) {
+  noteOff(id);
+  const ac = audioOut(), h = hum(ac, m, ac.currentTime + 0.005, pressLevel(pressure));
+  h.cap = setTimeout(() => noteOff(id), 8000);
+  heldNotes.set(id, h);
+}
+function noteOff(id) { const h = heldNotes.get(id); if (!h) return; heldNotes.delete(id); clearTimeout(h.cap); endHum(h, h.ac.currentTime); }
+function notePressure(id, pressure) {
+  const h = heldNotes.get(id);
+  if (h && realPressure(pressure)) h.out.gain.setTargetAtTime(h.gain * pressLevel(pressure), h.ac.currentTime, 0.03);
+}
+// Make the keys of a drawn keyboard playable: press to play and hold, slide onto another key to play that one.
+// `keyAt(x, y)` returns the key element (with data-m) under a point in this container; `mark(m, on)` shows it pressed.
+// During a round, playing pauses it first, so the sound can't land in the next note's silent hold.
+function playable(container, keyAt, mark) {
+  container.addEventListener('pointerdown', (e) => {
+    const k = e.button === 0 && keyAt(e.clientX, e.clientY); if (!k) return;
+    if (run && !run.paused) { if ($('#sheet').hidden) return; pauseRound(); }
+    e.preventDefault(); try { container.setPointerCapture(e.pointerId); } catch (err) {}
+    let m = +k.dataset.m; noteOn(e.pointerId, m, e.pressure); mark(m, true);
+    const move = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      const k2 = keyAt(ev.clientX, ev.clientY);
+      if (k2 && +k2.dataset.m !== m) { mark(m, false); m = +k2.dataset.m; noteOn(ev.pointerId, m, ev.pressure); mark(m, true); }
+      else notePressure(ev.pointerId, ev.pressure);
+    };
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      noteOff(ev.pointerId); mark(m, false);
+      for (const [t, f] of [['pointermove', move], ['pointerup', up], ['pointercancel', up]]) container.removeEventListener(t, f);
+    };
+    for (const [t, f] of [['pointermove', move], ['pointerup', up], ['pointercancel', up]]) container.addEventListener(t, f);
+  });
+}
+const keyUnder = (container, sel) => (x, y) => { const el = document.elementFromPoint(x, y), k = el && el.closest && el.closest(sel); return k && container.contains(k) ? k : null; };
 function summarise(trace) {
   const v = trace.filter((p) => p.c !== null && p.t >= 0);
   let on = v.filter((p) => p.t <= WIN).map((p) => p.c);
@@ -754,11 +818,11 @@ function keyboard(el, a, b, o) {
   let s = `<rect x="0" y="0" width="${Wd}" height="${H}" rx="8" fill="var(--key-bed)"/>`;
   whites.forEach((m, i) => {
     const x = i * kw; geo.set(m, { x: x + kw / 2, y: H - Math.min(22, kw * 0.55), x0: x, w: kw, h: H, white: true });
-    s += `<path d="${rb(x + 1, 0, kw - 2, H - 1, 6)}" fill="${o.fill(m) || 'var(--key-white)'}"/>`;
+    s += `<path data-k="${m}" class="wkey" d="${rb(x + 1, 0, kw - 2, H - 1, 6)}" fill="${o.fill(m) || 'var(--key-white)'}"/>`;
   });
   for (let m = a; m <= b; m++) if (isBlack(m)) {
     const x = whites.indexOf(m - 1) * kw + kw - bw / 2; geo.set(m, { x: x + bw / 2, y: bh - Math.min(16, bw * 0.8), x0: x, w: bw, h: bh, white: false });
-    s += `<path d="${rb(x, 0, bw, bh, 4)}" fill="${o.fill(m) || 'var(--key-black)'}"/>`;
+    s += `<path data-k="${m}" class="bkey" d="${rb(x, 0, bw, bh, 4)}" fill="${o.fill(m) || 'var(--key-black)'}"/>`;
   }
   for (const m of whites) if (o.label(m)) s += `<text x="${geo.get(m).x}" y="${H + 16}" text-anchor="middle" font-size="12" font-weight="${o.label(m) === 'bold' ? 800 : 700}" fill="var(${o.label(m) === 'bold' ? '--ink' : '--muted'})">${nname(m)}</text>`;
   if (o.marks) s += o.marks(geo, kw);
@@ -816,13 +880,12 @@ function showBubble(m, label, text) {
 let hotKey = null;
 function press(m) { if (hotKey) hotKey.classList.remove('hot'); hotKey = m == null ? null : PK.el.get(m); if (hotKey) hotKey.classList.add('hot'); }
 // Each key sounds softly as a handle reaches it, cutting off the one before, like running a finger along a piano.
-let blipOut = null;
+let blipHum = null;
 function blip(m) {
   try {
-    const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
-    if (ac.state !== 'running') ac.resume().catch(() => {});
-    if (blipOut) { blipOut.gain.cancelScheduledValues(ac.currentTime); blipOut.gain.setTargetAtTime(0, ac.currentTime, 0.02); }
-    blipOut = playTone(ac, m, ac.currentTime + 0.01, 0.5);
+    const ac = audioOut();
+    if (blipHum) endHum(blipHum, ac.currentTime);
+    blipHum = playTone(ac, m, ac.currentTime + 0.01, 0.5);
   } catch (e) {}
 }
 $('#resetRange').addEventListener('click', () => {
@@ -894,6 +957,7 @@ function mountRoll(el, n, H) {
   el._n = n; el._H = H;
   drawRoll(el);
   if (el._wired) return; el._wired = true;
+  playable(el, keyUnder(el, '.rkey'), (m, on) => { const k = el.querySelector(`.rkey[data-m="${m}"]`); if (k) k.classList.toggle('down', on); });
   const move = (e) => {
     const g = el._g; if (!g) return;
     const box = el.querySelector('svg').getBoundingClientRect(), x = (e.clientX - box.left) * (g.Wd / box.width);
@@ -936,6 +1000,7 @@ function drawRoll(el) {
     const showLabel = j === 0 || (!blk && (rh >= 15 || pc(m) === 0));
     if (showLabel) s += `<text x="${keyW - 6}" y="${y + rh / 2}" text-anchor="end" dominant-baseline="central" font-size="${clamp(rh * 0.62, 9, 12)}" font-weight="800" fill="var(${j === 0 ? '--accent-ink' : '--ink-2'})">${nname(m)}</text>`;
   }
+  for (let j = hi; j >= lo; j--) s += `<rect class="rkey" data-m="${n.midi + j}" x="0" y="${Y(j) - rh / 2}" width="${keyW}" height="${rh}"><title>Play ${nname(n.midi + j)}</title></rect>`;
   s += `<line x1="${keyW}" x2="${keyW}" y1="0" y2="${plotH}" stroke="var(--line)"/>`;
   s += `<rect x="${X(0)}" y="0" width="${X(WIN) - X(0)}" height="${plotH}" fill="var(--ink)" opacity=".08"/>`;
   let d = '', prev = null;
@@ -1064,13 +1129,16 @@ function schedule() {
   run.paused = false;
   run.timer = setTimeout(() => { if (run && !run.paused) playNext(); }, PAUSE);
 }
-function togglePause() {
-  if (!run) return;
-  if (run.notes.length >= ROUND_LEN) return playNext();
-  if (run.paused) { run.paused = false; playNext(); return; }
+function pauseRound() {
+  if (!run || run.paused) return;
   run.paused = true; clearTimeout(run.timer);
   const bar = $('#countdown i'); bar.style.width = getComputedStyle(bar).width; bar.style.transition = 'none';
-  $('#pauseBtn').textContent = 'Continue';
+  $('#pauseBtn').textContent = run.notes.length >= ROUND_LEN ? 'See results' : 'Continue';
+}
+function togglePause() {
+  if (!run) return;
+  if (run.paused || run.notes.length >= ROUND_LEN) { run.paused = false; playNext(); return; }
+  pauseRound();
 }
 
 function askQuit() {
@@ -1293,10 +1361,10 @@ function pickDetail(i, isWorst) {
   const d = $('#detail'), canPlay = !!(n.audio || (n.rec && r.ts));
   d.innerHTML = `<div class="dhead"><span class="lead">${isWorst && n.kind === 'ok' ? 'Your trickiest note: ' : ''}note ${i + 1}, ${nname(n.midi)}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
     ${n.kind === 'ok' ? `<div class="duo">${duo(n)}</div>` : `<div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span></div>`}
-    <p class="vtext"></p><div class="roll"></div>`;
+    <p class="vtext"></p><div class="roll"></div><p class="caption rollcap">Tap the keys on the left to hear those notes.</p>`;
   d.querySelector('.vtext').textContent = sentence(n);
   const rollEl = d.querySelector('.roll');
-  if (n.trace) mountRoll(rollEl, n, 190); else rollEl.remove();
+  if (n.trace) mountRoll(rollEl, n, 190); else { rollEl.remove(); d.querySelector('.rollcap').remove(); }
   const btn = d.querySelector('.play');
   if (btn) btn.addEventListener('click', () => (playing && playing.btn === btn ? stopClip() : playClip(r, i, rollEl, btn)));
 }
@@ -1315,8 +1383,7 @@ async function playClip(r, i, rollEl, btn) {
   if (!n.audio) { try { const c = await DB.clip(`${r.ts}:${i}`); if (c) n.audio = { sr: c.sr, t0: c.t0, pcm: c.pcm }; } catch (e) {} }
   const a = n.audio;
   if (!a) { btn.textContent = 'No recording'; btn.disabled = true; return; }
-  const ac = ctx || pctx || (pctx = new (window.AudioContext || window.webkitAudioContext)());
-  if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }
+  const ac = audioOut();
   const buf = ac.createBuffer(1, a.pcm.length, a.sr), ch = buf.getChannelData(0);
   let pk = 1e-4; for (let k = 0; k < a.pcm.length; k++) { ch[k] = a.pcm[k] / 32768; pk = Math.max(pk, Math.abs(ch[k])); }
   const src = ac.createBufferSource(), g = ac.createGain();
@@ -1350,8 +1417,8 @@ function drawKeysMap() {
   const r = summaryRun; if (!r) return;
   const land = mapMode === 'land', val = (n) => land ? n.settled : n.onset, score = (n) => land ? n.landAcc : n.acc;
   for (const b of document.querySelectorAll('[data-map]')) b.setAttribute('aria-pressed', String(b.dataset.map === mapMode));
-  $('#mapCap').textContent = land ? 'Each dot is where that note ended up. ▼ means you landed flat, ▲ sharp. Hover a key for details.'
-    : 'Each dot is how you started that note. ▼ means you started flat, ▲ sharp. Hover a key for details.';
+  $('#mapCap').textContent = land ? 'Each dot is where that note ended up. ▼ means you landed flat, ▲ sharp. Tap a key to hear it.'
+    : 'Each dot is how you started that note. ▼ means you started flat, ▲ sharp. Tap a key to hear it.';
   const by = new Map();
   for (const n of r.notes) if (n.kind === 'ok' && val(n) != null) { if (!by.has(n.midi)) by.set(n.midi, []); by.get(n.midi).push(n); }
   const el = $('#keysMap');
@@ -1382,6 +1449,7 @@ function drawKeysMap() {
     placeTip(tip, k.x * sc, k.y * sc - 16, box.width);
   };
   svg.addEventListener('pointermove', hover); svg.addEventListener('pointerdown', hover);
+  if (!el._playable) { el._playable = true; playable(el, keyUnder(el, '.hit'), (m, on) => { const k = el.querySelector(`[data-k="${m}"]`); if (k) k.classList.toggle('down', on); }); }
   svg.addEventListener('pointerleave', () => { tip.hidden = true; });
 }
 
