@@ -1,4 +1,4 @@
-// The mic: opening it, the tap that feeds the pitch detector (YIN), measuring the room, and the per-frame logic
+// The mic: opening it, the tap that feeds the pitch detector (pitch.js), measuring the room, and the per-frame logic
 // that follows a note from the imagine step to the end of singing.
 
 import { feedTester, tester } from '../home.js';
@@ -6,13 +6,14 @@ import { finish } from '../round.js';
 import { setStage } from '../stage.js';
 import { round, setLastFrameAt } from '../state.js';
 import { clamp, hz, TONE } from '../util.js';
+import { dcBlocker, detector, isVoice, leadIn, noteBegins, worthPitch } from './pitch.js';
 
 /* ---------- audio engine: pitch detection ---------- */
 export let ctx = null, stream = null;
 let tap = null, dec = 1, dsr = 24000;
-let W, TAUMAX, TAUMIN, N, HOP, frameBuf, diff;
+let det, N, HOP, frameBuf, dc;
 const RING = 1 << 16; let ring = null, total = 0, lastEnd = 0, accSum = 0, accN = 0, tMap = 0, iMap = 0;
-export let floorDb = -70, thrDb = -50, lastDb = -100, calib = null;      // round and lastFrameAt are in state.js
+export let floorDb = -70, thrDb = -50, lastDb = -100, lastVoice = false, calib = null;   // round and lastFrameAt: state.js
 
 export async function initAudio() {
   if ((!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) { const e = new Error('insecure'); e.name = 'Insecure'; throw e; }
@@ -22,9 +23,8 @@ export async function initAudio() {
   await ctx.resume();
   const sr = ctx.sampleRate;
   dec = Math.max(1, Math.round(sr / 24000)); dsr = sr / dec;
-  W = Math.round(dsr * 0.021); TAUMAX = Math.ceil(dsr / 65); TAUMIN = Math.max(2, Math.floor(dsr / 1100));
-  N = W + TAUMAX; HOP = Math.round(dsr * 0.0105);
-  ring = new Float32Array(RING); frameBuf = new Float32Array(N); diff = new Float32Array(TAUMAX + 2);
+  det = detector(dsr); N = det.N; HOP = det.HOP; dc = dcBlocker(dsr);
+  ring = new Float32Array(RING); frameBuf = new Float32Array(N);
   total = lastEnd = accSum = accN = 0;
   const src = ctx.createMediaStreamSource(stream);
   const mute = ctx.createGain(); mute.gain.value = 0; mute.connect(ctx.destination);
@@ -52,7 +52,7 @@ export function stopAudio() {
 export const micAlive = () => ctx && ctx.state !== 'closed' && stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
 
 function ingest(d, t, sr) {
-  for (let k = 0; k < d.length; k++) { accSum += d[k]; if (++accN === dec) { ring[total & (RING - 1)] = accSum / dec; total++; accSum = 0; accN = 0; } }
+  for (let k = 0; k < d.length; k++) { accSum += d[k]; if (++accN === dec) { ring[total & (RING - 1)] = dc(accSum / dec); total++; accSum = 0; accN = 0; } }
   tMap = t + 128 / sr; iMap = total;
   while (total - lastEnd >= HOP) { lastEnd += HOP; if (lastEnd >= N) analyse(lastEnd); }
 }
@@ -60,17 +60,10 @@ const timeOf = (i) => tMap + (i - iMap) / dsr;
 function analyse(end) {
   const start = end - N; let s = 0;
   for (let k = 0; k < N; k++) { const v = ring[(start + k) & (RING - 1)]; frameBuf[k] = v; s += v * v; }
-  const db = 10 * Math.log10(s / N + 1e-12); lastDb = db;
-  onFrame({ t: timeOf(end - N / 2), db, f: db > thrDb - 6 ? yin() : null });
-}
-function yin() {
-  const x = frameBuf, d = diff; let run = 0; d[0] = 1;
-  for (let tau = 1; tau <= TAUMAX; tau++) { let sum = 0; for (let j = 0; j < W; j++) { const q = x[j] - x[j + tau]; sum += q * q; } run += sum; d[tau] = run > 0 ? sum * tau / run : 1; }
-  let tau = -1;
-  for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < 0.15) { while (t + 1 < TAUMAX && d[t + 1] < d[t]) t++; tau = t; break; }
-  if (tau < 0) { let mn = Infinity, mi = -1; for (let t = TAUMIN; t < TAUMAX; t++) if (d[t] < mn) { mn = d[t]; mi = t; } if (mn > 0.3 || mi < 1) return null; tau = mi; }
-  const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c;
-  return dsr / (tau + (den !== 0 ? clamp(0.5 * (a - c) / den, -1, 1) : 0));
+  const db = 10 * Math.log10(s / N + 1e-12), p = worthPitch(db, floorDb) ? det.yin(frameBuf) : null;
+  const fr = { t: timeOf(end - N / 2), db, f: p ? p.f : null, clar: p ? p.clar : 0 };
+  lastDb = db; lastVoice = isVoice(fr, floorDb);
+  onFrame(fr);
 }
 function onFrame(fr) {
   setLastFrameAt(performance.now());
@@ -78,22 +71,23 @@ function onFrame(fr) {
   const r = round;
   if (!r || r.state === 'done') { if (tester && tester.live) feedTester(fr); return; }
   if (fr.t < r.bleedEnd) { heard(r, fr); return; }         // the tone may still be reaching the mic
+  const voice = lastVoice;
   if (fr.t < r.go) {
-    const loud = fr.db > thrDb, hum = loud && !!fr.f;
-    if (hum) r.peek++;
-    r.quiet.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: hum ? 'hum' : loud ? 'noise' : 'quiet' });
+    const loud = fr.db > thrDb;
+    if (voice) r.peek++;
+    r.quiet.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: voice ? 'hum' : loud ? 'noise' : 'quiet' });
     return;
   }
-  const voiced = fr.db > thrDb;
   if (r.state !== 'capture') {
+    // listening for the note: it starts with three clear frames of one sound, or earlier if a quieter start leads in
     r.state = 'listen'; r.frames.push(fr);
-    r.run = voiced ? r.run + 1 : 0;
-    if (r.run >= 3) { const l3 = r.frames.slice(-3); if (l3.filter((x) => x.f).length >= 2) { r.onsetT = l3[0].t; r.state = 'capture'; r.lastVoiced = fr.t; return; } }
+    const i = r.frames.length - 1;
+    if (noteBegins(r.frames, i, floorDb)) { r.start = leadIn(r.frames, i - 2, floorDb); r.onsetT = r.frames[r.start].t; r.state = 'capture'; r.lastVoiced = fr.t; return; }
     if (fr.t > r.go + 6) finish('timeout');
     return;
   }
   r.frames.push(fr);
-  if (voiced) r.lastVoiced = fr.t;
+  if (voice) r.lastVoiced = fr.t;
   const el = fr.t - r.onsetT;
   if (el >= 1.3 || (el > 0.25 && fr.t - r.lastVoiced > 0.25)) finish('ok');
 }

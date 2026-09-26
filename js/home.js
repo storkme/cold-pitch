@@ -1,6 +1,6 @@
 // The home screen: the range picker, the mic tester, and progress across rounds.
 
-import { calibrate, ctx, initAudio, micAlive, stopAudio, thrDb } from './audio/mic.js';
+import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js';
 import { blip, pianoReady } from './audio/piano.js';
 import { failStart } from './round.js';
 import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings } from './storage.js';
@@ -114,7 +114,7 @@ for (const [id, which] of [['#knobLo', 'lo'], ['#knobHi', 'hi']]) $(id).addEvent
 });
 
 // The mic tester: opens the mic and measures the room before a round (the round then reuses both), and shows a
-// scrolling waveform of the last couple of seconds. A voice (loud and pitched) is bright with the note it hears;
+// scrolling waveform of the last couple of seconds. A voice (clearly pitched) is bright with the note it hears;
 // background noise stays faint.
 export let tester = null;
 export async function testMic() {
@@ -134,8 +134,8 @@ export async function testMic() {
 }
 export function stopTester() { tester = null; $('#mtLive').hidden = true; $('#micTestBtn').hidden = false; }
 export function feedTester(fr) {
-  const loud = fr.db > thrDb;
-  tester.frames.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: loud && fr.f ? 'voice' : loud ? 'noise' : 'quiet', f: loud ? fr.f : null });
+  const voice = lastVoice, loud = fr.db > thrDb;
+  tester.frames.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: voice ? 'voice' : loud ? 'noise' : 'quiet', f: voice ? fr.f : null });
   if (tester.frames.length > 200) tester.frames.shift();
 }
 export function drawTester() {

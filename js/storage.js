@@ -1,6 +1,7 @@
 // Settings (localStorage), rounds and recordings (IndexedDB), and moving them in and out with Export and Import.
 
 import { renderHistory } from './home.js';
+import { rescore } from './rescore.js';
 import { $, clamp, MAX_NOTE, MIN_NOTE, MIN_SPAN } from './util.js';
 
 /* ---------- storage ---------- */
@@ -104,6 +105,7 @@ $('#importFile').addEventListener('change', async (e) => {
       const fresh = d.clips.filter((c) => c && typeof c.id === 'string' && typeof c.pcm === 'string' && !have.has(c.id)).map((c) => ({ ...c, pcm: fromB64(c.pcm) }));
       await DB.putClips(fresh); clipCount += fresh.length;
       $('#dataMsg').textContent = `Imported ${fresh.length} new recording${fresh.length === 1 ? '' : 's'}.`;
+      rescoreSaved();
       return;
     }
     if (d.app !== 'cold-pitch-rounds' || !Array.isArray(d.rounds)) throw new Error('not ours');
@@ -113,8 +115,13 @@ $('#importFile').addEventListener('change', async (e) => {
     rounds = [...rounds, ...fresh].sort((a, b) => a.ts - b.ts);
     renderHistory();
     $('#dataMsg').textContent = `Imported ${fresh.length} new round${fresh.length === 1 ? '' : 's'}.`;
+    rescoreSaved();
   } catch (err) { $('#dataMsg').textContent = 'Not a Cold Pitch export.'; }
 });
 DB.clipKeys().then((k) => { clipCount = k.length; dataLine(); }).catch(() => {});
-DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistory(); })
+// Rounds scored the older way are re-scored from their recordings (rescore.js), then the history redrawn.
+function rescoreSaved() {
+  rescore().then((n) => { if (n) { renderHistory(); $('#dataMsg').textContent = `Re-scored ${n} round${n === 1 ? '' : 's'} from their recordings.`; } }).catch(() => {});
+}
+DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistory(); rescoreSaved(); })
   .catch(() => { $('#dataMsg').textContent = 'This browser won’t store rounds. Export to keep them.'; });

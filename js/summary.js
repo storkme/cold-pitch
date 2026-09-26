@@ -5,6 +5,7 @@ import { floorDb, thrDb } from './audio/mic.js';
 import { audioOut, outNode, wantSound } from './audio/piano.js';
 import { bestScore, fmtDay } from './home.js';
 import { keyboard, keyUnder, playable } from './keyboard.js';
+import { SCORING } from './rescore.js';
 import { mountRoll } from './roll.js';
 import { show } from './round.js';
 import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js';
@@ -86,7 +87,7 @@ export function endRound() {
   r.ts = Date.now();
   renderSummary(r, { score, landing, prevBest, before, fresh: true });
   if (score != null) {
-    const rec = { ts: r.ts, v: 1, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
+    const rec = { ts: r.ts, v: SCORING, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
       notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, bleed: n.bleed ?? null, trace: packTrace(n.trace), rec: !!n.audio })) };
     const clips = r.notes.map((n, i) => n.audio && { id: `${r.ts}:${i}`, round: r.ts, note: i, midi: n.midi, ...n.audio }).filter(Boolean);
     rounds.push(rec);

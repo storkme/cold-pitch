@@ -16,7 +16,7 @@ export const OTHER = {
 };
 export const tierOf = (c) => TIERS.find((t) => Math.abs(c) <= t.max);
 export const tierFor = (n) => n.kind === 'ok' ? tierOf(n.onset) : OTHER[n.kind];
-const accuracy = (c) => Math.round(100 * Math.exp(-((c / 60) ** 2)));   // 100% on the note, 50% at half a semitone
+export const accuracy = (c) => Math.round(100 * Math.exp(-((c / 60) ** 2)));   // 100% on the note, 50% at half a semitone
 
 export function size(a) {
   if (a < 30) return 'a touch';

@@ -1,7 +1,7 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, stream, thrDb } from './audio/mic.js';
+import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js';
 import { audioOut, muted, setMuted } from './audio/piano.js';
 import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js';
 import { drawRoll } from './roll.js';
@@ -18,7 +18,7 @@ function tick() {
   const lv = ctx && stream ? clamp((lastDb + 80) / 60, 0, 1) : 0;
   const bars = $('#mic').children;
   for (let i = 0; i < 4; i++) bars[i].classList.toggle('lit', lv > (i + 0.5) / 4.5);
-  $('#mic').classList.toggle('voice', lastDb > thrDb);
+  $('#mic').classList.toggle('voice', lastVoice);
   const r = round;
   if (!r || r.state === 'done' || !ctx) return;
   const now = ctx.currentTime;

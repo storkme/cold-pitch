@@ -3,6 +3,7 @@
 
 import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js';
 import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js';
+import { readNote } from './audio/pitch.js';
 import { renderRange, stopTester, tester } from './home.js';
 import { mountRoll } from './roll.js';
 import { duo, scoreNote, sentence } from './scoring.js';
@@ -10,7 +11,7 @@ import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js';
 import { round, run, setLastFrameAt, setRound, setRun } from './state.js';
 import { settings } from './storage.js';
 import { endRound, stopClip } from './summary.js';
-import { $, clamp, HOLD, hz, median, motion, PAUSE, r1, restart, ROUND_LEN, TONE, WIN } from './util.js';
+import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, ROUND_LEN, TONE } from './util.js';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
@@ -95,7 +96,7 @@ function playNext() {
   run.cue = CUES[run.notes.length % CUES.length];
   const li = $('#steps li[data-s="hold"]'); if (li.textContent !== run.cue[0]) { li.textContent = run.cue[0]; restart(li, 'swap'); }
   setRound({ midi: m, T, tone, toneEnd: heardEnd, bleedEnd: heardEnd + inLat + 0.25, go: heardEnd + Math.max(hold, inLat + 0.3),
-    frames: [], quiet: [], run: 0, peek: 0, hears: 0, bleed: false, state: 'tone' });
+    frames: [], start: 0, quiet: [], peek: 0, hears: 0, bleed: false, state: 'tone' });
   setLastFrameAt(performance.now());
   $('#stage').dataset.midi = m;
   $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`; restart($('#noteNum'), 'swap');
@@ -204,24 +205,10 @@ function openSheet(el) { clearTimeout(el._leave); el.classList.remove('leaving')
 
 /* ---------- a sung note ---------- */
 
-function summarise(trace) {
-  const v = trace.filter((p) => p.c !== null && p.t >= 0);
-  let on = v.filter((p) => p.t <= WIN).map((p) => p.c);
-  if (on.length < 2) on = v.slice(0, 3).map((p) => p.c);
-  if (!on.length) return null;
-  const st = v.filter((p) => p.t >= 0.45).map((p) => p.c);
-  return { onset: median(on), settled: st.length >= 5 ? median(st) : null };
-}
-
 export function finish(kind) {
   const r = round; r.state = 'done';
   if (kind === 'timeout') return noteDone({ midi: r.midi, kind: 'silent' });
-  const target = hz(r.midi);
-  const raw = r.frames.filter((x) => x.t >= r.onsetT - 0.1).map((x) => ({ t: x.t - r.onsetT, c: x.f ? 1200 * Math.log2(x.f / target) : null }));
-  const pre = summarise(raw);
-  if (!pre) return noteDone({ midi: r.midi, kind: 'silent' });
-  const k = Math.round(pre.onset / 1200);                  // any octave counts
-  const trace = raw.map((p) => ({ t: p.t, c: p.c === null ? null : p.c - 1200 * k }));
-  const s = summarise(trace);
-  noteDone({ midi: r.midi, kind: r.peek >= PEEK_VOID ? 'void' : 'ok', onset: r1(s.onset), settled: r1(s.settled), oct: k, trace, audio: run && run.keepAudio ? grabAudio(r) : null });
+  const s = readNote(r.frames, r.start, hz(r.midi));
+  if (!s) return noteDone({ midi: r.midi, kind: 'silent' });
+  noteDone({ midi: r.midi, kind: r.peek >= PEEK_VOID ? 'void' : 'ok', onset: r1(s.onset), settled: r1(s.settled), oct: s.oct, trace: s.trace, audio: run && run.keepAudio ? grabAudio(r) : null });
 }
