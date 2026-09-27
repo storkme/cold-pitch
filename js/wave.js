@@ -4,8 +4,8 @@
 // mic is live without looking busy. It's on the stage while the mic listens (the imagine step and singing) and in
 // the mic tester on the home screen. Colours come from CSS: --ink, --muted, --line and --crit.
 
-import { floorDb, heardAt, heardFrames } from './audio/mic.js?v=f594cb7eb2';
-import { clamp } from './util.js?v=f594cb7eb2';
+import { floorDb, heardAt, heardFrames } from './audio/mic.js?v=a6cc3cdaeb';
+import { clamp } from './util.js?v=a6cc3cdaeb';
 
 const SPAN = 2.4;       // seconds across the strip
 const RANGE = 30;       // dB above the room for a full-height bar

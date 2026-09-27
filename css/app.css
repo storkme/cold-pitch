@@ -381,6 +381,21 @@ svg text{font-family:var(--sans);font-weight:500}
 .insights li{display:grid;gap:3px;animation:enter var(--t-base) var(--ease-out) backwards;animation-delay:calc((9 + 2 * var(--i,0)) * var(--t-step))}
 .insights b{font:italic 500 21px/1.2 var(--display)}
 .insights span{color:var(--ink-2);font-size:15px}
+/* every note on one chart: faint lines, the note itself bright across the middle, each Start a dot in its verdict's
+   colour. A selected note's line comes up bright and the rest fade back */
+.ov{margin-bottom:4px}
+.ov svg{display:block;width:100%;cursor:pointer;touch-action:pan-y}
+.ov .grid{stroke:var(--line)}
+.ov .zero{stroke:var(--rule);stroke-opacity:.55;stroke-width:1.25}
+.ov .lbl{font:600 9.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;fill:var(--muted)}
+.ov .tick{font:700 11px var(--sans);fill:var(--muted)}
+.ov .ln{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55;transition:opacity var(--t-quick) var(--ease-out),stroke-width var(--t-quick) var(--ease-out)}
+.ov .sd{fill:var(--tone);stroke:var(--bg);stroke-width:1.5;transition:opacity var(--t-quick) var(--ease-out)}
+.ov .has-sel :is(.ln,.sd){opacity:.14}
+.ov .has-sel .ln.sel{opacity:1;stroke-width:2.75}
+.ov .has-sel .sd.sel{opacity:1}
+.ov .nm{font:800 12px var(--sans);fill:var(--ink)}
+.ov+.caption{margin-top:6px;margin-bottom:14px}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin-top:2px}
 .chip{display:grid;justify-items:center;gap:5px;border:1px solid var(--line);background:none;border-radius:2px;padding:9px 2px 7px;cursor:pointer;color:var(--ink);font:500 12.5px var(--sans);
   transition:transform var(--t-instant) var(--ease-out),border-color var(--t-quick),background-color var(--t-quick);

@@ -1,8 +1,8 @@
 // Settings (localStorage), rounds and recordings (IndexedDB), and moving them in and out with Export and Import.
 
-import { renderHistory } from './home.js?v=f594cb7eb2';
-import { rescore } from './rescore.js?v=f594cb7eb2';
-import { $, clamp, MAX_NOTE, MIN_NOTE, MIN_SPAN } from './util.js?v=f594cb7eb2';
+import { renderHistory } from './home.js?v=a6cc3cdaeb';
+import { rescore } from './rescore.js?v=a6cc3cdaeb';
+import { $, clamp, MAX_NOTE, MIN_NOTE, MIN_SPAN } from './util.js?v=a6cc3cdaeb';
 
 /* ---------- storage ---------- */
 // Settings live in localStorage. Finished rounds, with every note's full pitch curve, live in IndexedDB,

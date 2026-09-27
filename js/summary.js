@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=f594cb7eb2';
-import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=f594cb7eb2';
-import { bestScore, fmtDay } from './home.js?v=f594cb7eb2';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=f594cb7eb2';
-import { SCORING } from './rescore.js?v=f594cb7eb2';
-import { mountRoll } from './roll.js?v=f594cb7eb2';
-import { show } from './round.js?v=f594cb7eb2';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=f594cb7eb2';
-import { run, setRound } from './state.js?v=f594cb7eb2';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=f594cb7eb2';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=f594cb7eb2';
+import { floorDb, thrDb } from './audio/mic.js?v=a6cc3cdaeb';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=a6cc3cdaeb';
+import { bestScore, fmtDay } from './home.js?v=a6cc3cdaeb';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=a6cc3cdaeb';
+import { SCORING } from './rescore.js?v=a6cc3cdaeb';
+import { drawOverlay, markOverlay } from './overlay.js?v=a6cc3cdaeb';
+import { show } from './round.js?v=a6cc3cdaeb';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=a6cc3cdaeb';
+import { run, setRound } from './state.js?v=a6cc3cdaeb';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=a6cc3cdaeb';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=a6cc3cdaeb';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -163,25 +163,32 @@ function renderSummary(r, o) {
   mapPick = null; drawKeysMap();
   const chips = $('#chips');
   chips.innerHTML = r.notes.map((n, i) => `<button type="button" class="chip" style="--i:${i}" data-i="${i}" aria-pressed="false" aria-label="Note ${i + 1}: ${nname(n.midi)}, ${n.tier.word}"><i data-tone="${n.tier.tone}">${n.tier.icon}</i>${nname(n.midi)}</button>`).join('');
-  const worst = ok.length ? r.notes.indexOf(ok.reduce((a, b) => (b.acc < a.acc ? b : a))) : 0;
-  pickDetail(worst, true);
+  summarySel = null; drawNotesChart(true); pickDetail(null);
   $('#doneTitle').focus({ preventScroll: true });
 }
-let summaryRun = null;
-export function pickDetail(i, isWorst) {
-  const r = summaryRun, n = r.notes[i]; if (!n) return;
-  stopClip();
-  for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(+c.dataset.i === i));
-  const d = $('#detail'), canPlay = !!(n.audio || (n.rec && r.ts));
-  d.innerHTML = `<div class="dhead"><span class="lead">${isWorst && n.kind === 'ok' ? 'Trickiest: ' : ''}note ${i + 1}, ${nname(n.midi)}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
+let summaryRun = null, summarySel = null;
+// Every note on one chart (overlay.js), with the notes as chips under it. Tapping either selects a note, and the
+// detail below shows it: its scores, in words, and its recording to play back (the playhead runs across the chart).
+export function drawNotesChart(replay = false) {
+  const el = $('#overlay'); if (!summaryRun) return;
+  drawOverlay(el, summaryRun.notes, summarySel, replay);
+  el._pick = pickDetail;
+}
+export function pickDetail(i) {
+  const r = summaryRun, n = i == null ? null : r.notes[i];
+  stopClip(); summarySel = n ? i : null;
+  markOverlay($('#overlay'), summarySel);
+  for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(+c.dataset.i === summarySel));
+  const d = $('#detail');
+  if (!n) { d.innerHTML = '<p class="caption faint">Tap a line or a note to see it and hear it back.</p>'; return; }
+  const canPlay = !!(n.audio || (n.rec && r.ts));
+  d.innerHTML = `<div class="dhead"><span class="lead">Note ${i + 1}, ${nname(n.midi)}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
     ${n.kind === 'ok' ? `<div class="duo">${duo(n)}</div>` : `<div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span></div>`}
-    <p class="vtext"></p><div class="roll"></div><p class="caption rollcap">Tap a key to hear it.</p>`;
+    <p class="vtext"></p>`;
   d.querySelector('.vtext').textContent = sentence(n);
   restart(d, 'swap');
-  const rollEl = d.querySelector('.roll');
-  if (n.trace) mountRoll(rollEl, n, 190); else { rollEl.remove(); d.querySelector('.rollcap').remove(); }
   const btn = d.querySelector('.play');
-  if (btn) btn.addEventListener('click', () => (playing && playing.btn === btn ? stopClip() : playClip(r, i, rollEl, btn)));
+  if (btn) btn.addEventListener('click', () => (playing && playing.btn === btn ? stopClip() : playClip(r, i, $('#overlay'), btn)));
 }
 // Reopen a stored round: rebuild its notes' curves and scores, then show the usual summary.
 export function openRound(rec) {
@@ -195,7 +202,7 @@ let playing = null;
 // The recording is brought up or down to a peak of VOICE, and the note played under it sits GHOST_DB below it,
 // however loud the voice was recorded (by the voice's level over its first second; PIANO_DB is a note's, at level 1).
 const VOICE = 0.6, GHOST_DB = 9, PIANO_DB = -20;
-async function playClip(r, i, rollEl, btn) {
+async function playClip(r, i, chartEl, btn) {
   stopClip();
   const n = r.notes[i];
   if (!n.audio) { try { const c = await DB.clip(`${r.ts}:${i}`); if (c) n.audio = { sr: c.sr, t0: c.t0, pcm: c.pcm }; } catch (e) {} }
@@ -216,9 +223,9 @@ async function playClip(r, i, rollEl, btn) {
   // the note, softly, from the moment the voice starts, in the octave sung: you hear where you were against it
   const ghost = ghostNote(ac, n.midi + 12 * (n.oct || 0), t - a.t0, t + buf.duration, ghostLevel);
   btn.textContent = '■ Stop';
-  const p = playing = { src, ghost, btn, rollEl, raf: 0 };
-  const head = () => {   // a playhead across the piano roll, so you hear and see the same moment
-    const line = rollEl.querySelector('.playhead'), g2 = rollEl._g, pos = ac.currentTime - t + a.t0;
+  const p = playing = { src, ghost, btn, chartEl, raf: 0 };
+  const head = () => {   // a playhead across the chart, so you hear and see the same moment
+    const line = chartEl.querySelector('.playhead'), g2 = chartEl._g, pos = ac.currentTime - t + a.t0;
     if (line && g2) {
       const vis = pos >= 0 && pos <= g2.tMax;
       line.setAttribute('visibility', vis ? 'visible' : 'hidden');
@@ -237,7 +244,7 @@ export function stopClip() {
   try { p.src.stop(); } catch (e) {}
   p.ghost.stop(p.ghost.ac.currentTime, 0.05);
   p.btn.textContent = '▶ Hear it'; p.btn.style.setProperty('--p', 0);
-  const line = p.rollEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
+  const line = p.chartEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
 }
 let mapMode = 'start', mapPick = null;   // which view, and the key last tapped
 export function setMapMode(m) { mapMode = m; }

@@ -1,15 +1,15 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js?v=f594cb7eb2';
-import { audioOut, muted, setMuted } from './audio/piano.js?v=f594cb7eb2';
-import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=f594cb7eb2';
-import { drawRoll } from './roll.js?v=f594cb7eb2';
-import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=f594cb7eb2';
-import { drawListen, setStage } from './stage.js?v=f594cb7eb2';
-import { lastFrameAt, round } from './state.js?v=f594cb7eb2';
-import { drawKeysMap, pickDetail, setMapMode } from './summary.js?v=f594cb7eb2';
-import { $, clamp } from './util.js?v=f594cb7eb2';
+import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js?v=a6cc3cdaeb';
+import { audioOut, muted, setMuted } from './audio/piano.js?v=a6cc3cdaeb';
+import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=a6cc3cdaeb';
+import { drawRoll } from './roll.js?v=a6cc3cdaeb';
+import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=a6cc3cdaeb';
+import { drawListen, setStage } from './stage.js?v=a6cc3cdaeb';
+import { lastFrameAt, round } from './state.js?v=a6cc3cdaeb';
+import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=a6cc3cdaeb';
+import { $, clamp } from './util.js?v=a6cc3cdaeb';
 
 function tick() {
   requestAnimationFrame(tick);
@@ -60,7 +60,7 @@ addEventListener('popstate', () => {
   show('home'); renderRange();
 });
 for (const b of document.querySelectorAll('[data-map]')) b.addEventListener('click', () => { setMapMode(b.dataset.map); drawKeysMap(); });
-$('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pickDetail(+b.dataset.i, false); });
+$('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) pickDetail(+b.dataset.i); });
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const inRun = !$('#run').hidden;
@@ -71,7 +71,7 @@ document.addEventListener('keydown', (e) => {
 });
 let rz = null;
 window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => {
-  renderRange(); if (!$('#summary').hidden) drawKeysMap();
+  renderRange(); if (!$('#summary').hidden) { drawKeysMap(); drawNotesChart(); }
   for (const el of document.querySelectorAll('.roll')) if (el._n && el.offsetParent) drawRoll(el, false);
 }, 80); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
