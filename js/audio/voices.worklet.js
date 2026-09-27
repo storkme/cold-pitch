@@ -1,12 +1,17 @@
 // The piano's voices: one AudioWorklet that plays every note, in stereo (see the piano notes at the top of piano.js,
-// and engine.js for the messages it takes).
+// and engine.js for the messages it takes). The same module has the limiter that follows the room (engine.js).
+//
+// Samples come in banks: 'notes' (the base recordings), and once the extras have loaded, 'v9' (a second recording of
+// each note, for round-robin), 'rel' (key release noise, one per key, played unpitched) and 'harmS' / 'harmL' /
+// 'harmV3' (the strings' resonance after the damper drops). A note names its bank.
 //
 // Per note, on the audio thread:
-// - the nearest recording is re-pitched with cubic (Hermite) interpolation on both channels, using its measured
-//   tuning so the note is exactly equal-tempered;
+// - the bank's nearest recording is re-pitched with cubic (Hermite) interpolation on both channels, using its
+//   measured tuning so the note is exactly equal-tempered (an unpitched sample plays at its recorded speed);
 // - the recording's attack lands exactly on the scheduled time: playback starts early by the sample's pre-roll. If the
 //   message arrives too late for that, the voice skips in and fades in over 2 ms instead of clicking;
-// - notes end with an exponential release whose time constant the caller picks (a damper), never a cut;
+// - notes end with an exponential release whose time constant the caller picks (a damper), never a cut; a note
+//   scheduled for later can be cancelled before it starts;
 // - the voice count is capped, releasing the oldest sounding voices quickly when needed;
 // - the mix runs through a linked stereo look-ahead limiter (one gain from the louder channel, so the image holds).
 
@@ -14,25 +19,26 @@ const MAX_VOICES = 32, LOOK = 96, CEIL = 0.9;
 class Voices extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.samples = []; this.voices = []; this.inbox = [];
+    this.banks = new Map(); this.voices = []; this.inbox = [];
     this.delay = [new Float32Array(LOOK), new Float32Array(LOOK)]; this.need = new Float32Array(LOOK).fill(1); this.w = 0; this.env = 1;
     this.steal = Math.exp(-1 / (0.005 * sampleRate));          // a stolen voice fades over ~20 ms
     this.relA = Math.exp(-1 / (0.06 * sampleRate));            // limiter release
     this.fadeN = Math.round(0.002 * sampleRate);               // a late note's fade-in
     this.port.onmessage = (e) => {
       const m = e.data;
-      if (m.type === 'samples') { this.samples.push(...m.samples); this.samples.sort((a, b) => a.midi - b.midi); }
-      else if (m.type === 'ping') this.port.postMessage({ type: 'pong', id: m.id, samples: this.samples.length });
+      if (m.type === 'samples') {
+        const bank = this.banks.get(m.bank) || []; bank.push(...m.samples); bank.sort((a, b) => a.midi - b.midi); this.banks.set(m.bank, bank);
+      } else if (m.type === 'ping') this.port.postMessage({ type: 'pong', id: m.id });
       else this.inbox.push(m);
     };
   }
-  nearest(midi) {
-    let best = null; for (const s of this.samples) if (!best || Math.abs(s.midi - midi) < Math.abs(best.midi - midi)) best = s; return best;
+  nearest(bank, midi) {
+    let best = null; for (const s of this.banks.get(bank) || []) if (!best || Math.abs(s.midi - midi) < Math.abs(best.midi - midi)) best = s; return best;
   }
   handle(m, now) {
     if (m.type === 'on') {
-      const s = this.nearest(m.midi); if (!s) return;
-      const inc = Math.pow(2, (m.midi - s.midi) / 12 - (s.cents || 0) / 1200) * s.sr / sampleRate;
+      const s = this.nearest(m.bank || 'notes', m.midi); if (!s) return;
+      const inc = (s.fixed ? 1 : Math.pow(2, (m.midi - s.midi) / 12 - (s.cents || 0) / 1200)) * s.sr / sampleRate;
       const pos0 = (s.offset || 0) * s.sr, lead = ((s.attack || 0) * s.sr - pos0) / inc;   // output frames from the start to the attack
       let start = Math.round(m.when * sampleRate - lead), pos = pos0, fade = 0;
       if (start < now) { pos = pos0 + (now - start) * inc; start = now; fade = this.fadeN; }  // too late to start early: skip in
@@ -43,6 +49,9 @@ class Voices extends AudioWorkletProcessor {
         const rel = Math.max(v.start, now, Math.round(m.when * sampleRate));
         if (rel < v.rel) { v.rel = rel; v.k = Math.exp(-1 / ((m.tau || 0.03) * sampleRate)); }
       }
+    } else if (m.type === 'cancel') {
+      // notes that haven't started yet are dropped; ones already sounding carry on
+      const ids = new Set(m.ids); this.voices = this.voices.filter((v) => !(ids.has(v.id) && v.start >= now));
     }
   }
   process(inputs, outputs) {
@@ -89,3 +98,29 @@ class Voices extends AudioWorkletProcessor {
   }
 }
 registerProcessor('cold-pitch-voices', Voices);
+
+// The same linked look-ahead limiter on its own, for after the room: the piano and its room are mixed into it, so
+// the room can't push the output past the ceiling either.
+class Limiter extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.delay = [new Float32Array(LOOK), new Float32Array(LOOK)]; this.need = new Float32Array(LOOK).fill(1); this.w = 0; this.env = 1;
+    this.relA = Math.exp(-1 / (0.06 * sampleRate));
+  }
+  process(inputs, outputs) {
+    const I = inputs[0], L = outputs[0][0], R = outputs[0][1] || L, n = L.length, il = I[0], ir = I[1] || I[0];
+    const atk = 1 - Math.exp(-4 / LOOK);
+    for (let k = 0; k < n; k++) {
+      const xl = il ? il[k] : 0, xr = ir ? ir[k] : 0, pk = Math.max(Math.abs(xl), Math.abs(xr));
+      this.need[this.w] = pk > CEIL ? CEIL / pk : 1;
+      let target = 1; for (let q = 0; q < LOOK; q++) if (this.need[q] < target) target = this.need[q];
+      this.env = target < this.env ? this.env + (target - this.env) * atk : target + (this.env - target) * this.relA;
+      const yl = this.delay[0][this.w] * this.env, yr = this.delay[1][this.w] * this.env;
+      this.delay[0][this.w] = xl; this.delay[1][this.w] = xr; this.w = (this.w + 1) % LOOK;
+      L[k] = yl > 0.99 ? 0.99 : yl < -0.99 ? -0.99 : yl;
+      if (R !== L) R[k] = yr > 0.99 ? 0.99 : yr < -0.99 ? -0.99 : yr;
+    }
+    return true;
+  }
+}
+registerProcessor('cold-pitch-limiter', Limiter);

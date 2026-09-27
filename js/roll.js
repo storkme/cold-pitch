@@ -1,8 +1,8 @@
 // The piano roll: one note's pitch curve drawn over the keys around it.
 
-import { keyUnder, playable } from './keyboard.js?v=e8290c0bfd';
-import { off, sentence, tierFor } from './scoring.js?v=e8290c0bfd';
-import { clamp, hideTip, isBlack, motion, nname, pc, placeTip, WIN } from './util.js?v=e8290c0bfd';
+import { keyUnder, playable } from './keyboard.js?v=536d47461a';
+import { off, sentence, tierFor } from './scoring.js?v=536d47461a';
+import { clamp, hideTip, isBlack, motion, nname, pc, placeTip, WIN } from './util.js?v=536d47461a';
 
 /* ---------- piano roll ---------- */
 export function mountRoll(el, n, H) {

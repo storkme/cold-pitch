@@ -1,9 +1,9 @@
 // The piano: recorded samples played by the engine, the hum that stands in until they're ready, the sound
 // button, and notes held down on a drawn keyboard.
 
-import { engineLoad, engineOff, engineOn, engineStart, engineSync } from './engine.js?v=e8290c0bfd';
-import { ctx } from './mic.js?v=e8290c0bfd';
-import { $, clamp, hz } from '../util.js?v=e8290c0bfd';
+import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=536d47461a';
+import { ctx } from './mic.js?v=536d47461a';
+import { $, clamp, hz } from '../util.js?v=536d47461a';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
    The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:
@@ -13,7 +13,12 @@ import { $, clamp, hz } from '../util.js?v=e8290c0bfd';
    cubic interpolation (using each sample's measured tuning, so every note is exactly equal-tempered), ends notes
    with a damper, caps the number of voices, and limits the mix so stacked notes can't clip (engine.js,
    voices.worklet.js). If a browser can't run the worklet, the same samples play through plain buffer sources;
-   and for the moment before the samples have decoded, the hum stands in, so a note is never silent. */
+   and for the moment before the samples have decoded, the hum stands in, so a note is never silent.
+
+   Once the base set plays, the extras (samples/salamander/extras/) load in the background: a second recording of
+   each note, so repeated and slid-to keys alternate between two, and what a real piano does when a key comes up:
+   the key's release noise and the strings' resonance as the damper drops, with a small room around it all. Until
+   they arrive, and in browsers that fell back to FLAC, keys play as before. */
 
 // The hum (now only a stand-in for the moment before the piano samples have decoded) imitates a closed-mouth hum: a voice-like source whose harmonics fall away (1/n^slope),
 // shaped by fixed resonances (a nasal peak, a closed-mouth notch, a gentle high cut), with a soft onset and a slight
@@ -132,6 +137,7 @@ async function decodeGrand(ac) {
   for (const [n, fmt] of formats.entries()) {
     const bytes = await grandFiles(info, fmt);
     try {
+      ac._pianoFormat = fmt;
       return await Promise.all(info.samples.map(async (g, i) => {
         const buffer = await ac.decodeAudioData(bytes[i].slice(0));      // decoding takes over the bytes it's given
         // the attack is `info.attack` into every file; a decoder that adds lead-in pushes it later, so follow it there
@@ -142,17 +148,50 @@ async function decodeGrand(ac) {
   }
   throw new Error('no sample format to decode');
 }
-// Start the engine and decode the samples on a context, once. Resolves when the piano can play there.
+// Start the engine and decode the samples on a context, once. Resolves when the piano can play there; the extras
+// then load in the background.
 export function pianoReady(ac) {
   if (!ac._piano) ac._piano = (async () => {
     const decoded = await decodeGrand(ac);
     const eng = await engineStart(ac);
     if (eng) { engineLoad(eng, decoded); await engineSync(eng); }
     ac._pianoSamples = decoded; ac._pianoEngine = eng;
+    if (eng && ac._pianoFormat === 'webm') extrasReady(ac);
     return true;
   })().catch(() => false);
   return ac._piano;
 }
+
+// The extras' files (samples/salamander/extras/: a manifest, then Opus files only), fetched once for the page, each
+// context decoding its own copy, as the base set. If anything fails, that context goes on without them.
+const EXTRAS = new URL('extras/', SAMPLES);
+let extrasFiles = null;
+function extrasFetch() {
+  if (!extrasFiles) {
+    extrasFiles = (async () => {
+      const g = async (name) => { const r = await fetch(new URL(name, EXTRAS)); if (!r.ok) throw new Error(`${name}: ${r.status}`); return r; };
+      const info = await (await g('manifest.json')).json(), all = [...info.layers, ...info.keyNoise, ...info.resonance];
+      const bytes = await Promise.all(all.map(async (s) => (await g(`${s.name}.${info.format}`)).arrayBuffer()));
+      return { info, bytes: new Map(all.map((s, i) => [s.name, bytes[i]])) };
+    })();
+    extrasFiles.catch(() => { extrasFiles = null; });
+  }
+  return extrasFiles;
+}
+function extrasReady(ac) {
+  if (!ac._extrasP) ac._extrasP = (async () => {
+    const { info, bytes } = await extrasFetch(), eng = ac._pianoEngine;
+    const decode = (list, extra) => Promise.all(list.map(async (s) => ({ ...s, ...extra, buffer: await ac.decodeAudioData(bytes.get(s.name).slice(0)) })));
+    engineLoad(eng, await decode(info.layers, { attack: info.attack }), 'v9');
+    engineLoad(eng, await decode(info.keyNoise, { fixed: true }), 'rel');
+    for (const kind of ['S', 'L', 'V3']) engineLoad(eng, await decode(info.resonance.filter((s) => s.kind === kind)), 'harm' + kind);
+    await engineSync(eng);
+    ac._extras = { noteTrack: info.noteTrack, rel: bankParams(info.keyNoise), harm: bankParams(info.resonance) };
+    engineRoom(eng, true);
+  })().catch(() => { ac._extras = null; });
+  return ac._extrasP;
+}
+const bankParams = (list) => new Map(list.map((s) => [(s.kind || '') + s.midi, s]));
 // The same samples through plain buffer sources, for a browser without AudioWorklet (no limiter, so a little headroom).
 function bufferVoice(ac, midi, T, level) {
   let s = ac._pianoSamples[0]; for (const x of ac._pianoSamples) if (Math.abs(x.midi - midi) < Math.abs(s.midi - midi)) s = x;
@@ -164,21 +203,66 @@ function bufferVoice(ac, midi, T, level) {
   src.connect(out); out.connect(outNode(ac)); src.start(t0 + late, s.offset + late * rate);
   return (t, tau = DAMPER) => { t = Math.max(t, ac.currentTime); out.gain.cancelScheduledValues(t); out.gain.setTargetAtTime(0, t, tau); try { src.stop(t + tau * 8); } catch (e) {} };
 }
-// Strike a note at T, `level` times the normal loudness. It decays by itself, like a piano; stop(t) drops the damper.
-function strike(ac, midi, T, level = 1) {
+// What a key does when it comes up, once the extras are here, as the Salamander sfz plays its release groups:
+// - the key's release noise (unpitched) and the strings' resonance (pitched to the key; the soft or the loud
+//   recording by how hard the key was struck, plus a third, quiet layer), each at the sfz's volume and velocity
+//   tracking, and quieter the longer the key was held (rt: dB per second);
+// - the note's own damper, on keys played by hand, 0.6 times as long: the resonance carries the tail instead.
+// A round's reference note gives its release sounds a damper of their own, REF_TAIL after the key comes up, so
+// the whole note is gone (under -60 dB) by the Sing step; if the mic can hear the piano, sooner (see playTone).
+const HAND_DAMP = 0.6, REF_TAIL = 0.45, REF_TAIL_TAU = 0.06, HEARD_TAIL = 0.1, HEARD_TAIL_TAU = 0.03;
+const velTrack = (track, vel) => (1 - track / 100) + (track / 100) * (vel / 127) ** 2;
+function releaseSounds(ac, v, t, tail) {
+  const eng = ac._pianoEngine, x = ac._extras, held = Math.max(0, t - v.T), vel = clamp(60 * v.level, 1, 127), ids = [];
+  const play = (bank, p) => {
+    if (!p) return;
+    const lv = Math.pow(10, (p.vol - p.rt * held) / 20) * velTrack(p.track, vel) / velTrack(x.noteTrack, vel) * v.level;
+    const id = engineOn(eng, v.m, t, lv, bank); ids.push(id);
+    if (tail) engineOff(eng, id, t + tail[0], tail[1]);
+  };
+  const c = clamp(36 + 3 * Math.round((v.m - 36) / 3), 36, 84);           // the resonance recordings' notes
+  play('rel', x.rel.get('' + v.m));
+  const kind = vel <= 44 ? 'S' : 'L';
+  play('harm' + kind, x.harm.get(kind + c)); play('harmV3', x.harm.get('V3' + c));
+  return ids;
+}
+// Repeated and slid-to keys alternate between the two recordings of their note (once the extras are here).
+const turn = new Map();
+function rrBank(ac, m) {
+  if (!ac._extras) return 'notes';
+  const c = clamp(36 + 3 * Math.round((m - 36) / 3), 36, 84), k = !turn.get(c); turn.set(c, k);
+  return k ? 'notes' : 'v9';
+}
+// Strike a note at T, `level` times the normal loudness. It decays by itself, like a piano; stop(t, tau) drops the
+// damper, and with the extras here, the key's release sounds start then. A second stop with an earlier time moves
+// the key-up earlier (release sounds and all); a later one changes nothing. `hand`: played by hand (round-robin,
+// a shorter damper); `tail`: the release sounds' own damper, [after, tau] (the reference note's).
+function strike(ac, midi, T, level = 1, { hand = false, tail = null } = {}) {
   const eng = ac._pianoEngine;
-  if (eng) { const id = engineOn(eng, midi, T, level); return { ac, stop: (t, tau = DAMPER) => engineOff(eng, id, Math.max(t, ac.currentTime), tau) }; }
+  if (eng) {
+    const v = { ac, m: midi, T, level, off: Infinity, rel: [] }, id = engineOn(eng, midi, T, level, hand ? rrBank(ac, midi) : 'notes');
+    v.stop = (t, tau = DAMPER, tl = tail) => {
+      t = Math.max(t, ac.currentTime); if (t >= v.off) return;
+      v.off = t; engineCancel(eng, v.rel); v.rel = [];
+      if (!ac._extras) { engineOff(eng, id, t, tau); return; }
+      engineOff(eng, id, t, hand ? tau * HAND_DAMP : tau);
+      v.rel = releaseSounds(ac, v, t, tl);
+    };
+    return v;
+  }
   if (ac._pianoSamples) return { ac, stop: bufferVoice(ac, midi, T, level) };
   pianoReady(ac);
   const h = hum(ac, midi, T, level); return { ac, stop: (t) => endHum(h, t) };
 }
 // A round's reference note, struck at T and held `dur` seconds. It doesn't stop dead when the step changes (in
 // earphones that sounded abrupt): it rings on a moment, then dies away gently, under -60 dB before the singing step.
-// damp(t) ends it sooner, still gently, for when the mic can hear it (see heard() in mic.js).
+// It's always the same recording of its note (no round-robin), and its release sounds ring REF_TAIL. damp(t) ends
+// it sooner, still gently, for when the mic can hear it (see heard() in mic.js): the key-up moves to t, and its
+// release sounds, rescheduled there, are cut short so the mic doesn't hear them as a voice in the silent step.
 export function playTone(ac, midi, T, dur, level = 1) {
-  const v = strike(ac, midi, T, level);
+  const v = strike(ac, midi, T, level, { tail: [REF_TAIL, REF_TAIL_TAU] });
   v.stop(T + dur + 0.25, 0.1);
-  v.damp = (t) => v.stop(t, 0.05);
+  v.damp = (t) => v.stop(t, 0.05, [HEARD_TAIL, HEARD_TAIL_TAU]);
   return v;
 }
 
@@ -205,7 +289,7 @@ const slideLevel = () => 0.82 + 0.12 * Math.random();
 // Strike a key by hand. If `prev` is still sounding, this is a slide from it: it lingers a moment, then its damper drops.
 function handStrike(ac, m, level, prev) {
   if (prev) { const t = prev.ac.currentTime; prev.stop(t + slideOverlap(t - prev.t), damperTau(prev.m)); }
-  const now = ac.currentTime, v = strike(ac, m, now + 0.005, prev ? level * slideLevel() : level);
+  const now = ac.currentTime, v = strike(ac, m, now + 0.005, prev ? level * slideLevel() : level, { hand: true });
   v.m = m; v.t = now;
   return v;
 }
