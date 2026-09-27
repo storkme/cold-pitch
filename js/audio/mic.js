@@ -1,12 +1,12 @@
 // The mic: opening it, the tap that feeds the pitch detector (pitch.js), measuring the room, and the per-frame logic
 // that follows a note from the imagine step to the end of singing.
 
-import { feedTester, tester } from '../home.js?v=b3d99147c5';
-import { calmFrame, finish } from '../round.js?v=b3d99147c5';
-import { setStage } from '../stage.js?v=b3d99147c5';
-import { round, setLastFrameAt } from '../state.js?v=b3d99147c5';
-import { clamp, hz, TONE } from '../util.js?v=b3d99147c5';
-import { dcBlocker, detector, isVoice, leadIn, noteBegins, worthPitch } from './pitch.js?v=b3d99147c5';
+import { feedTester, tester } from '../home.js?v=af8b1cc76e';
+import { calmFrame, finish } from '../round.js?v=af8b1cc76e';
+import { setStage } from '../stage.js?v=af8b1cc76e';
+import { round, setLastFrameAt } from '../state.js?v=af8b1cc76e';
+import { clamp, hz, TONE } from '../util.js?v=af8b1cc76e';
+import { dcBlocker, detector, isVoice, leadIn, noteBegins, worthPitch } from './pitch.js?v=af8b1cc76e';
 
 /* ---------- audio engine: pitch detection ---------- */
 export let ctx = null, stream = null;
@@ -34,7 +34,7 @@ export async function initAudio() {
   let node = null;
   if (ctx.audioWorklet) {
     try {
-      await ctx.audioWorklet.addModule(new URL('./tap.worklet.js?v=b3d99147c5', import.meta.url).href);
+      await ctx.audioWorklet.addModule(new URL('./tap.worklet.js?v=af8b1cc76e', import.meta.url).href);
       node = new AudioWorkletNode(ctx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
       node.port.onmessage = (e) => ingest(e.data.d, e.data.t, sr);
     } catch (e) { node = null; }

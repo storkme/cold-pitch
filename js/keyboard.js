@@ -1,7 +1,7 @@
 // The summary's range map, and making the keys of any drawn keyboard playable.
 
-import { noteOff, noteOn } from './audio/piano.js?v=b3d99147c5';
-import { isBlack, MAX_NOTE, MIN_NOTE, nname, pc } from './util.js?v=b3d99147c5';
+import { noteOff, noteOn } from './audio/piano.js?v=af8b1cc76e';
+import { isBlack, MAX_NOTE, MIN_NOTE, nname, pc } from './util.js?v=af8b1cc76e';
 
 /* ---------- the range map ---------- */
 const rb = (x, y, w, h, r) => `M${x},${y}h${w}v${h - r}q0,${r} ${-r},${r}h${-(w - 2 * r)}q${-r},0 ${-r},${-r}z`;
