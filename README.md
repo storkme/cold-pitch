@@ -19,7 +19,7 @@ Train your pitch *onset*: hear it, feel it, hit it. Hear a note, sing it silentl
 Nothing is uploaded. Everything stays in the browser, per site:
 
 - **Rounds:** each round's scores and every note's full pitch curve are kept in IndexedDB.
-- **Recordings:** by default the audio of each sung note is kept too (about 1 MB a round), so you can play any note back against its piano roll. You can turn this off in the progress card.
+- **Recordings:** by default the audio of each sung note is kept too (about 1 MB a round), so you can play any note back against its piano roll. The note you were aiming for plays softly under it, from the moment your voice starts and in the octave you sang, so you hear where you were against it. You can turn this off in the progress card.
 - **Re-scoring:** when the way notes are read improves, rounds that have their recordings are re-scored from them, so old and new scores compare. The earlier numbers are kept alongside.
 - **Moving data:** **Export** and **Import** move rounds and recordings between browsers or devices. Recordings export separately because they're larger.
 

@@ -3,7 +3,7 @@
 // -> wet; both into a limiter, then the page's master volume (outNode). The room is silent (wet 0) until
 // engineRoom turns it on.
 
-import { outNode } from './piano.js?v=536d47461a';
+import { outNode } from './piano.js?v=0ad6d5e2b1';
 
 // Start the engine on an audio context (once). Returns null if this browser can't run the worklet.
 export async function engineStart(ac) {
@@ -11,13 +11,13 @@ export async function engineStart(ac) {
   ac._engine = null;
   if (!ac.audioWorklet) return null;
   try {
-    await ac.audioWorklet.addModule(new URL('./voices.worklet.js?v=536d47461a', import.meta.url).href);
+    await ac.audioWorklet.addModule(new URL('./voices.worklet.js?v=0ad6d5e2b1', import.meta.url).href);
     const node = new AudioWorkletNode(ac, 'cold-pitch-voices', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
     const lim = new AudioWorkletNode(ac, 'cold-pitch-limiter', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' });
     const room = ac.createConvolver(), wet = ac.createGain();
     room.normalize = false; room.buffer = roomIR(ac, ROOM.rt60); wet.gain.value = 0;
     node.connect(lim); node.connect(room); room.connect(wet); wet.connect(lim); lim.connect(outNode(ac));
-    ac._engine = { ac, node, wet, seq: 0, waits: new Map() };
+    ac._engine = { ac, node, lim, wet, seq: 0, waits: new Map() };
     node.port.onmessage = (e) => { const w = ac._engine.waits.get(e.data.id); if (w) { ac._engine.waits.delete(e.data.id); w(e.data); } };
     return ac._engine;
   } catch (e) {}

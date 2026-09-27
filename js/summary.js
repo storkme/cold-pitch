@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=536d47461a';
-import { audioOut, outNode, wantSound } from './audio/piano.js?v=536d47461a';
-import { bestScore, fmtDay } from './home.js?v=536d47461a';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=536d47461a';
-import { SCORING } from './rescore.js?v=536d47461a';
-import { mountRoll } from './roll.js?v=536d47461a';
-import { show } from './round.js?v=536d47461a';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=536d47461a';
-import { run, setRound } from './state.js?v=536d47461a';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=536d47461a';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=536d47461a';
+import { floorDb, thrDb } from './audio/mic.js?v=0ad6d5e2b1';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=0ad6d5e2b1';
+import { bestScore, fmtDay } from './home.js?v=0ad6d5e2b1';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=0ad6d5e2b1';
+import { SCORING } from './rescore.js?v=0ad6d5e2b1';
+import { mountRoll } from './roll.js?v=0ad6d5e2b1';
+import { show } from './round.js?v=0ad6d5e2b1';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=0ad6d5e2b1';
+import { run, setRound } from './state.js?v=0ad6d5e2b1';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=0ad6d5e2b1';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=0ad6d5e2b1';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -191,6 +191,9 @@ export function openRound(rec) {
 
 /* ---------- playing back a recorded note ---------- */
 let playing = null;
+// The recording is brought up or down to a peak of VOICE, and the note played under it sits GHOST_DB below it,
+// however loud the voice was recorded (by the voice's level over its first second; PIANO_DB is a note's, at level 1).
+const VOICE = 0.6, GHOST_DB = 9, PIANO_DB = -20;
 async function playClip(r, i, rollEl, btn) {
   stopClip();
   const n = r.notes[i];
@@ -201,12 +204,18 @@ async function playClip(r, i, rollEl, btn) {
   const buf = ac.createBuffer(1, a.pcm.length, a.sr), ch = buf.getChannelData(0);
   let pk = 1e-4; for (let k = 0; k < a.pcm.length; k++) { ch[k] = a.pcm[k] / 32768; pk = Math.max(pk, Math.abs(ch[k])); }
   const src = ac.createBufferSource(), g = ac.createGain();
-  g.gain.value = Math.min(12, 0.7 / pk);            // mic recordings are often quiet; bring them up to a comfortable level
-  src.buffer = buf; src.connect(g); g.connect(outNode(ac));
+  g.gain.value = Math.min(12, VOICE / pk);            // mic recordings are often quiet; bring them up to a comfortable level
+  src.buffer = buf; src.connect(g); g.connect(withPiano(ac));
+  const k0 = clamp(Math.round(-a.t0 * a.sr), 0, ch.length - 1), k1 = Math.min(ch.length, k0 + a.sr);
+  let e = 0; for (let k = k0; k < k1; k++) e += ch[k] * ch[k];
+  const voiceDb = 20 * Math.log10(g.gain.value * Math.sqrt(e / (k1 - k0)) + 1e-9);
+  const ghostLevel = Math.min(1, Math.pow(10, (voiceDb - GHOST_DB - PIANO_DB) / 20));
   wantSound();
   const t = ac.currentTime + 0.05; src.start(t);
+  // the note, softly, from the moment the voice starts, in the octave sung: you hear where you were against it
+  const ghost = ghostNote(ac, n.midi + 12 * (n.oct || 0), t - a.t0, t + buf.duration, ghostLevel);
   btn.textContent = '■ Stop';
-  const p = playing = { src, btn, rollEl, raf: 0 };
+  const p = playing = { src, ghost, btn, rollEl, raf: 0 };
   const head = () => {   // a playhead across the piano roll, so you hear and see the same moment
     const line = rollEl.querySelector('.playhead'), g2 = rollEl._g, pos = ac.currentTime - t + a.t0;
     if (line && g2) {
@@ -225,6 +234,7 @@ export function stopClip() {
   const p = playing; playing = null;
   cancelAnimationFrame(p.raf);
   try { p.src.stop(); } catch (e) {}
+  p.ghost.stop(p.ghost.ac.currentTime, 0.05);
   p.btn.textContent = '▶ Hear it'; p.btn.style.setProperty('--p', 0);
   const line = p.rollEl.querySelector('.playhead'); if (line) line.setAttribute('visibility', 'hidden');
 }

@@ -1,7 +1,7 @@
 // The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip and the silence meter.
 
-import { run } from './state.js?v=536d47461a';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=536d47461a';
+import { run } from './state.js?v=0ad6d5e2b1';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=0ad6d5e2b1';
 
 /* ---------- stage ---------- */
 const STAGE = {

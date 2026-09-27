@@ -1,9 +1,9 @@
 // The piano: recorded samples played by the engine, the hum that stands in until they're ready, the sound
 // button, and notes held down on a drawn keyboard.
 
-import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=536d47461a';
-import { ctx } from './mic.js?v=536d47461a';
-import { $, clamp, hz } from '../util.js?v=536d47461a';
+import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=0ad6d5e2b1';
+import { ctx } from './mic.js?v=0ad6d5e2b1';
+import { $, clamp, hz } from '../util.js?v=0ad6d5e2b1';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
    The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:
@@ -94,6 +94,8 @@ export function outNode(ac) {
   if (!ac._master) { ac._master = ac.createGain(); ac._master.gain.value = muted ? 0 : 1; ac._master.connect(ac.destination); }
   return ac._master;
 }
+// Where a sound that plays along with the piano goes: into the piano's limiter, so the two together can't clip.
+export const withPiano = (ac) => (ac._engine && ac._engine.lim) || outNode(ac);
 export function setMuted(v) {
   muted = v;
   for (const ac of [ctx, pctx]) if (ac && ac._master) ac._master.gain.setTargetAtTime(v ? 0 : 1, ac.currentTime, 0.02);
@@ -235,7 +237,7 @@ function rrBank(ac, m) {
 }
 // Strike a note at T, `level` times the normal loudness. It decays by itself, like a piano; stop(t, tau) drops the
 // damper, and with the extras here, the key's release sounds start then. A second stop with an earlier time moves
-// the key-up earlier (release sounds and all); a later one changes nothing. `hand`: played by hand (round-robin,
+// the key-up earlier (release sounds and all); a later one changes nothing; one before T means it's never heard. `hand`: played by hand (round-robin,
 // a shorter damper); `tail`: the release sounds' own damper, [after, tau] (the reference note's).
 function strike(ac, midi, T, level = 1, { hand = false, tail = null } = {}) {
   const eng = ac._pianoEngine;
@@ -244,6 +246,7 @@ function strike(ac, midi, T, level = 1, { hand = false, tail = null } = {}) {
     v.stop = (t, tau = DAMPER, tl = tail) => {
       t = Math.max(t, ac.currentTime); if (t >= v.off) return;
       v.off = t; engineCancel(eng, v.rel); v.rel = [];
+      if (t <= T) { engineCancel(eng, [id]); return; }                  // up before it was struck: it never sounds
       if (!ac._extras) { engineOff(eng, id, t, tau); return; }
       engineOff(eng, id, t, hand ? tau * HAND_DAMP : tau);
       v.rel = releaseSounds(ac, v, t, tl);
@@ -263,6 +266,14 @@ export function playTone(ac, midi, T, dur, level = 1) {
   const v = strike(ac, midi, T, level, { tail: [REF_TAIL, REF_TAIL_TAU] });
   v.stop(T + dur + 0.25, 0.1);
   v.damp = (t) => v.stop(t, 0.05, [HEARD_TAIL, HEARD_TAIL_TAU]);
+  return v;
+}
+// The note a recording was aiming for, played softly under it as it plays back, so you hear the two together: struck
+// at T, its key up at `end` (the release sounds ring GHOST_TAIL after). stop(t) ends it sooner.
+const GHOST_TAIL = [0.3, 0.06];
+export function ghostNote(ac, midi, T, end, level) {
+  const v = strike(ac, midi, T, level, { tail: GHOST_TAIL });
+  v.stop(end, 0.1);
   return v;
 }
 
