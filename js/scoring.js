@@ -1,6 +1,6 @@
 // How a note is scored and described: tiers, percentages and plain-language sentences.
 
-import { nname } from './util.js?v=a6cc3cdaeb';
+import { nname } from './util.js?v=7edc0e4a45';
 
 /* ---------- scoring words ---------- */
 // Tiers go by how far the first moment was from the note. Past half a semitone you were nearer a different note.
@@ -16,7 +16,11 @@ export const OTHER = {
 };
 export const tierOf = (c) => TIERS.find((t) => Math.abs(c) <= t.max);
 export const tierFor = (n) => n.kind === 'ok' ? tierOf(n.onset) : OTHER[n.kind];
-export const accuracy = (c) => Math.round(100 * Math.exp(-((c / 60) ** 2)));   // 100% on the note, 50% at half a semitone
+// Start and Landing as percentages: a logistic curve on a log scale of distance from the note. It's flat near the
+// note (98% within 15 cents), 70% at half a semitone, and a near miss still counts for something: 29% a semitone
+// off, 7% two off. (Until 2026-09-27 it was a bell curve, 50% at half a semitone and nothing past a semitone and a
+// half; rescore.js moves saved rounds onto this one.)
+export const accuracy = (c) => Math.round(100 / (1 + (Math.abs(c) / 70) ** 2.5));
 
 export function size(a) {
   if (a < 30) return 'a touch';
@@ -54,4 +58,6 @@ export function duo(n) {
     + `<b class="mv">${acc == null ? '—' : acc + '%'}</b><span class="ml"><span>${label}</span><em>${t ? t.word : none}</em></span></div>`;
   return card('Start', n.acc, n.tier) + card('Landing', n.landAcc, n.ltier, 'too short to tell');
 }
-export const tierFromAcc = (a) => a == null ? null : a >= 94 ? TIERS[0] : a >= 78 ? TIERS[1] : a >= 50 ? TIERS[2] : TIERS[3];   // same bands as 15, 30, 50 cents
+// A percentage's tier: the same bands as 15, 30 and 50 cents (98%, 89% and 70%).
+const BANDS = TIERS.slice(0, 3).map((t) => accuracy(t.max));
+export const tierFromAcc = (a) => a == null ? null : TIERS[BANDS.findIndex((b) => a >= b)] ?? TIERS[3];

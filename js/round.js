@@ -1,17 +1,17 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, scoring what was sung,
 // and the practice note.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=a6cc3cdaeb';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=a6cc3cdaeb';
-import { readNote } from './audio/pitch.js?v=a6cc3cdaeb';
-import { renderRange, stopTester, tester } from './home.js?v=a6cc3cdaeb';
-import { mountRoll } from './roll.js?v=a6cc3cdaeb';
-import { duo, scoreNote, sentence } from './scoring.js?v=a6cc3cdaeb';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=a6cc3cdaeb';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=a6cc3cdaeb';
-import { rounds, saveSettings, settings } from './storage.js?v=a6cc3cdaeb';
-import { endRound, stopClip } from './summary.js?v=a6cc3cdaeb';
-import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=a6cc3cdaeb';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=7edc0e4a45';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=7edc0e4a45';
+import { readNote } from './audio/pitch.js?v=7edc0e4a45';
+import { renderRange, stopTester, tester } from './home.js?v=7edc0e4a45';
+import { mountRoll } from './roll.js?v=7edc0e4a45';
+import { duo, scoreNote, sentence } from './scoring.js?v=7edc0e4a45';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=7edc0e4a45';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=7edc0e4a45';
+import { rounds, saveSettings, settings } from './storage.js?v=7edc0e4a45';
+import { endRound, stopClip } from './summary.js?v=7edc0e4a45';
+import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=7edc0e4a45';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
@@ -23,9 +23,7 @@ export function show(id) {
   else history.pushState({ cp: id }, '');
   for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
   if (id !== 'run') { $('#sheet').hidden = true; $('#msg').hidden = true; }
-  // The sound button lives on the home screen only. A round needs sound, and the summary is for listening back,
-  // so both turn it on.
-  $('#soundBtn').hidden = id !== 'home';
+  // A round needs sound, and the summary is for listening back, so both turn it on.
   if (id !== 'home' && muted) setMuted(false);
   window.scrollTo(0, 0);
 }

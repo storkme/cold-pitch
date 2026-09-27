@@ -1,9 +1,9 @@
 // The piano: recorded samples played by the engine, the hum that stands in until they're ready, the sound
 // button, and notes held down on a drawn keyboard.
 
-import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=a6cc3cdaeb';
-import { ctx } from './mic.js?v=a6cc3cdaeb';
-import { $, clamp, hz } from '../util.js?v=a6cc3cdaeb';
+import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=7edc0e4a45';
+import { ctx } from './mic.js?v=7edc0e4a45';
+import { $, clamp, hz } from '../util.js?v=7edc0e4a45';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
    The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:
@@ -88,7 +88,8 @@ function endHum(h, t) {
 const DAMPER = 0.03;                               // the damper's time constant: under 1% after 5 of these
 // Sound on/off. Every visit starts silent: no page should make noise you didn't expect. Every sound goes through one
 // master volume per context, so muting catches everything. When something tries to play while muted, the sound
-// button (home screen only) pulses. Leaving home for a round or a summary turns sound on (see show()).
+// button (in the range card on the home screen) pulses. Leaving home for a round or a summary turns sound on (see
+// show()).
 export let muted = true;
 export function outNode(ac) {
   if (!ac._master) { ac._master = ac.createGain(); ac._master.gain.value = muted ? 0 : 1; ac._master.connect(ac.destination); }

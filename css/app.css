@@ -43,23 +43,23 @@
    Verdicts: worst colour-blind separation 8.3 across all pairs (target 8); every verdict colour still ships with its
    mark and word, never colour alone. */
 :root{
-  --bg:#0B1736; --surface:#081129; --surface-2:#13224A; --ink:#F4EFE3; --ink-2:#C4C9DB; --ink-soft:#C4C9DB; --muted:#97A1C0;
-  --line:#22315C; --rule:#D9D4C8; --shadow:rgba(2,6,20,.55);
-  --accent:#F4EFE3; --accent-deep:#FFFFFF; --accent-ink:#0B1736; --accent-wash:rgba(244,239,227,.08); --accent-soft:#1C2D5E;
-  --key-bed:#050B1E; --key-white:#1B2A57; --key-black:#070E26; --key-out:#111E43; --key-in:#1B2A57; --key-hot:#34477E;
+  --bg:#040D2A; --surface:#03091F; --surface-2:#08153A; --ink:#F4EFE3; --ink-2:#C4C9DB; --ink-soft:#C4C9DB; --muted:#97A1C0;
+  --line:#142048; --rule:#D9D4C8; --shadow:rgba(2,6,20,.55);
+  --accent:#F4EFE3; --accent-deep:#FFFFFF; --accent-ink:#040D2A; --accent-wash:rgba(244,239,227,.08); --accent-soft:#0F1D4B;
+  --key-bed:#020516; --key-white:#0E1B45; --key-black:#03071D; --key-out:#071235; --key-in:#0E1B45; --key-hot:#203164;
   /* range keyboard: out-of-range keys sink into the navy, so it reads as a range control first and a piano second */
-  --pk-w:#E6DFCF; --pk-b:#0A1026; --pk-dim-w:#132148; --pk-dim-b:#0D1938; --pk-hot-w:#C9BEA5; --pk-hot-b:#2E3F70;
-  --roll-white:#13224A; --roll-black:#0F1C3F; --roll-sep:#22315C;
+  --pk-w:#E6DFCF; --pk-b:#04081C; --pk-dim-w:#081439; --pk-dim-b:#050E2B; --pk-hot-w:#C9BEA5; --pk-hot-b:#1C2B58;
+  --roll-white:#08153A; --roll-black:#061131; --roll-sep:#142048;
   --good:#2D9B7B; --warn:#A1790C; --crit:#F94A64; --none:#6F7DAE; --crit-text:#FF9AA5;
   --series-1:#3DA2BE; --series-2:#8968F4;       /* progress chart: start, landing */
   --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
   --sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
-[data-tone="good"]{--tone:var(--good);--tone-ink:#0B1736}
-[data-tone="warn"]{--tone:var(--warn);--tone-ink:#0B1736}
-[data-tone="crit"]{--tone:var(--crit);--tone-ink:#0B1736}
-[data-tone="none"]{--tone:var(--none);--tone-ink:#0B1736}
+[data-tone="good"]{--tone:var(--good);--tone-ink:#040D2A}
+[data-tone="warn"]{--tone:var(--warn);--tone-ink:#040D2A}
+[data-tone="crit"]{--tone:var(--crit);--tone-ink:#040D2A}
+[data-tone="none"]{--tone:var(--none);--tone-ink:#040D2A}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -110,16 +110,21 @@ svg text{font-family:var(--sans);font-weight:500}
 .kbd svg{display:block;width:100%;height:auto;overflow:visible}
 
 /* range picker: the keyboard is the control; out of range is greyed, your range is full black and white */
-.rangeright{display:flex;align-items:center;gap:10px}
+/* the heading: title left, range, sound and reset right; if that won't fit on one line, the right side drops below
+   rather than the title breaking */
+.rangecard .card-head{flex-wrap:wrap;row-gap:4px}
+.rangecard .card-head h2{white-space:nowrap}
+.rangeright{display:flex;align-items:center;gap:6px;margin-left:auto}
+.rangeright .rangeval{margin-right:2px}
 .rangeval{font-size:13px;color:var(--ink-2);white-space:nowrap}
 .rangeval b{display:inline-block;color:var(--ink);font:500 22px/1 var(--display)}
 .rangecard .card-head h2{font:italic 400 30px/1.05 var(--display);letter-spacing:0;text-transform:none}
 .reset{position:relative;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none;
-  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),border-color var(--t-quick),color var(--t-quick)}
+  transition:opacity var(--t-quick) var(--ease-out),transform var(--t-base) var(--ease-spring),width var(--t-base) var(--ease-out),margin var(--t-base) var(--ease-out),border-color var(--t-quick),color var(--t-quick)}
 .reset svg{width:14px;height:14px;stroke-width:2}
 .reset::after{content:"";position:absolute;inset:-8px;border-radius:50%}
 .reset:hover{border-color:var(--ink);color:var(--ink)}
-.reset:disabled{opacity:0;transform:scale(.5) rotate(90deg);cursor:default}
+.reset:disabled{opacity:0;transform:scale(.5) rotate(90deg);cursor:default;width:0;margin-left:-6px;border-width:0}
 .rangeval.tick b{animation:tick var(--t-base) var(--ease-spring)}
 @keyframes tick{from{transform:translateY(-3px);opacity:.3}}
 .picker{position:relative;margin-top:4px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
@@ -131,7 +136,7 @@ svg text{font-family:var(--sans);font-weight:500}
   transition:background-color var(--t-quick) var(--ease-out),transform var(--t-instant) var(--ease-out)}
 .pkeys .wk.in{background:var(--pk-w)}
 .pkeys .bk.in{background:var(--pk-b)}
-.pkeys .wk.hot{background:var(--pk-hot-w);transform:scaleY(.985);box-shadow:inset 0 -3px 0 rgba(14,26,72,.12)}
+.pkeys .wk.hot{background:var(--pk-hot-w);transform:scaleY(.985);box-shadow:inset 0 -3px 0 rgba(10,19,54,.12)}
 .pkeys .bk.hot{background:var(--pk-hot-b);transform:scaleY(.96)}
 .ptrack{position:relative;height:40px}
 .ptrack::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
@@ -197,11 +202,12 @@ svg text{font-family:var(--sans);font-weight:500}
 
 /* run */
 .runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
-/* the sound button: an icon at the top right of the home screen (it scrolls with it), softened at rest; a hairline
+/* the sound button: an icon in the range card's heading, next to the piano it's for, softened at rest; a hairline
    ring shows on hover. 44 px to tap, whatever the icon's size. It pulses (the nudge pattern) when the page wants sound */
-.soundbtn{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(10px,calc(50vw - 280px + 6px));width:44px;height:44px;padding:0;
+.soundbtn{position:relative;width:34px;height:34px;padding:0;flex:none;
   display:grid;place-items:center;border-radius:50%;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;
   transition:color var(--t-quick),border-color var(--t-quick),transform var(--t-instant) var(--ease-out)}
+.soundbtn::after{content:"";position:absolute;inset:-5px;border-radius:50%}
 .soundbtn:hover{color:var(--ink);border-color:var(--line)}
 .soundbtn:active{transform:scale(.92)}
 .soundbtn .on{display:none}
@@ -389,11 +395,15 @@ svg text{font-family:var(--sans);font-weight:500}
 .ov .zero{stroke:var(--rule);stroke-opacity:.55;stroke-width:1.25}
 .ov .lbl{font:600 9.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;fill:var(--muted)}
 .ov .tick{font:700 11px var(--sans);fill:var(--muted)}
-.ov .ln{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55;transition:opacity var(--t-quick) var(--ease-out),stroke-width var(--t-quick) var(--ease-out)}
+.ov .ln{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:var(--o,.55);transition:opacity var(--t-quick) var(--ease-out),stroke-width var(--t-quick) var(--ease-out)}
 .ov .sd{fill:var(--tone);stroke:var(--bg);stroke-width:1.5;transition:opacity var(--t-quick) var(--ease-out)}
-.ov .has-sel :is(.ln,.sd){opacity:.14}
+.ov .has-sel :is(.ln,.sd){opacity:calc(var(--o,.55) * .26)}
 .ov .has-sel .ln.sel{opacity:1;stroke-width:2.75}
 .ov .has-sel .sd.sel{opacity:1}
+/* on the home screen, every note of your recent rounds: older rounds fade (--o), one round is bright with its Starts */
+.ov.hist .has-sel .ln:not(.sel){opacity:var(--o)}
+.ov.hist .has-sel .ln.sel{stroke-width:2}
+.ov.hist .sd:not(.sel){display:none}
 .ov .nm{font:800 12px var(--sans);fill:var(--ink)}
 .ov+.caption{margin-top:6px;margin-bottom:14px}
 .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin-top:2px}

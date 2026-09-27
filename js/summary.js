@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=a6cc3cdaeb';
-import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=a6cc3cdaeb';
-import { bestScore, fmtDay } from './home.js?v=a6cc3cdaeb';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=a6cc3cdaeb';
-import { SCORING } from './rescore.js?v=a6cc3cdaeb';
-import { drawOverlay, markOverlay } from './overlay.js?v=a6cc3cdaeb';
-import { show } from './round.js?v=a6cc3cdaeb';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=a6cc3cdaeb';
-import { run, setRound } from './state.js?v=a6cc3cdaeb';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=a6cc3cdaeb';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=a6cc3cdaeb';
+import { floorDb, thrDb } from './audio/mic.js?v=7edc0e4a45';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=7edc0e4a45';
+import { bestScore, fmtDay } from './home.js?v=7edc0e4a45';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=7edc0e4a45';
+import { CURVE, SCORING } from './rescore.js?v=7edc0e4a45';
+import { drawOverlay, markOverlay } from './overlay.js?v=7edc0e4a45';
+import { show } from './round.js?v=7edc0e4a45';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=7edc0e4a45';
+import { run, setRound } from './state.js?v=7edc0e4a45';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=7edc0e4a45';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=7edc0e4a45';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -115,7 +115,7 @@ export function endRound() {
   r.ts = Date.now();
   renderSummary(r, { score, landing, prevBest, before, fresh: true });
   if (score != null) {
-    const rec = { ts: r.ts, v: SCORING, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
+    const rec = { ts: r.ts, v: SCORING, curve: CURVE, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
       notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, bleed: n.bleed ?? null, trace: packTrace(n.trace), rec: !!n.audio })),
       ...(r.retried.length ? { retried: r.retried } : {}) };
     const clips = r.notes.map((n, i) => n.audio && { id: `${r.ts}:${i}`, round: r.ts, note: i, midi: n.midi, ...n.audio }).filter(Boolean);
@@ -171,7 +171,7 @@ let summaryRun = null, summarySel = null;
 // detail below shows it: its scores, in words, and its recording to play back (the playhead runs across the chart).
 export function drawNotesChart(replay = false) {
   const el = $('#overlay'); if (!summaryRun) return;
-  drawOverlay(el, summaryRun.notes, summarySel, replay);
+  drawOverlay(el, summaryRun.notes, { sel: summarySel, replay });
   el._pick = pickDetail;
 }
 export function pickDetail(i) {

@@ -1,12 +1,13 @@
 // The home screen: the range picker, the mic tester, and progress across rounds.
 
-import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=a6cc3cdaeb';
-import { blip, pianoReady } from './audio/piano.js?v=a6cc3cdaeb';
-import { failStart } from './round.js?v=a6cc3cdaeb';
-import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings } from './storage.js?v=a6cc3cdaeb';
-import { openRound } from './summary.js?v=a6cc3cdaeb';
-import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=a6cc3cdaeb';
-import { drawWave } from './wave.js?v=a6cc3cdaeb';
+import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=7edc0e4a45';
+import { blip, pianoReady } from './audio/piano.js?v=7edc0e4a45';
+import { drawOverlay, markOverlay } from './overlay.js?v=7edc0e4a45';
+import { failStart } from './round.js?v=7edc0e4a45';
+import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings, unpackTrace } from './storage.js?v=7edc0e4a45';
+import { openRound } from './summary.js?v=7edc0e4a45';
+import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=7edc0e4a45';
+import { drawWave } from './wave.js?v=7edc0e4a45';
 
 export function renderRange() {
   paintPicker();
@@ -158,7 +159,7 @@ export function renderHistory() {
   $('#histLegend').hidden = $('#histTbl').hidden = !n;
   // nothing saved yet: no card at all, just one faded line (with Import, to bring rounds over from another device)
   $('#histCard').hidden = !n; $('#histEmpty').hidden = !!n;
-  if (!n) { el.innerHTML = ''; el._g = null; $('#histTrend').hidden = true; return; }
+  if (!n) { el.innerHTML = ''; el._g = null; $('#histTrend').hidden = true; drawHistNotes(false); return; }
   const Wd = Math.max(260, el.clientWidth || 480), H = 170, padL = 40, padR = 12, padT = 12, padB = 24;
   const X = (i) => n === 1 ? (padL + Wd - padR) / 2 : padL + 8 + i / (n - 1) * (Wd - padL - padR - 16);
   const Y = (v) => padT + (1 - v / 100) * (H - padT - padB);
@@ -188,10 +189,12 @@ export function renderHistory() {
       xh.style.transform = `translateX(${g.X(i)}px)`; xh.setAttribute('visibility', 'visible');
       if (!showing) { void xh.getBoundingClientRect(); xh.style.transition = ''; }
       tip.textContent = `${fmtWhen(r.ts)} · start ${r.score}% · landing ${r.landing == null ? '—' : r.landing + '%'}`;
+      el._at = i; brightRound(i);                   // and bring that round's notes up on the chart below
       placeTip(tip, g.X(i) * box.width / g.Wd, g.Y(Math.max(r.score, r.landing ?? 0)) * box.height / g.H - 12, box.width);
     };
     el.addEventListener('pointermove', move); el.addEventListener('pointerdown', move);
-    el.addEventListener('pointerleave', () => { hideTip(el.querySelector('.tip-pop')); const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); });
+    el.addEventListener('pointerleave', () => { hideTip(el.querySelector('.tip-pop')); const xh = el.querySelector('.xh'); if (xh) xh.setAttribute('visibility', 'hidden'); brightRound(histSel); });
+    el.addEventListener('click', () => { if (el._at != null) { histSel = el._at; brightRound(histSel); } });
   }
   if (n >= 6) {
     const k = Math.min(5, Math.floor(n / 2)), a = rounds.slice(-2 * k, -k), b = rounds.slice(-k);
@@ -199,9 +202,34 @@ export function renderHistory() {
     $('#histTrend').textContent = `Last ${k} rounds: ${avg(b, 'score')}% start, ${avg(b, 'landing')}% landing. The ${k} before: ${avg(a, 'score')}%, ${avg(a, 'landing')}%.`;
     $('#histTrend').hidden = false;
   } else $('#histTrend').hidden = true;
+  drawHistNotes(fresh);
   $('#histTable').innerHTML = `<table><thead><tr><th>When</th><th>Range</th><th>Start</th><th>Landing</th><th></th></tr></thead><tbody>${
     [...rounds].reverse().map((r) => `<tr><td>${fmtWhen(r.ts)}</td><td>${nname(r.lo)}–${nname(r.hi)}</td><td>${r.score}%</td><td>${r.landing == null ? '—' : r.landing + '%'}</td><td><button type="button" class="linkbtn" data-open="${r.ts}">Open</button></td></tr>`).join('')}</tbody></table>`;
   dataLine();
+}
+
+// Every note of your last few rounds on one chart (overlay.js): older rounds fainter, one round bright, the latest
+// unless you point at another on the progress chart or tap one of its lines.
+const HIST_ROUNDS = 12;
+let histSel = null;
+function drawHistNotes(replay) {
+  const el = $('#histOverlay'), n = rounds.length, first = Math.max(0, n - HIST_ROUNDS), notes = [];
+  for (let j = first; j < n; j++) for (const x of rounds[j].notes) if (x.kind === 'ok' && x.trace) notes.push({ ...x, trace: unpackTrace(x.trace), round: j });
+  el.hidden = $('#histOvCap').hidden = !notes.length;
+  if (!notes.length) { histSel = null; return; }
+  if (histSel == null || histSel < first || histSel >= n) histSel = n - 1;
+  const span = Math.max(1, n - 1 - first);
+  drawOverlay(el, notes, { sel: histSel, replay, group: (x) => x.round, fade: (x) => 0.1 + 0.22 * (x.round - first) / span });
+  el._first = first;
+  el._pick = (g) => { histSel = g ?? n - 1; brightRound(histSel); };
+  brightRound(histSel);
+}
+function brightRound(i) {
+  const el = $('#histOverlay'), n = rounds.length, r = rounds[i];
+  if (!r || el.hidden || i < el._first) return;
+  markOverlay(el, i);
+  const k = n - el._first;
+  $('#histOvCap').textContent = `${k === 1 ? 'Every note of your round.' : `Every note of your last ${k} rounds, older ones fainter.`} Bright: ${i === n - 1 ? 'your latest round' : fmtWhen(r.ts)}, ${r.score}% start.`;
 }
 
 $('#histTable').addEventListener('click', (e) => { const b = e.target.closest('[data-open]'); if (b) { const rec = rounds.find((r) => r.ts === +b.dataset.open); if (rec) openRound(rec); } });

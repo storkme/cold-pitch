@@ -1,8 +1,8 @@
 // Settings (localStorage), rounds and recordings (IndexedDB), and moving them in and out with Export and Import.
 
-import { renderHistory } from './home.js?v=a6cc3cdaeb';
-import { rescore } from './rescore.js?v=a6cc3cdaeb';
-import { $, clamp, MAX_NOTE, MIN_NOTE, MIN_SPAN } from './util.js?v=a6cc3cdaeb';
+import { renderHistory } from './home.js?v=7edc0e4a45';
+import { rescore } from './rescore.js?v=7edc0e4a45';
+import { $, clamp, MAX_NOTE, MIN_NOTE, MIN_SPAN } from './util.js?v=7edc0e4a45';
 
 /* ---------- storage ---------- */
 // Settings live in localStorage. Finished rounds, with every note's full pitch curve, live in IndexedDB,
@@ -119,9 +119,14 @@ $('#importFile').addEventListener('change', async (e) => {
   } catch (err) { $('#dataMsg').textContent = 'Not a Cold Pitch export.'; }
 });
 DB.clipKeys().then((k) => { clipCount = k.length; dataLine(); }).catch(() => {});
-// Rounds scored the older way are re-scored from their recordings (rescore.js), then the history redrawn.
+// Rounds scored the older way are re-scored (rescore.js), then the history redrawn.
 function rescoreSaved() {
-  rescore().then((n) => { if (n) { renderHistory(); $('#dataMsg').textContent = `Re-scored ${n} round${n === 1 ? '' : 's'} from their recordings.`; } }).catch(() => {});
+  const count = (n) => `${n} round${n === 1 ? '' : 's'}`;
+  rescore().then(({ reread, recurved }) => {
+    if (!reread && !recurved) return;
+    renderHistory();
+    $('#dataMsg').textContent = [reread && `Re-scored ${count(reread)} from their recordings.`, recurved && `Moved ${count(recurved)} onto the new, gentler scoring.`].filter(Boolean).join(' ');
+  }).catch(() => {});
 }
 DB.rounds().then((rs) => { rounds = rs.sort((a, b) => a.ts - b.ts); renderHistory(); rescoreSaved(); })
   .catch(() => { $('#dataMsg').textContent = 'This browser won’t store rounds. Export to keep them.'; });
