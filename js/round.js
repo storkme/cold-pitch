@@ -1,16 +1,16 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, scoring what was sung,
 // and the practice note.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=c0ed0635fd';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=c0ed0635fd';
-import { readNote } from './audio/pitch.js?v=c0ed0635fd';
-import { renderRange, stopTester, tester } from './home.js?v=c0ed0635fd';
-import { duo, scoreNote, sentence } from './scoring.js?v=c0ed0635fd';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=c0ed0635fd';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=c0ed0635fd';
-import { rounds, saveSettings, settings } from './storage.js?v=c0ed0635fd';
-import { endRound, stopClip } from './summary.js?v=c0ed0635fd';
-import { $, clamp, HOLD, hz, motion, nname, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=c0ed0635fd';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=c238679ebb';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=c238679ebb';
+import { readNote } from './audio/pitch.js?v=c238679ebb';
+import { renderRange, stopTester, tester } from './home.js?v=c238679ebb';
+import { duo, scoreNote, sentence } from './scoring.js?v=c238679ebb';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=c238679ebb';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=c238679ebb';
+import { rounds, saveSettings, settings } from './storage.js?v=c238679ebb';
+import { endRound, stopClip } from './summary.js?v=c238679ebb';
+import { $, clamp, HOLD, hz, motion, nname, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=c238679ebb';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back

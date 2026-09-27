@@ -1,9 +1,9 @@
 // The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip, the listening strip,
 // and the practice note's guidance.
 
-import { run } from './state.js?v=c0ed0635fd';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=c0ed0635fd';
-import { drawWave } from './wave.js?v=c0ed0635fd';
+import { run } from './state.js?v=c238679ebb';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=c238679ebb';
+import { drawWave } from './wave.js?v=c238679ebb';
 
 /* ---------- stage ---------- */
 const STAGE = {
@@ -69,7 +69,7 @@ export function renderProgress() {
 // like a voice, which is what voids a note; then Listening, and Hearing you once a note starts.
 export const PEEK_VOID = 5;                                // voice frames in the imagine step that void a note (see finish)
 const LABELS = { quiet: 'Silent', noise: 'Noise is fine', hum: 'Voice heard', void: 'Voice heard. Won’t count.', listening: 'Listening', hearing: 'Hearing you' };
-const COACH = { tone: 'Nothing here is timed or saved.', hold: 'When the circle closes, sing it out loud.', loud: 'That was out loud. Keep it inside.' };
+const COACH = { tone: 'Nothing here is timed or saved. Headphones help, and hearing yourself in them helps more.', hold: 'When the circle closes, sing it out loud.', loud: 'That was out loud. Keep it inside.' };
 export function drawListen(r, phase, now) {
   const go = Number.isFinite(r.go) ? r.go : null;
   drawWave($('#wave'), { from: r.bleedEnd, zone: [r.bleedEnd, go ?? now], mark: go });

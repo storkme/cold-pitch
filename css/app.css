@@ -96,7 +96,6 @@ svg text{font-family:var(--sans);font-weight:500}
 .hero h1{font:400 52px/1 var(--display);letter-spacing:-.015em;text-wrap:balance;font-optical-sizing:auto}
 .hero .motto{font:400 25px/1.2 var(--display);margin-top:10px}
 .hero .motto em{font-style:italic}
-.hero .about{color:var(--muted);margin-top:16px;max-width:40ch;font-size:15px;line-height:1.55}
 .card{background:none;border-radius:0;padding:18px 0 0;border-top:1px solid var(--rule)}
 .home-grid{display:grid;gap:22px;margin-top:30px}
 .home-grid>.card:not(:first-child){margin-top:16px}
@@ -192,7 +191,6 @@ svg text{font-family:var(--sans);font-weight:500}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .btn.small{font-size:11px;padding:10px 12px}
 .center{text-align:center}
-.tip{color:var(--muted);font-size:13.5px;text-align:center;max-width:44ch;margin:0 auto;font-style:normal}
 .err{color:var(--crit-text);font-weight:600;text-align:center}
 .homelinks{display:flex;justify-content:center;gap:26px;margin-top:-6px}
 .homelinks .linkbtn{font-size:14px;color:var(--muted)}

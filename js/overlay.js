@@ -7,8 +7,8 @@
 // - The home screen shows every note of your recent rounds, older rounds fading, with one round's notes bright
 //   (your latest, or the one you point at on the progress chart or tap here).
 
-import { tierFor } from './scoring.js?v=c0ed0635fd';
-import { clamp, median, motion, nname, WIN } from './util.js?v=c0ed0635fd';
+import { tierFor } from './scoring.js?v=c238679ebb';
+import { clamp, median, motion, nname, WIN } from './util.js?v=c238679ebb';
 
 const R = 3;            // semitones either side of the note; curves beyond it leave the chart
 const SETTLE = 0.45;    // s: where Landing is read from (see pitch.js)
