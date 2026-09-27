@@ -1,9 +1,9 @@
 // The piano: recorded samples played by the engine, the hum that stands in until they're ready, the sound
 // button, and notes held down on a drawn keyboard.
 
-import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=bbdc79cbc6';
-import { ctx } from './mic.js?v=bbdc79cbc6';
-import { $, clamp, hz } from '../util.js?v=bbdc79cbc6';
+import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=ab2f569ee1';
+import { ctx } from './mic.js?v=ab2f569ee1';
+import { $, clamp, hz } from '../util.js?v=ab2f569ee1';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
    The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:

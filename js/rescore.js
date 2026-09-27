@@ -12,10 +12,10 @@
 // needed: every round's Start and Landing are worked out again from its notes, keeping the earlier ones under
 // `wasCurve`. Curve 2 (2026-09-27) is gentler on near misses.
 
-import { framesOf, leadIn, noteBegins, readNote, roomOf } from './audio/pitch.js?v=bbdc79cbc6';
-import { accuracy } from './scoring.js?v=bbdc79cbc6';
-import { DB, packTrace, rounds } from './storage.js?v=bbdc79cbc6';
-import { hz, mean, r1 } from './util.js?v=bbdc79cbc6';
+import { framesOf, leadIn, noteBegins, readNote, roomOf } from './audio/pitch.js?v=ab2f569ee1';
+import { accuracy } from './scoring.js?v=ab2f569ee1';
+import { DB, packTrace, rounds } from './storage.js?v=ab2f569ee1';
+import { hz, mean, r1 } from './util.js?v=ab2f569ee1';
 
 export const SCORING = 2, CURVE = 2;
 

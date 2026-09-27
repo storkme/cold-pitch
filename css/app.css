@@ -239,6 +239,9 @@ svg text{font-family:var(--sans);font-weight:500}
 .orb .glyph{font:500 40px var(--sans);fill:var(--tone-ink,var(--ink));dominant-baseline:central;text-anchor:middle;opacity:0;transform-box:fill-box;transform-origin:center}
 .stage[data-phase="calib"] .core{animation:breathe 1.6s ease-in-out infinite}
 .stage[data-phase="tone"] .core{fill:var(--accent-wash)}
+/* the note being played, named in the middle of the circle while you hear it; gone by the imagine step */
+.orb .notename{font:italic 400 38px var(--display);font-optical-sizing:none;font-variation-settings:"opsz" 18;fill:var(--ink);dominant-baseline:central;text-anchor:middle;opacity:0;transition:opacity var(--t-quick) var(--ease-out)}
+.stage[data-phase="tone"] .notename{opacity:1}
 .stage[data-phase="tone"] .ring{animation:ripple 1.4s ease-out infinite}
 .stage[data-phase="tone"] .ring:nth-of-type(2){animation-delay:.47s}
 .stage[data-phase="tone"] .ring:nth-of-type(3){animation-delay:.93s}

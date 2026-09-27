@@ -1,17 +1,17 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, scoring what was sung,
 // and the practice note.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=bbdc79cbc6';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=bbdc79cbc6';
-import { readNote } from './audio/pitch.js?v=bbdc79cbc6';
-import { renderRange, stopTester, tester } from './home.js?v=bbdc79cbc6';
-import { mountRoll } from './roll.js?v=bbdc79cbc6';
-import { duo, scoreNote, sentence } from './scoring.js?v=bbdc79cbc6';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=bbdc79cbc6';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=bbdc79cbc6';
-import { rounds, saveSettings, settings } from './storage.js?v=bbdc79cbc6';
-import { endRound, stopClip } from './summary.js?v=bbdc79cbc6';
-import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=bbdc79cbc6';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=ab2f569ee1';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=ab2f569ee1';
+import { readNote } from './audio/pitch.js?v=ab2f569ee1';
+import { renderRange, stopTester, tester } from './home.js?v=ab2f569ee1';
+import { mountRoll } from './roll.js?v=ab2f569ee1';
+import { duo, scoreNote, sentence } from './scoring.js?v=ab2f569ee1';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=ab2f569ee1';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=ab2f569ee1';
+import { rounds, saveSettings, settings } from './storage.js?v=ab2f569ee1';
+import { endRound, stopClip } from './summary.js?v=ab2f569ee1';
+import { $, clamp, HOLD, hz, motion, nname, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=ab2f569ee1';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
@@ -100,7 +100,7 @@ function playNext() {
   setRound({ midi: m, T, tone, toneEnd: heardEnd, bleedEnd: heardEnd + inLat + 0.25, go: heardEnd + Math.max(hold, inLat + 0.3),
     frames: [], start: 0, peek: 0, noise: false, hears: 0, bleed: false, state: 'tone' });
   setLastFrameAt(performance.now());
-  $('#stage').dataset.midi = m;
+  $('#stage').dataset.midi = m; $('#noteName').textContent = nname(m);
   $('#noteNum').textContent = `Note ${run.notes.length + 1} of ${ROUND_LEN}`; restart($('#noteNum'), 'swap');
   setStage('tone'); renderProgress();
 }
@@ -252,7 +252,7 @@ export function practiceNote() {
   setRound({ midi: m, practice: true, T: 0, tone: null, toneEnd: Infinity, bleedEnd: Infinity, go: Infinity, calmFrom: Infinity, loudAt: -Infinity, voiced: 0,
     frames: [], start: 0, peek: 0, noise: false, hears: 0, bleed: false, state: 'tone' });
   setLastFrameAt(performance.now());
-  $('#stage').dataset.midi = m;
+  $('#stage').dataset.midi = m; $('#noteName').textContent = nname(m);
   $('#noteNum').textContent = 'Practice note'; restart($('#noteNum'), 'swap');
   $('#steps li[data-s="hold"]').textContent = 'Imagine';
   setStage('tone');
