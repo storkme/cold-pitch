@@ -1,13 +1,13 @@
 // The home screen: the range picker, the mic tester, and progress across rounds.
 
-import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=46a1bebe13';
-import { blip, pianoReady } from './audio/piano.js?v=46a1bebe13';
-import { drawOverlay, markOverlay } from './overlay.js?v=46a1bebe13';
-import { failStart } from './round.js?v=46a1bebe13';
-import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings, unpackTrace } from './storage.js?v=46a1bebe13';
-import { openRound } from './summary.js?v=46a1bebe13';
-import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=46a1bebe13';
-import { drawWave } from './wave.js?v=46a1bebe13';
+import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=b3d99147c5';
+import { blip, pianoReady } from './audio/piano.js?v=b3d99147c5';
+import { drawOverlay, markOverlay } from './overlay.js?v=b3d99147c5';
+import { failStart } from './round.js?v=b3d99147c5';
+import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings, unpackTrace } from './storage.js?v=b3d99147c5';
+import { openRound } from './summary.js?v=b3d99147c5';
+import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=b3d99147c5';
+import { drawWave } from './wave.js?v=b3d99147c5';
 
 export function renderRange() {
   paintPicker();
