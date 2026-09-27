@@ -1,9 +1,9 @@
 // The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip, the listening strip,
 // and the practice note's guidance.
 
-import { run } from './state.js?v=ab2f569ee1';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=ab2f569ee1';
-import { drawWave } from './wave.js?v=ab2f569ee1';
+import { run } from './state.js?v=c0ed0635fd';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=c0ed0635fd';
+import { drawWave } from './wave.js?v=c0ed0635fd';
 
 /* ---------- stage ---------- */
 const STAGE = {
@@ -11,7 +11,7 @@ const STAGE = {
   tone: ['Listen', ''],
   hold: ['Imagine it', 'Hear it in your head. Sing on the cue.'],     // replaced per note by the rotating cue below
   sing: ['Sing!', 'Straight onto the note.'],
-  capture: ['Keep going', 'A second is plenty.'],
+  capture: ['Sing!', 'Straight onto the note.'],       // unchanged once your voice comes in: nothing new to read mid-note
   done: ['', ''],
 };
 // The practice note (see startPractice) explains the first two steps in its own words; nothing there is timed.
@@ -32,11 +32,12 @@ export function setStage(p) {
   if (p !== 'done') { delete st.dataset.tone; delete st.dataset.split; $('#glyph').textContent = ''; }
   const practice = !!(run && run.practice), cue = p === 'hold' && !practice && run && run.cue;
   const [say, sub] = practice && PRACTICE[p] ? PRACTICE[p] : cue ? [`${cue[0]} it`, cue[1]] : STAGE[p];
+  const changed = $('#say').textContent !== say || $('#sub').textContent !== sub;
   $('#say').textContent = say; $('#sub').textContent = sub;
   $('#coach').hidden = !(practice && (p === 'tone' || p === 'hold'));
   $('#coachRow').hidden = p !== 'tone';
   if (practice) $('#coachText').textContent = COACH[p] || '';
-  if (p !== 'done') { restart($('#say'), 'swap'); restart($('#sub'), 'swap'); }
+  if (p !== 'done' && changed) { restart($('#say'), 'swap'); restart($('#sub'), 'swap'); }
   const STEPS = ['tone', 'hold', 'sing'], step = p === 'capture' ? 'sing' : p;
   if (STEPS.includes(step)) {                      // Listen · Hold · Sing: where you are, and what comes next
     for (const li of $('#steps').querySelectorAll('li')) {

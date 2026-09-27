@@ -1,24 +1,19 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js?v=ab2f569ee1';
-import { audioOut, muted, setMuted } from './audio/piano.js?v=ab2f569ee1';
-import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=ab2f569ee1';
-import { drawRoll } from './roll.js?v=ab2f569ee1';
-import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=ab2f569ee1';
-import { drawListen, setStage } from './stage.js?v=ab2f569ee1';
-import { lastFrameAt, round } from './state.js?v=ab2f569ee1';
-import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=ab2f569ee1';
-import { $, clamp } from './util.js?v=ab2f569ee1';
+import { calib, ctx, lastDb, stream } from './audio/mic.js?v=c0ed0635fd';
+import { audioOut, muted, setMuted } from './audio/piano.js?v=c0ed0635fd';
+import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=c0ed0635fd';
+import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=c0ed0635fd';
+import { drawListen, setStage } from './stage.js?v=c0ed0635fd';
+import { lastFrameAt, round } from './state.js?v=c0ed0635fd';
+import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=c0ed0635fd';
+import { $, clamp } from './util.js?v=c0ed0635fd';
 
 function tick() {
   requestAnimationFrame(tick);
   if (tester && tester.live) drawTester();
   if ((calib || (round && round.state !== 'done')) && performance.now() - lastFrameAt > 2000) micLost();
-  const lv = ctx && stream ? clamp((lastDb + 80) / 60, 0, 1) : 0;
-  const bars = $('#mic').children;
-  for (let i = 0; i < 4; i++) bars[i].classList.toggle('lit', lv > (i + 0.5) / 4.5);
-  $('#mic').classList.toggle('voice', lastVoice);
   const r = round;
   if (!r || r.state === 'done' || !ctx) return;
   const now = ctx.currentTime;
@@ -29,7 +24,11 @@ function tick() {
     const p = r.practice ? calmProgress(r, now) : (now - r.toneEnd) / (r.go - r.toneEnd);
     $('#holdRing').setAttribute('stroke-dashoffset', (452.39 * (1 - p)).toFixed(1));
   }
-  else if (r.state === 'capture') { phase = 'capture'; $('#core').style.transform = `scale(${(0.92 + lv * 0.22).toFixed(3)})`; }
+  else if (r.state === 'capture') {
+    phase = 'capture';
+    const lv = stream ? clamp((lastDb + 80) / 60, 0, 1) : 0;
+    $('#core').style.transform = `scale(${(0.92 + lv * 0.22).toFixed(3)})`;
+  }
   else phase = 'sing';
   setStage(phase);
   if (phase !== 'tone') drawListen(r, phase, now);
@@ -72,7 +71,6 @@ document.addEventListener('keydown', (e) => {
 let rz = null;
 window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => {
   renderRange(); if (!$('#summary').hidden) { drawKeysMap(); drawNotesChart(); }
-  for (const el of document.querySelectorAll('.roll')) if (el._n && el.offsetParent) drawRoll(el, false);
 }, 80); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
 

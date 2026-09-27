@@ -1,6 +1,6 @@
 // How a note is scored and described: tiers, percentages and plain-language sentences.
 
-import { nname } from './util.js?v=ab2f569ee1';
+import { nname } from './util.js?v=c0ed0635fd';
 
 /* ---------- scoring words ---------- */
 // Tiers go by how far the first moment was from the note. Past half a semitone you were nearer a different note.
@@ -32,7 +32,7 @@ export function size(a) {
 export const off = (c) => Math.abs(c) < 15 ? 'right on the note' : `${size(Math.abs(c))} ${c < 0 ? 'flat' : 'sharp'}`;
 
 export function sentence(n) {
-  if (n.kind === 'silent') return 'No clear note heard. Check the mic level, top right.';
+  if (n.kind === 'silent') return 'No clear note heard.';
   const o = n.onset, s = n.settled;
   let txt = Math.abs(o) < 15 ? `Started right on ${nname(n.midi)}` : `Started ${off(o)}`;
   if (Math.abs(o) >= 70) txt += ` (near ${nname(n.midi + Math.round(o / 100))})`;

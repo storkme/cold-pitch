@@ -3,7 +3,7 @@
 // -> wet; both into a limiter, then the page's master volume (outNode). The room is silent (wet 0) until
 // engineRoom turns it on.
 
-import { outNode } from './piano.js?v=ab2f569ee1';
+import { outNode } from './piano.js?v=c0ed0635fd';
 
 // Start the engine on an audio context (once). Returns null if this browser can't run the worklet.
 export async function engineStart(ac) {
@@ -11,7 +11,7 @@ export async function engineStart(ac) {
   ac._engine = null;
   if (!ac.audioWorklet) return null;
   try {
-    await ac.audioWorklet.addModule(new URL('./voices.worklet.js?v=ab2f569ee1', import.meta.url).href);
+    await ac.audioWorklet.addModule(new URL('./voices.worklet.js?v=c0ed0635fd', import.meta.url).href);
     const node = new AudioWorkletNode(ac, 'cold-pitch-voices', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
     const lim = new AudioWorkletNode(ac, 'cold-pitch-limiter', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit' });
     const room = ac.createConvolver(), wet = ac.createGain();

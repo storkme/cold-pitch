@@ -1,9 +1,7 @@
 // The summary's range map, and making the keys of any drawn keyboard playable.
 
-import { noteOff, noteOn } from './audio/piano.js?v=ab2f569ee1';
-import { pauseRound } from './round.js?v=ab2f569ee1';
-import { run } from './state.js?v=ab2f569ee1';
-import { $, isBlack, MAX_NOTE, MIN_NOTE, nname, pc } from './util.js?v=ab2f569ee1';
+import { noteOff, noteOn } from './audio/piano.js?v=c0ed0635fd';
+import { isBlack, MAX_NOTE, MIN_NOTE, nname, pc } from './util.js?v=c0ed0635fd';
 
 /* ---------- the range map ---------- */
 const rb = (x, y, w, h, r) => `M${x},${y}h${w}v${h - r}q0,${r} ${-r},${r}h${-(w - 2 * r)}q${-r},0 ${-r},${-r}z`;
@@ -48,11 +46,9 @@ export function rangeMap(el, lo, hi, results, aria) {
 
 // Make the keys of a drawn keyboard playable: press to play and hold, slide onto another key to play that one.
 // `keyAt(x, y)` returns the key element (with data-m) under a point in this container; `mark(m, on)` shows it pressed.
-// During a round, playing pauses it first, so the sound can't land in the next note's silent hold.
 export function playable(container, keyAt, mark) {
   container.addEventListener('pointerdown', (e) => {
     const k = e.button === 0 && keyAt(e.clientX, e.clientY); if (!k) return;
-    if (run && !run.paused && !$('#run').hidden) { if ($('#sheet').hidden) return; pauseRound(); }
     e.preventDefault(); try { container.setPointerCapture(e.pointerId); } catch (err) {}
     let m = +k.dataset.m; noteOn(e.pointerId, m, e.pressure); mark(m, true);
     const move = (ev) => {

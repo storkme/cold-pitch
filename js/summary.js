@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=ab2f569ee1';
-import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=ab2f569ee1';
-import { bestScore, fmtDay } from './home.js?v=ab2f569ee1';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=ab2f569ee1';
-import { CURVE, SCORING } from './rescore.js?v=ab2f569ee1';
-import { drawOverlay, markOverlay } from './overlay.js?v=ab2f569ee1';
-import { show } from './round.js?v=ab2f569ee1';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=ab2f569ee1';
-import { run, setRound } from './state.js?v=ab2f569ee1';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=ab2f569ee1';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=ab2f569ee1';
+import { floorDb, thrDb } from './audio/mic.js?v=c0ed0635fd';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=c0ed0635fd';
+import { bestScore, fmtDay } from './home.js?v=c0ed0635fd';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=c0ed0635fd';
+import { CURVE, SCORING } from './rescore.js?v=c0ed0635fd';
+import { drawOverlay, markOverlay } from './overlay.js?v=c0ed0635fd';
+import { show } from './round.js?v=c0ed0635fd';
+import { duo, off, scoreNote, sentence, size, tierFromAcc, tierOf } from './scoring.js?v=c0ed0635fd';
+import { run, setRound } from './state.js?v=c0ed0635fd';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=c0ed0635fd';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=c0ed0635fd';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -155,9 +155,6 @@ function renderSummary(r, o) {
     chip.classList.toggle('quiet', !isBest || prevBest == null);
   }
   $('#doneTitle').textContent = !o.fresh ? `Round from ${fmtDay(r.ts)}` : score == null ? 'Round over' : 'Round complete';
-  const counts = new Map(); for (const n of r.notes) counts.set(n.tier.key, (counts.get(n.tier.key) || 0) + 1);
-  $('#tally').innerHTML = [...TIERS, OTHER.void, OTHER.silent].filter((t) => counts.get(t.key) || TIERS.includes(t))
-    .map((t, i) => `<span class="tal" style="--i:${i}"><i data-tone="${t.tone}">${t.icon}</i>${t.word} <b>${counts.get(t.key) || 0}</b></span>`).join('');
   $('#insights').innerHTML = insights(r.notes).map((f, i) => `<li style="--i:${i}"><b>${f.title}</b><span>${f.body}</span></li>`).join('');
   summaryRun = r;
   mapPick = null; drawKeysMap();
@@ -180,7 +177,7 @@ export function pickDetail(i) {
   markOverlay($('#overlay'), summarySel);
   for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(+c.dataset.i === summarySel));
   const d = $('#detail');
-  if (!n) { d.innerHTML = '<p class="caption faint">Tap a line or a note to see it and hear it back.</p>'; return; }
+  if (!n) { d.innerHTML = ''; return; }
   const canPlay = !!(n.audio || (n.rec && r.ts));
   d.innerHTML = `<div class="dhead"><span class="lead">Note ${i + 1}, ${nname(n.midi)}</span>${canPlay ? '<button type="button" class="btn small play">▶ Hear it</button>' : ''}</div>
     ${n.kind === 'ok' ? `<div class="duo">${duo(n)}</div>` : `<div class="verdict" data-tone="${n.tier.tone}"><span class="vicon">${n.tier.icon}</span><span class="vword">${n.tier.word}</span></div>`}

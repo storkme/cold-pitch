@@ -49,7 +49,6 @@
   --key-bed:#020516; --key-white:#0E1B45; --key-black:#03071D; --key-out:#071235; --key-in:#0E1B45; --key-hot:#203164;
   /* range keyboard: out-of-range keys sink into the navy, so it reads as a range control first and a piano second */
   --pk-w:#E6DFCF; --pk-b:#04081C; --pk-dim-w:#081439; --pk-dim-b:#050E2B; --pk-hot-w:#C9BEA5; --pk-hot-b:#1C2B58;
-  --roll-white:#08153A; --roll-black:#061131; --roll-sep:#142048;
   --good:#2D9B7B; --warn:#A1790C; --crit:#F94A64; --none:#6F7DAE; --crit-text:#FF9AA5;
   --series-1:#3DA2BE; --series-2:#8968F4;       /* progress chart: start, landing */
   --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
@@ -73,7 +72,7 @@ button{font-family:inherit}
 .smallcaps,.card h2{font:600 11.5px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
 svg text{font-family:var(--sans);font-weight:500}
 :is(.hero h1,.say,.done-title,.scorebox .score){font-optical-sizing:none;font-variation-settings:"opsz" 18}
-:is(.vword,.brand b,.rangeval b,.bubble b,.mini .mv,.insights b,.msg h2,.steps li::before){font-optical-sizing:none;font-variation-settings:"opsz" 11}
+:is(.vword,.rangeval b,.bubble b,.mini .mv,.insights b,.msg h2,.steps li::before){font-optical-sizing:none;font-variation-settings:"opsz" 11}
 
 /* buttons: printed, not pressed */
 .btn{font:600 12.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:14px 18px;border-radius:2px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
@@ -92,11 +91,6 @@ svg text{font-family:var(--sans);font-weight:500}
 .iconbtn:hover{background:var(--surface-2);color:var(--ink)}
 
 /* running head */
-.brand{display:flex;align-items:baseline;gap:10px;padding:2px 0 12px;margin-bottom:22px;border-bottom:1px solid var(--rule)}
-.brand .logo{display:none}
-.brand b{font:italic 500 22px/1 var(--display);letter-spacing:-.005em}
-.brand a{margin-left:auto;color:var(--ink-2);font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;transition:color var(--t-quick)}
-.brand a:hover{color:var(--ink)}
 
 /* home */
 .hero h1{font:400 52px/1 var(--display);letter-spacing:-.015em;text-wrap:balance;font-optical-sizing:auto}
@@ -159,7 +153,6 @@ svg text{font-family:var(--sans);font-weight:500}
 .bubble small{display:block;margin-top:5px;font:600 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;opacity:.7}
 .bubble i{position:absolute;bottom:-4px;left:var(--ax,50%);width:9px;height:9px;margin-left:-4.5px;background:inherit;transform:rotate(45deg)}
 .picker.dragging .bubble,.picker.peek .bubble{opacity:1;transform:translate(-50%,calc(-100% - 10px)) scale(1)}
-.mictest{display:grid;justify-items:center;gap:10px}
 .mtlive{display:grid;justify-items:center;gap:6px;width:100%;animation:enter var(--t-base) var(--ease-out)}
 #mtWave{display:block;width:100%;height:40px}
 #mtLabel{font:600 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
@@ -174,6 +167,8 @@ svg text{font-family:var(--sans);font-weight:500}
 .histempty{color:var(--muted);opacity:.75;font-size:14px;text-align:center;margin:6px 0 0}
 .histempty .linkbtn{font-size:14px;color:inherit;margin-left:4px}
 .tbl{margin-top:12px;interpolate-size:allow-keywords}
+.tbl+.tbl{margin-top:10px}
+#dataTbl .switch{margin-top:14px}
 .tbl summary{cursor:pointer;font:600 11.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);list-style:none;display:inline-flex;align-items:center;gap:8px;transition:color var(--t-quick)}
 .tbl summary::-webkit-details-marker{display:none}
 .tbl summary::before{content:"";border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform var(--t-quick) var(--ease-out)}
@@ -197,9 +192,10 @@ svg text{font-family:var(--sans);font-weight:500}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .btn.small{font-size:11px;padding:10px 12px}
 .center{text-align:center}
-.tip{color:var(--ink-2);font-size:14px;text-align:center;max-width:44ch;margin:0 auto;font-style:normal}
+.tip{color:var(--muted);font-size:13.5px;text-align:center;max-width:44ch;margin:0 auto;font-style:normal}
 .err{color:var(--crit-text);font-weight:600;text-align:center}
-.howbtn{justify-self:center;font-size:14px;color:var(--muted);margin-top:-6px}
+.homelinks{display:flex;justify-content:center;gap:26px;margin-top:-6px}
+.homelinks .linkbtn{font-size:14px;color:var(--muted)}
 
 /* run */
 .runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
@@ -223,11 +219,6 @@ svg text{font-family:var(--sans);font-weight:500}
 .seg.done{border-bottom-color:var(--tone);color:var(--ink)}
 .seg.now{border-bottom-color:var(--ink);animation:nowring 1.6s ease-in-out infinite}
 @keyframes nowring{50%{border-bottom-color:var(--line)}}
-.mic{display:flex;align-items:flex-end;gap:2px;height:16px;width:18px;flex:none}
-.mic i{flex:1;background:var(--line);transition:background-color var(--t-instant)}
-.mic i:nth-child(1){height:30%}.mic i:nth-child(2){height:55%}.mic i:nth-child(3){height:78%}.mic i:nth-child(4){height:100%}
-.mic i.lit{background:var(--muted)}
-.mic.voice i.lit{background:var(--ink)}
 .stage{display:grid;justify-items:center;text-align:center;gap:8px;padding-top:4vh}
 .notenum{font:600 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .orb{width:176px;height:176px;margin:10px 0 8px}
@@ -312,7 +303,7 @@ svg text{font-family:var(--sans);font-weight:500}
 .sheet-in{max-width:580px;margin:0 auto;display:grid;gap:12px}
 @keyframes rise{from{transform:translateY(40%);opacity:0}}
 /* a verdict mark: a ring in the verdict's colour around its sign */
-.vicon,.mini .mi,.tal i,.chip i,.scorebox .si{font-style:normal;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--tone);color:var(--tone);display:grid;place-items:center;flex:none}
+.vicon,.mini .mi,.chip i,.scorebox .si{font-style:normal;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--tone);color:var(--tone);display:grid;place-items:center;flex:none}
 .verdict{display:flex;align-items:center;gap:12px}
 .vicon{width:34px;height:34px;font:600 16px/1 var(--sans)}
 .vword{font:italic 400 30px/1 var(--display)}
@@ -340,13 +331,7 @@ svg text{font-family:var(--sans);font-weight:500}
 .msg .row{display:flex;gap:10px;flex-wrap:wrap}
 .msg .row .btn{flex:1}
 
-/* piano roll */
-.roll{position:relative}
-.roll svg{display:block;width:100%;touch-action:pan-y}
-.roll text,.kbd text,.chart text{font-family:var(--sans);font-weight:500}
-.rkey{fill:var(--ink);fill-opacity:0;cursor:pointer;touch-action:none;transition:fill-opacity var(--t-instant)}
-.rkey:hover{fill-opacity:.06}
-.rkey.down{fill:var(--ink);fill-opacity:.28}
+.kbd text,.chart text{font-family:var(--sans);font-weight:500}
 /* the range map: keys in the range card's colours, results above them; a tapped key is selected (ring, lit key) */
 .kbd .hit{fill:transparent;cursor:pointer;touch-action:none}
 .kbd .wkey{fill:var(--pk-dim-w)}.kbd .wkey.in{fill:var(--pk-w)}
@@ -358,13 +343,10 @@ svg text{font-family:var(--sans);font-weight:500}
 .kbd .mk.sel .ring{opacity:1}
 .kbd .dir{fill:var(--ink-2)}
 .kbd text.end{fill:var(--ink);font-weight:800}.kbd text.oct{fill:var(--muted);font-weight:700}
-.rollcap{margin-top:0}
-.roll .cap{font-size:12.5px;color:var(--ink-2);margin-top:4px}
 .tip-pop{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font:500 12.5px/1.3 var(--sans);padding:6px 9px;border-radius:2px;white-space:nowrap;z-index:2;
   opacity:0;visibility:hidden;transform:translate(-50%,-100%) translateY(4px) scale(.97);
   transition:opacity var(--t-quick) var(--ease-out),transform var(--t-quick) var(--ease-out),visibility 0s linear var(--t-quick),left var(--t-instant) var(--ease-out),top var(--t-instant) var(--ease-out)}
 .tip-pop.on{opacity:1;visibility:visible;transform:translate(-50%,-100%);transition-delay:0s}
-.tip-pop.track{transition-property:opacity,transform,visibility}
 .sdot{animation:pop var(--t-base) var(--ease-spring) backwards;transform-box:fill-box;transform-origin:center}
 
 /* summary */
@@ -376,14 +358,9 @@ svg text{font-family:var(--sans);font-weight:500}
 .scorebox .score{display:block;font:400 64px/1 var(--display);letter-spacing:-.02em;color:var(--ink)}
 .scorebox b{display:block;font:600 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;margin-top:10px}
 .scorebox .what{display:block;color:var(--ink-2);font-size:13.5px;line-height:1.35;margin-top:4px}
-.sumsub{color:var(--ink-2)}
+.sumsub{color:var(--ink-2);margin-bottom:38px}
 .bestchip{display:inline-block;margin-left:8px;font:600 10.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:6px 8px;border-radius:0;background:var(--ink);color:var(--bg);vertical-align:1px}
 .bestchip.quiet{background:none;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line)}
-.tally{display:flex;flex-wrap:wrap;gap:6px 18px;margin:16px 0 38px}
-.tal{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--ink-2);
-  animation:pop-soft var(--t-base) var(--ease-spring) backwards;animation-delay:calc((4 + var(--i,0)) * var(--t-step))}
-.tal i{width:22px;height:22px;font:600 11px/1 var(--sans)}
-.tal b{color:var(--ink);font-weight:700}
 .sum-grid{display:grid;gap:46px}
 .caption{font-size:13px;color:var(--ink-2);margin-top:12px}
 .caption.faint{color:var(--muted);opacity:.75}

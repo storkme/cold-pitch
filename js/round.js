@@ -1,17 +1,16 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, scoring what was sung,
 // and the practice note.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=ab2f569ee1';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=ab2f569ee1';
-import { readNote } from './audio/pitch.js?v=ab2f569ee1';
-import { renderRange, stopTester, tester } from './home.js?v=ab2f569ee1';
-import { mountRoll } from './roll.js?v=ab2f569ee1';
-import { duo, scoreNote, sentence } from './scoring.js?v=ab2f569ee1';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=ab2f569ee1';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=ab2f569ee1';
-import { rounds, saveSettings, settings } from './storage.js?v=ab2f569ee1';
-import { endRound, stopClip } from './summary.js?v=ab2f569ee1';
-import { $, clamp, HOLD, hz, motion, nname, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=ab2f569ee1';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=c0ed0635fd';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=c0ed0635fd';
+import { readNote } from './audio/pitch.js?v=c0ed0635fd';
+import { renderRange, stopTester, tester } from './home.js?v=c0ed0635fd';
+import { duo, scoreNote, sentence } from './scoring.js?v=c0ed0635fd';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=c0ed0635fd';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=c0ed0635fd';
+import { rounds, saveSettings, settings } from './storage.js?v=c0ed0635fd';
+import { endRound, stopClip } from './summary.js?v=c0ed0635fd';
+import { $, clamp, HOLD, hz, motion, nname, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=c0ed0635fd';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
@@ -129,7 +128,7 @@ function noteDone(n) {
   showResult(n);
   showSheet(n, retry ? 'retry' : null);
   if (run.silent >= 2) {
-    showMsg('Can’t hear you', 'Check the mic level moves when you sing.',
+    showMsg('Can’t hear you', 'Check the waveform moves when you sing.',
       ['Carry on', () => { run.silent = 0; hideMsg(); playNext(); }], ['End round', quitRound]);
     return;
   }
@@ -161,9 +160,6 @@ function showSheet(n, mode = null) {
   $('#sDuo').innerHTML = ok ? duo(n) : '';
   $('#sText').textContent = sentence(n);
   openSheet(sh);
-  const rollEl = $('#sRoll');
-  rollEl.hidden = !n.trace;
-  if (n.trace) mountRoll(rollEl, n, window.innerHeight < 700 ? 150 : 176);
   $('#pauseBtn').textContent = run.notes.length >= ROUND_LEN ? 'See results' : 'Pause';
   if (mode === 'practice') $('#pStart').focus({ preventScroll: true });
 }

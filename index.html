@@ -9,27 +9,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=ab2f569ee1">
-<script type="module" src="js/main.js?v=ab2f569ee1"></script>
+<link rel="stylesheet" href="css/app.css?v=c0ed0635fd">
+<script type="module" src="js/main.js?v=c0ed0635fd"></script>
 <!-- modules -->
-<link rel="modulepreload" href="js/audio/engine.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/audio/mic.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/audio/piano.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/audio/pitch.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/home.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/keyboard.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/main.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/overlay.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/rescore.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/roll.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/round.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/scoring.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/stage.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/state.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/storage.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/summary.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/util.js?v=ab2f569ee1">
-<link rel="modulepreload" href="js/wave.js?v=ab2f569ee1">
+<link rel="modulepreload" href="js/audio/engine.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/audio/mic.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/audio/piano.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/audio/pitch.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/home.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/keyboard.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/main.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/overlay.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/rescore.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/round.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/scoring.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/stage.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/state.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/storage.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/summary.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/util.js?v=c0ed0635fd">
+<link rel="modulepreload" href="js/wave.js?v=c0ed0635fd">
 <!-- /modules -->
 </head>
 <body>
@@ -62,14 +61,11 @@
         </div>
         <div class="poct" id="poct" aria-hidden="true"></div>
       </div>
-      <p class="phint">Drag to set your range.</p>
-    </div>
-    <div class="mictest" id="micTest">
-      <button type="button" class="btn small" id="micTestBtn">Test mic</button>
-      <div class="mtlive" id="mtLive" hidden><canvas id="mtWave" aria-hidden="true"></canvas><span id="mtLabel" aria-live="polite"></span></div>
+      <p class="phint" id="rangeHint">Drag to set your range.</p>
     </div>
     <button class="btn primary big" id="startBtn" type="button">Start round</button>
-    <button class="linkbtn howbtn" id="howBtn" type="button">How it works</button>
+    <div class="homelinks"><button class="linkbtn" id="howBtn" type="button">How it works</button><button class="linkbtn" id="micTestBtn" type="button">Test mic</button></div>
+    <div class="mtlive" id="mtLive" hidden><canvas id="mtWave" aria-hidden="true"></canvas><span id="mtLabel" aria-live="polite"></span></div>
     <p class="err" id="homeErr" hidden></p>
     <p class="tip">Headphones help. Hearing yourself in them helps more.</p>
     <p class="histempty" id="histEmpty" hidden>Your previous scores will show up here. <button class="linkbtn" id="importEmpty" type="button">Import</button></p>
@@ -81,9 +77,11 @@
       <div class="ov hist" id="histOverlay"></div>
       <p class="caption" id="histOvCap"></p>
       <details class="tbl" id="histTbl" hidden><summary>Show as a table</summary><div id="histTable"></div></details>
+      <details class="tbl" id="dataTbl"><summary>Your data</summary>
       <label class="switch"><input type="checkbox" id="keepAudio"><span><b>Keep recordings</b><small>About 1 MB a round, on this device only.</small></span></label>
       <div class="datarow"><button class="btn small" id="exportBtn" type="button">Export scores</button><button class="btn small" id="exportAudioBtn" type="button">Export recordings</button><button class="btn small" id="importBtn" type="button">Import</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
       <p class="caption" id="dataMsg">Stored on this device. Export to back up or move.</p>
+      </details>
     </div>
   </div>
   <footer class="foot">
@@ -97,7 +95,6 @@
   <div class="runbar">
     <button class="iconbtn" id="quitBtn" type="button" aria-label="End round">✕</button>
     <div class="progress" id="progress" aria-label="Round progress"></div>
-    <span class="mic" id="mic" title="Mic level" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
   </div>
   <div class="stage" id="stage" data-phase="calib" aria-live="polite">
     <p class="notenum" id="noteNum">Getting ready</p>
@@ -128,7 +125,6 @@
 
 <!-- ============ summary ============ -->
 <section class="screen" id="summary" hidden>
-  <div class="brand"><span class="logo"><i></i></span><b>Cold Pitch</b></div>
   <h1 class="done-title" id="doneTitle" tabindex="-1">Round complete</h1>
   <div class="scores">
     <div class="scorebox" id="boxStart"><span class="score" id="sumStart">—</span><b><i class="si"></i>Start</b><span class="what">the first moment</span></div>
@@ -136,7 +132,6 @@
   </div>
   <p class="sumsub"><span id="sumSub"></span><span class="bestchip" id="sumBest" hidden></span></p>
   <p class="err" id="saveErr" hidden>Couldn’t save this round on this device.</p>
-  <div class="tally" id="tally"></div>
   <div class="sum-grid">
     <div class="card"><div class="card-head"><h2>Every note</h2><span>Tap a line</span></div>
       <div class="ov" id="overlay"></div>
@@ -161,7 +156,6 @@
     <div class="verdict" id="sVerdict"><span class="vicon" id="sIcon"></span><span class="vword" id="sWord"></span></div>
     <div class="duo" id="sDuo"></div>
     <p class="vtext" id="sText"></p>
-    <div class="roll" id="sRoll"></div>
     <p class="snote" id="sNote" hidden></p>
     <div class="sheet-foot"><div class="countdown" id="countdown"><i></i></div><button class="btn" id="pauseBtn" type="button">Pause</button>
       <button class="btn" id="pAnother" type="button">Try another</button><button class="btn primary" id="pStart" type="button">Start round</button></div>
