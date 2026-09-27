@@ -1,17 +1,17 @@
 // A round: screens, choosing notes, the timing of each note, pausing, quitting, a lost mic, scoring what was sung,
 // and the practice note.
 
-import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=7edc0e4a45';
-import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=7edc0e4a45';
-import { readNote } from './audio/pitch.js?v=7edc0e4a45';
-import { renderRange, stopTester, tester } from './home.js?v=7edc0e4a45';
-import { mountRoll } from './roll.js?v=7edc0e4a45';
-import { duo, scoreNote, sentence } from './scoring.js?v=7edc0e4a45';
-import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=7edc0e4a45';
-import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=7edc0e4a45';
-import { rounds, saveSettings, settings } from './storage.js?v=7edc0e4a45';
-import { endRound, stopClip } from './summary.js?v=7edc0e4a45';
-import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=7edc0e4a45';
+import { calib, calibrate, ctx, grabAudio, initAudio, micAlive, stopAudio, stream } from './audio/mic.js?v=bbdc79cbc6';
+import { muted, pctx, pianoReady, playTone, setMuted, setPctx, wantSound } from './audio/piano.js?v=bbdc79cbc6';
+import { readNote } from './audio/pitch.js?v=bbdc79cbc6';
+import { renderRange, stopTester, tester } from './home.js?v=bbdc79cbc6';
+import { mountRoll } from './roll.js?v=bbdc79cbc6';
+import { duo, scoreNote, sentence } from './scoring.js?v=bbdc79cbc6';
+import { CUES, PEEK_VOID, renderProgress, setStage } from './stage.js?v=bbdc79cbc6';
+import { round, run, setLastFrameAt, setRound, setRun } from './state.js?v=bbdc79cbc6';
+import { rounds, saveSettings, settings } from './storage.js?v=bbdc79cbc6';
+import { endRound, stopClip } from './summary.js?v=bbdc79cbc6';
+import { $, clamp, HOLD, hz, motion, PAUSE, r1, restart, RETRIES, ROUND_LEN, TONE } from './util.js?v=bbdc79cbc6';
 
 /* ---------- screens ---------- */
 // Home is the bottom of the page's history and every other screen sits one entry above it, so the browser's Back
