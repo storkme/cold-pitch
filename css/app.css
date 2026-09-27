@@ -193,6 +193,7 @@ svg text{font-family:var(--sans);font-weight:500}
 .center{text-align:center}
 .tip{color:var(--ink-2);font-size:14px;text-align:center;max-width:44ch;margin:0 auto;font-style:normal}
 .err{color:var(--crit-text);font-weight:600;text-align:center}
+.howbtn{justify-self:center;font-size:14px;color:var(--muted);margin-top:-6px}
 
 /* run */
 .runbar{display:flex;align-items:center;gap:12px;padding:2px 0 10px;border-bottom:1px solid var(--line)}
@@ -253,17 +254,33 @@ svg text{font-family:var(--sans);font-weight:500}
 .stage[data-phase="sing"] .say,.stage[data-phase="capture"] .say{font-weight:600}
 .sub{color:var(--ink-2);min-height:1.5em;font-size:16px}
 .say.swap,.sub.swap,.notenum.swap{animation:enter var(--t-quick) var(--ease-out)}
-/* the silence meter: only during the imagine step. Grey is quiet, amber is noise without a pitch (fine), red is
-   anything that sounds like humming, which is what voids a note. The canvas reads --line, --warn, --crit, --muted. */
-.quiet{display:grid;justify-items:center;gap:7px;margin-top:6px;opacity:0;transform:translateY(6px);pointer-events:none;
+/* the listening strip: the live waveform while the mic listens for your note, newest at the right. The canvas reads --ink, --muted, --line, --crit and --accent-wash. Its label: a hollow dot is quiet,
+   amber is noise without a pitch (fine), red is anything that sounds like a voice in the imagine step, which is what
+   voids a note; a solid dot, pulsing while it waits, is listening for your note (the ambient pattern). */
+.listen{display:grid;justify-items:center;gap:7px;width:100%;margin-top:6px;opacity:0;transform:translateY(6px);pointer-events:none;
   transition:opacity var(--t-quick) var(--ease-out),transform var(--t-quick) var(--ease-out)}
-.stage[data-phase="hold"] .quiet{opacity:1;transform:none}
-#quietWave{display:block;width:200px;height:34px}
-#quietLabel{display:inline-flex;align-items:center;gap:8px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
-#quietLabel::before{content:"";width:7px;height:7px;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--muted);transition:background-color var(--t-quick),box-shadow var(--t-quick)}
-.quiet[data-state="noise"] #quietLabel::before{background:var(--warn);box-shadow:none}
-.quiet[data-state="hum"] #quietLabel{color:var(--ink)}
-.quiet[data-state="hum"] #quietLabel::before{background:var(--crit);box-shadow:none}
+.stage:is([data-phase="hold"],[data-phase="sing"],[data-phase="capture"]) .listen{opacity:1;transform:none}
+#wave{display:block;width:min(280px,100%);height:40px;opacity:0;transition:opacity var(--t-quick) var(--ease-out)}
+/* the waveform itself only from the Sing cue: during the imagine step it would invite a sound, so only the label
+   shows there. When it appears it still shows the silence you just held, dotted, before the cue */
+.stage:is([data-phase="sing"],[data-phase="capture"]) #wave{opacity:1}
+#listenLabel{display:inline-flex;align-items:center;gap:8px;font:600 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
+#listenLabel::before{content:"";width:7px;height:7px;border-radius:50%;background:none;box-shadow:inset 0 0 0 1.5px var(--muted);transition:background-color var(--t-quick),box-shadow var(--t-quick)}
+.listen[data-state="noise"] #listenLabel::before{background:var(--warn);box-shadow:none}
+.listen:is([data-state="hum"],[data-state="void"]) #listenLabel{color:var(--ink)}
+.listen:is([data-state="hum"],[data-state="void"]) #listenLabel::before{background:var(--crit);box-shadow:none}
+.listen:is([data-state="listening"],[data-state="hearing"]) #listenLabel{color:var(--ink)}
+.listen:is([data-state="listening"],[data-state="hearing"]) #listenLabel::before{background:var(--ink);box-shadow:none}
+.listen[data-state="listening"] #listenLabel::before{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+/* the practice note's guidance, under the strip: a line, and in the Listen step its two buttons */
+.coach{display:grid;justify-items:center;gap:12px;margin-top:14px;width:100%;max-width:360px;animation:enter var(--t-base) var(--ease-out)}
+.coachtext{color:var(--ink-2);font-size:15px}
+.coachtext.swap{animation:enter var(--t-quick) var(--ease-out)}
+.coach .row{display:flex;gap:10px;width:100%}
+.coach .row .btn{flex:1}
+.coach .linkbtn{font-size:13.5px;color:var(--muted)}
+#run.practice .progress{visibility:hidden}
 /* the programme order: I Listen, II Hold, III Sing, with a rule gliding under the current movement */
 .steps{position:relative;display:flex;gap:22px;margin:4px 0 6px;padding:0 2px 7px;list-style:none;border-bottom:1px solid var(--line);transition:opacity var(--t-quick) var(--ease-out)}
 .steps li{position:relative;z-index:1;padding:4px 0;font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);transition:color var(--t-quick)}
@@ -303,6 +320,10 @@ svg text{font-family:var(--sans);font-weight:500}
 .countdown{flex:1;height:1px;background:var(--line);overflow:visible;position:relative}
 .countdown i{display:block;height:2px;margin-top:-.5px;width:0;background:var(--ink)}
 .sheet .btn{padding:11px 16px;font-size:11.5px}
+/* a note that doesn't count (and the practice note) say what happens next; the practice note has its own buttons */
+.snote{color:var(--muted);font-size:14px}
+.sheet:not(.practice) :is(#pAnother,#pStart),.sheet.practice :is(.countdown,#pauseBtn){display:none}
+.sheet.practice .sheet-foot .btn{flex:1}
 .msg{background:var(--surface);border-top:2px solid var(--rule)}
 .msg h2{font:italic 400 30px/1.1 var(--display)}
 .msg p{color:var(--ink)}
@@ -412,5 +433,5 @@ svg text{font-family:var(--sans);font-weight:500}
 @media (prefers-reduced-motion: reduce){
   .soundbtn.nudge{animation:none}
   /* durations are already zero; ambient loops have their own, so stop them */
-  .stage .core,.stage .ring,.seg.now{animation:none!important}
+  .stage .core,.stage .ring,.seg.now,#listenLabel::before{animation:none!important}
 }

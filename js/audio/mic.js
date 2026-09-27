@@ -1,12 +1,12 @@
 // The mic: opening it, the tap that feeds the pitch detector (pitch.js), measuring the room, and the per-frame logic
 // that follows a note from the imagine step to the end of singing.
 
-import { feedTester, tester } from '../home.js?v=0ad6d5e2b1';
-import { finish } from '../round.js?v=0ad6d5e2b1';
-import { setStage } from '../stage.js?v=0ad6d5e2b1';
-import { round, setLastFrameAt } from '../state.js?v=0ad6d5e2b1';
-import { clamp, hz, TONE } from '../util.js?v=0ad6d5e2b1';
-import { dcBlocker, detector, isVoice, leadIn, noteBegins, worthPitch } from './pitch.js?v=0ad6d5e2b1';
+import { feedTester, tester } from '../home.js?v=f594cb7eb2';
+import { calmFrame, finish } from '../round.js?v=f594cb7eb2';
+import { setStage } from '../stage.js?v=f594cb7eb2';
+import { round, setLastFrameAt } from '../state.js?v=f594cb7eb2';
+import { clamp, hz, TONE } from '../util.js?v=f594cb7eb2';
+import { dcBlocker, detector, isVoice, leadIn, noteBegins, worthPitch } from './pitch.js?v=f594cb7eb2';
 
 /* ---------- audio engine: pitch detection ---------- */
 export let ctx = null, stream = null;
@@ -14,6 +14,8 @@ let tap = null, dec = 1, dsr = 24000;
 let det, N, HOP, frameBuf, dc;
 const RING = 1 << 16; let ring = null, total = 0, lastEnd = 0, accSum = 0, accN = 0, tMap = 0, iMap = 0;
 export let floorDb = -70, thrDb = -50, lastDb = -100, lastVoice = false, calib = null;   // round and lastFrameAt: state.js
+// The last few seconds of frames, for the live waveform (wave.js): when, how loud, and whether it was a voice.
+export const heardFrames = []; export let heardAt = 0;
 
 export async function initAudio() {
   if ((!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) { const e = new Error('insecure'); e.name = 'Insecure'; throw e; }
@@ -32,7 +34,7 @@ export async function initAudio() {
   let node = null;
   if (ctx.audioWorklet) {
     try {
-      await ctx.audioWorklet.addModule(new URL('./tap.worklet.js?v=0ad6d5e2b1', import.meta.url).href);
+      await ctx.audioWorklet.addModule(new URL('./tap.worklet.js?v=f594cb7eb2', import.meta.url).href);
       node = new AudioWorkletNode(ctx, 'tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1] });
       node.port.onmessage = (e) => ingest(e.data.d, e.data.t, sr);
     } catch (e) { node = null; }
@@ -47,7 +49,7 @@ export function stopAudio() {
   if (tap) { if (tap.port) tap.port.onmessage = null; tap.onaudioprocess = null; try { tap.disconnect(); } catch (e) {} tap = null; }
   if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
   if (ctx) { try { ctx.close().catch(() => {}); } catch (e) {} ctx = null; }
-  calib = null; lastDb = -100;
+  calib = null; lastDb = -100; heardFrames.length = 0;
 }
 export const micAlive = () => ctx && ctx.state !== 'closed' && stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
 
@@ -63,6 +65,7 @@ function analyse(end) {
   const db = 10 * Math.log10(s / N + 1e-12), p = worthPitch(db, floorDb) ? det.yin(frameBuf) : null;
   const fr = { t: timeOf(end - N / 2), db, f: p ? p.f : null, clar: p ? p.clar : 0 };
   lastDb = db; lastVoice = isVoice(fr, floorDb);
+  heardFrames.push({ t: fr.t, db, voice: lastVoice }); if (heardFrames.length > 400) heardFrames.shift(); heardAt = performance.now();
   onFrame(fr);
 }
 function onFrame(fr) {
@@ -73,9 +76,8 @@ function onFrame(fr) {
   if (fr.t < r.bleedEnd) { heard(r, fr); return; }         // the tone may still be reaching the mic
   const voice = lastVoice;
   if (fr.t < r.go) {
-    const loud = fr.db > thrDb;
-    if (voice) r.peek++;
-    r.quiet.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: voice ? 'hum' : loud ? 'noise' : 'quiet' });
+    if (voice) r.peek++; else if (fr.db > thrDb) r.noise = true;
+    if (r.practice) calmFrame(r, fr, voice);
     return;
   }
   if (r.state !== 'capture') {

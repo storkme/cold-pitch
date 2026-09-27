@@ -1,7 +1,9 @@
-// The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip and the silence meter.
+// The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip, the listening strip,
+// and the practice note's guidance.
 
-import { run } from './state.js?v=0ad6d5e2b1';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=0ad6d5e2b1';
+import { run } from './state.js?v=f594cb7eb2';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=f594cb7eb2';
+import { drawWave } from './wave.js?v=f594cb7eb2';
 
 /* ---------- stage ---------- */
 const STAGE = {
@@ -12,6 +14,8 @@ const STAGE = {
   capture: ['Keep going', 'A second is plenty.'],
   done: ['', ''],
 };
+// The practice note (see startPractice) explains the first two steps in its own words; nothing there is timed.
+const PRACTICE = { tone: ['Listen', 'A piano plays a note.'], hold: ['Imagine it', 'Sing it in your head. No sound.'] };
 let stagePhase = null;
 // Different people respond to different cues for holding a note in mind, so the imagine step rotates through them,
 // one per note. Each note records which cue it had, so rounds can later show which cue works best for you.
@@ -19,15 +23,19 @@ export const CUES = [
   ['Imagine', 'Hear it in your head.'],
   ['Picture', 'See where it sits.'],
   ['Feel', 'Feel where it sits in your body.'],
-  ['Hold', 'Keep it in mind.'],
+  ['Remember', 'Keep it in mind.'],
   ['Visualise', 'See it before you sing it.'],
 ];
 export function setStage(p) {
   if (p === stagePhase) return; stagePhase = p;
   const st = $('#stage'); st.dataset.phase = p;
   if (p !== 'done') { delete st.dataset.tone; delete st.dataset.split; $('#glyph').textContent = ''; }
-  const cue = p === 'hold' && run && run.cue;
-  $('#say').textContent = cue ? `${cue[0]} it` : STAGE[p][0]; $('#sub').textContent = cue ? cue[1] : STAGE[p][1];
+  const practice = !!(run && run.practice), cue = p === 'hold' && !practice && run && run.cue;
+  const [say, sub] = practice && PRACTICE[p] ? PRACTICE[p] : cue ? [`${cue[0]} it`, cue[1]] : STAGE[p];
+  $('#say').textContent = say; $('#sub').textContent = sub;
+  $('#coach').hidden = !(practice && (p === 'tone' || p === 'hold'));
+  $('#coachRow').hidden = p !== 'tone';
+  if (practice) $('#coachText').textContent = COACH[p] || '';
   if (p !== 'done') { restart($('#say'), 'swap'); restart($('#sub'), 'swap'); }
   const STEPS = ['tone', 'hold', 'sing'], step = p === 'capture' ? 'sing' : p;
   if (STEPS.includes(step)) {                      // Listen · Hold · Sing: where you are, and what comes next
@@ -53,28 +61,24 @@ export function renderProgress() {
   $('#progress').setAttribute('aria-label', `${run.notes.length} of ${ROUND_LEN} notes sung`);
 }
 
-// The silence meter: a bar per mic frame (about every 10 ms) across the imagine step, filling left to right with the
-// ring. Mirrored bars like a voice-memo waveform, so it reads as "what the mic hears".
-export const PEEK_VOID = 5;                                // hum-like frames in the hold that void a note (see finish/noteDone)
-let quietColors = null;
-export function drawQuiet(r) {
-  const cv = $('#quietWave'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
-  if (!w) return;
-  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); quietColors = null; }
-  if (!quietColors) { const cs = getComputedStyle(document.documentElement); quietColors = { quiet: cs.getPropertyValue('--line').trim(), noise: cs.getPropertyValue('--warn').trim(), hum: cs.getPropertyValue('--crit').trim(), base: cs.getPropertyValue('--muted').trim() }; }
-  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const slots = Math.max(20, Math.round((r.go - r.bleedEnd) * 95)), bw = w / slots;
-  g.fillStyle = quietColors.quiet; g.fillRect(0, h / 2 - 0.5, w, 1);                    // the baseline
-  r.quiet.slice(0, slots).forEach((q, i) => {
-    const bh = Math.max(2, q.lv * (h - 2));
-    g.fillStyle = q.kind === 'quiet' ? quietColors.base : quietColors[q.kind];
-    g.globalAlpha = q.kind === 'quiet' ? 0.45 : 1;
-    g.fillRect(i * bw + 0.5, (h - bh) / 2, Math.max(1, bw - 1), bh);
-  });
-  g.globalAlpha = 1;
-  const state = r.peek ? 'hum' : r.quiet.some((q) => q.kind === 'noise') ? 'noise' : 'quiet', box = $('#quiet');
-  if (box.dataset.state !== state || (state === 'hum' && r.peek >= PEEK_VOID) !== box._void) {
-    box.dataset.state = state; box._void = state === 'hum' && r.peek >= PEEK_VOID;
-    $('#quietLabel').textContent = state === 'quiet' ? 'Silent' : state === 'noise' ? 'Noise is fine' : box._void ? 'Voice heard. Won’t count.' : 'Voice heard';
-  }
+// The listening strip: a label while the mic checks the imagine step is quiet, then from the Sing cue the live
+// waveform (wave.js; drawn all along, shown from the cue, see the CSS). The imagine step's stretch of it is dotted
+// and the cue is a hairline, so you see the silence, the cue and your voice arriving. The label says what the mic
+// makes of it: in the imagine step grey is quiet, amber is noise without a pitch (fine), red is anything that sounds
+// like a voice, which is what voids a note; then Listening, and Hearing you once a note starts.
+export const PEEK_VOID = 5;                                // voice frames in the imagine step that void a note (see finish)
+const LABELS = { quiet: 'Silent', noise: 'Noise is fine', hum: 'Voice heard', void: 'Voice heard. Won’t count.', listening: 'Listening', hearing: 'Hearing you' };
+const COACH = { tone: 'Nothing here is timed or saved.', hold: 'When the circle closes, sing it out loud.', loud: 'That was out loud. Keep it inside.' };
+export function drawListen(r, phase, now) {
+  const go = Number.isFinite(r.go) ? r.go : null;
+  drawWave($('#wave'), { from: r.bleedEnd, zone: [r.bleedEnd, go ?? now], mark: go });
+  let state;
+  if (phase === 'hold') {
+    // a practice note starts its silence over when it hears a voice, so there it only says so for a moment
+    const loud = r.practice ? now - r.loudAt < 1.2 : r.peek > 0;
+    state = loud ? (!r.practice && r.peek >= PEEK_VOID ? 'void' : 'hum') : r.noise ? 'noise' : 'quiet';
+    if (r.practice) { const t = loud ? COACH.loud : COACH.hold; if ($('#coachText').textContent !== t) { $('#coachText').textContent = t; restart($('#coachText'), 'swap'); } }
+  } else state = phase === 'capture' ? 'hearing' : 'listening';
+  const box = $('#listen');
+  if (box.dataset.state !== state) { box.dataset.state = state; $('#listenLabel').textContent = LABELS[state]; }
 }

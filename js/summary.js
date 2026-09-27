@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=0ad6d5e2b1';
-import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=0ad6d5e2b1';
-import { bestScore, fmtDay } from './home.js?v=0ad6d5e2b1';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=0ad6d5e2b1';
-import { SCORING } from './rescore.js?v=0ad6d5e2b1';
-import { mountRoll } from './roll.js?v=0ad6d5e2b1';
-import { show } from './round.js?v=0ad6d5e2b1';
-import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=0ad6d5e2b1';
-import { run, setRound } from './state.js?v=0ad6d5e2b1';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=0ad6d5e2b1';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=0ad6d5e2b1';
+import { floorDb, thrDb } from './audio/mic.js?v=f594cb7eb2';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=f594cb7eb2';
+import { bestScore, fmtDay } from './home.js?v=f594cb7eb2';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=f594cb7eb2';
+import { SCORING } from './rescore.js?v=f594cb7eb2';
+import { mountRoll } from './roll.js?v=f594cb7eb2';
+import { show } from './round.js?v=f594cb7eb2';
+import { duo, off, OTHER, scoreNote, sentence, size, tierFromAcc, tierOf, TIERS } from './scoring.js?v=f594cb7eb2';
+import { run, setRound } from './state.js?v=f594cb7eb2';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=f594cb7eb2';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=f594cb7eb2';
 
 /* ---------- summary ---------- */
 function insights(notes) {
@@ -116,7 +116,8 @@ export function endRound() {
   renderSummary(r, { score, landing, prevBest, before, fresh: true });
   if (score != null) {
     const rec = { ts: r.ts, v: SCORING, lo: r.lo, hi: r.hi, hold: r.hold, voice: r.voice, score, landing, floorDb: Math.round(floorDb), thrDb: Math.round(thrDb),
-      notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, bleed: n.bleed ?? null, trace: packTrace(n.trace), rec: !!n.audio })) };
+      notes: r.notes.map((n) => ({ midi: n.midi, kind: n.kind, onset: n.onset ?? null, settled: n.settled ?? null, oct: n.oct || 0, hold: n.hold, cue: n.cue, bleed: n.bleed ?? null, trace: packTrace(n.trace), rec: !!n.audio })),
+      ...(r.retried.length ? { retried: r.retried } : {}) };
     const clips = r.notes.map((n, i) => n.audio && { id: `${r.ts}:${i}`, round: r.ts, note: i, midi: n.midi, ...n.audio }).filter(Boolean);
     rounds.push(rec);
     DB.saveRound(rec, clips).then(() => { setClipCount(clipCount + clips.length); dataLine(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); })

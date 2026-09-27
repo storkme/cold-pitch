@@ -12,7 +12,7 @@ export const mean = (a) => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const r1 = (v) => v == null ? null : Math.round(v * 10) / 10;
 
-export const ROUND_LEN = 10, WIN = 0.1, TONE = 1, HOLD = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84, MIN_SPAN = 2;
+export const ROUND_LEN = 10, RETRIES = 2, WIN = 0.1, TONE = 1, HOLD = 1, PAUSE = 2800, MIN_NOTE = 36, MAX_NOTE = 84, MIN_SPAN = 2;
 
 // Motion durations live in CSS (see the motion language at the top of the styles); read them from there.
 // Under reduced motion they're all zero.

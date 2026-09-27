@@ -1,15 +1,15 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js?v=0ad6d5e2b1';
-import { audioOut, muted, setMuted } from './audio/piano.js?v=0ad6d5e2b1';
-import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=0ad6d5e2b1';
-import { drawRoll } from './roll.js?v=0ad6d5e2b1';
-import { askQuit, micLost, show, startRound, togglePause } from './round.js?v=0ad6d5e2b1';
-import { drawQuiet, setStage } from './stage.js?v=0ad6d5e2b1';
-import { lastFrameAt, round } from './state.js?v=0ad6d5e2b1';
-import { drawKeysMap, pickDetail, setMapMode } from './summary.js?v=0ad6d5e2b1';
-import { $, clamp } from './util.js?v=0ad6d5e2b1';
+import { calib, ctx, lastDb, lastVoice, stream } from './audio/mic.js?v=f594cb7eb2';
+import { audioOut, muted, setMuted } from './audio/piano.js?v=f594cb7eb2';
+import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=f594cb7eb2';
+import { drawRoll } from './roll.js?v=f594cb7eb2';
+import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=f594cb7eb2';
+import { drawListen, setStage } from './stage.js?v=f594cb7eb2';
+import { lastFrameAt, round } from './state.js?v=f594cb7eb2';
+import { drawKeysMap, pickDetail, setMapMode } from './summary.js?v=f594cb7eb2';
+import { $, clamp } from './util.js?v=f594cb7eb2';
 
 function tick() {
   requestAnimationFrame(tick);
@@ -22,18 +22,26 @@ function tick() {
   const r = round;
   if (!r || r.state === 'done' || !ctx) return;
   const now = ctx.currentTime;
-  if (now < r.toneEnd) setStage('tone');
-  else if (now < r.go) { setStage('hold'); $('#holdRing').setAttribute('stroke-dashoffset', (452.39 * (1 - (now - r.toneEnd) / (r.go - r.toneEnd))).toFixed(1)); drawQuiet(r); }
-  else if (r.state === 'capture') {
-    setStage('capture');
-    const level = lv;
-    $('#core').style.transform = `scale(${(0.92 + level * 0.22).toFixed(3)})`;
+  let phase;
+  if (now < r.toneEnd) phase = 'tone';
+  else if (now < r.go) {
+    phase = 'hold';
+    const p = r.practice ? calmProgress(r, now) : (now - r.toneEnd) / (r.go - r.toneEnd);
+    $('#holdRing').setAttribute('stroke-dashoffset', (452.39 * (1 - p)).toFixed(1));
   }
-  else setStage('sing');
+  else if (r.state === 'capture') { phase = 'capture'; $('#core').style.transform = `scale(${(0.92 + lv * 0.22).toFixed(3)})`; }
+  else phase = 'sing';
+  setStage(phase);
+  if (phase !== 'tone') drawListen(r, phase, now);
 }
 
 /* ---------- wiring ---------- */
-$('#startBtn').addEventListener('click', () => startRound());
+$('#startBtn').addEventListener('click', () => startFromHome());
+$('#howBtn').addEventListener('click', () => startPractice());
+$('#pReplay').addEventListener('click', hearAgain);
+$('#pNext').addEventListener('click', practiceNext);
+$('#pAnother').addEventListener('click', practiceNote);
+for (const id of ['#pSkip', '#pStart']) $(id).addEventListener('click', () => startRound());
 $('#micTestBtn').addEventListener('click', testMic);
 $('#soundBtn').addEventListener('click', () => { setMuted(!muted); if (!muted) { try { audioOut(); } catch (e) {} } });
 $('#soundBtn').addEventListener('animationend', () => $('#soundBtn').classList.remove('nudge'));
@@ -58,7 +66,7 @@ document.addEventListener('keydown', (e) => {
   const inRun = !$('#run').hidden;
   if (e.key === 'Escape' && inRun && $('#msg').hidden) { e.preventDefault(); askQuit(); return; }
   if (e.key !== ' ' || (e.target.closest && e.target.closest('button,input,select,textarea'))) return;
-  if (!$('#home').hidden) { e.preventDefault(); startRound(); }
+  if (!$('#home').hidden) { e.preventDefault(); startFromHome(); }
   else if (inRun && !$('#sheet').hidden && $('#msg').hidden) { e.preventDefault(); togglePause(); }
 });
 let rz = null;

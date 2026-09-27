@@ -1,11 +1,12 @@
 // The home screen: the range picker, the mic tester, and progress across rounds.
 
-import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=0ad6d5e2b1';
-import { blip, pianoReady } from './audio/piano.js?v=0ad6d5e2b1';
-import { failStart } from './round.js?v=0ad6d5e2b1';
-import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings } from './storage.js?v=0ad6d5e2b1';
-import { openRound } from './summary.js?v=0ad6d5e2b1';
-import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=0ad6d5e2b1';
+import { calibrate, ctx, initAudio, lastVoice, micAlive, stopAudio, thrDb } from './audio/mic.js?v=f594cb7eb2';
+import { blip, pianoReady } from './audio/piano.js?v=f594cb7eb2';
+import { failStart } from './round.js?v=f594cb7eb2';
+import { dataLine, DEFAULT_HI, DEFAULT_LO, rounds, saveSettings, settings } from './storage.js?v=f594cb7eb2';
+import { openRound } from './summary.js?v=f594cb7eb2';
+import { $, clamp, hideTip, isBlack, MAX_NOTE, mean, median, MIN_NOTE, MIN_SPAN, nname, pc, placeTip } from './util.js?v=f594cb7eb2';
+import { drawWave } from './wave.js?v=f594cb7eb2';
 
 export function renderRange() {
   paintPicker();
@@ -113,9 +114,8 @@ for (const [id, which] of [['#knobLo', 'lo'], ['#knobHi', 'hi']]) $(id).addEvent
   pk.classList.add('peek'); clearTimeout(pk._peek); pk._peek = setTimeout(() => pk.classList.remove('peek'), 900);
 });
 
-// The mic tester: opens the mic and measures the room before a round (the round then reuses both), and shows a
-// scrolling waveform of the last couple of seconds. A voice (clearly pitched) is bright with the note it hears;
-// background noise stays faint.
+// The mic tester: opens the mic and measures the room before a round (the round then reuses both), and shows the
+// live waveform (wave.js), with the note it hears when it's a voice.
 export let tester = null;
 export async function testMic() {
   if (tester) return;
@@ -135,23 +135,12 @@ export async function testMic() {
 export function stopTester() { tester = null; $('#mtLive').hidden = true; $('#micTestBtn').hidden = false; }
 export function feedTester(fr) {
   const voice = lastVoice, loud = fr.db > thrDb;
-  tester.frames.push({ lv: clamp((fr.db + 80) / 60, 0, 1), kind: voice ? 'voice' : loud ? 'noise' : 'quiet', f: voice ? fr.f : null });
-  if (tester.frames.length > 200) tester.frames.shift();
+  tester.frames.push({ kind: voice ? 'voice' : loud ? 'noise' : 'quiet', f: voice ? fr.f : null });
+  if (tester.frames.length > 30) tester.frames.shift();
 }
 export function drawTester() {
-  const cv = $('#mtWave'), dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
-  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-  const cs = getComputedStyle(document.documentElement), col = { voice: cs.getPropertyValue('--ink').trim(), noise: cs.getPropertyValue('--muted').trim(), quiet: cs.getPropertyValue('--line').trim() };
-  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const slots = 200, bw = w / slots, fr = tester.frames, off = slots - fr.length;
-  g.fillStyle = col.quiet; g.fillRect(0, h / 2 - 0.5, w, 1);
-  fr.forEach((q, i) => {
-    const bh = q.kind === 'quiet' ? 1 : Math.max(2, q.lv * (h - 2));
-    g.fillStyle = col[q.kind]; g.globalAlpha = q.kind === 'noise' ? 0.5 : 1;
-    g.fillRect((off + i) * bw, (h - bh) / 2, Math.max(1, bw - 0.5), bh);
-  });
-  g.globalAlpha = 1;
-  const recent = fr.slice(-30), voiced = recent.filter((q) => q.kind === 'voice');
+  drawWave($('#mtWave'));
+  const recent = tester.frames, voiced = recent.filter((q) => q.kind === 'voice');
   let label = 'Sing or hum to check.';
   if (voiced.length >= 12) {
     const f = median(voiced.map((q) => q.f)), m = Math.round(69 + 12 * Math.log2(f / 440));
