@@ -7,8 +7,8 @@
 // - The home screen shows every note of your recent rounds, older rounds fading, with one round's notes bright
 //   (your latest, or the one you point at on the progress chart or tap here).
 
-import { tierFor } from './scoring.js?v=c238679ebb';
-import { clamp, median, motion, nname, WIN } from './util.js?v=c238679ebb';
+import { tierFor } from './scoring.js?v=46a1bebe13';
+import { clamp, median, motion, nname, WIN } from './util.js?v=46a1bebe13';
 
 const R = 3;            // semitones either side of the note; curves beyond it leave the chart
 const SETTLE = 0.45;    // s: where Landing is read from (see pitch.js)
@@ -23,8 +23,9 @@ function clean(trace) {
 let seq = 0;
 // `notes` (curves unpacked); `sel`: what's selected, or null. `replay` draws the curves in, left to right. On the home
 // screen, `group(n)` gives each note's round and `fade(n)` its line's strength, and a selection is a whole round.
-export function drawOverlay(el, notes, { sel = null, replay = false, group = null, fade = null } = {}) {
-  const Wd = Math.max(260, el.clientWidth || 480), top = 20, axisH = 22, padL = 30, padR = 10, plotH = 200, H = top + plotH + axisH;
+// `plotH`: the plot's height in px (the sheet after each note draws its one note smaller).
+export function drawOverlay(el, notes, { sel = null, replay = false, group = null, fade = null, plotH = 200 } = {}) {
+  const Wd = Math.max(260, el.clientWidth || 480), top = 20, axisH = 22, padL = 30, padR = 10, H = top + plotH + axisH;
   const lines = notes.map((n, i) => ({ n, i, g: group ? group(n) : i, pts: n.kind === 'ok' ? clean(n.trace) : [] })).filter((l) => l.pts.length > 1);
   const tMax = clamp(Math.max(1, ...lines.map((l) => l.pts[l.pts.length - 1].t)), 1, 1.35);
   const X = (t) => padL + t / tMax * (Wd - padL - padR);

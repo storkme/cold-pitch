@@ -1,14 +1,14 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, stream } from './audio/mic.js?v=c238679ebb';
-import { audioOut, muted, setMuted } from './audio/piano.js?v=c238679ebb';
-import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=c238679ebb';
-import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=c238679ebb';
-import { drawListen, setStage } from './stage.js?v=c238679ebb';
-import { lastFrameAt, round } from './state.js?v=c238679ebb';
-import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=c238679ebb';
-import { $, clamp } from './util.js?v=c238679ebb';
+import { calib, ctx, lastDb, stream } from './audio/mic.js?v=46a1bebe13';
+import { audioOut, muted, setMuted } from './audio/piano.js?v=46a1bebe13';
+import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=46a1bebe13';
+import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=46a1bebe13';
+import { drawListen, setStage } from './stage.js?v=46a1bebe13';
+import { lastFrameAt, round } from './state.js?v=46a1bebe13';
+import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=46a1bebe13';
+import { $, clamp } from './util.js?v=46a1bebe13';
 
 function tick() {
   requestAnimationFrame(tick);

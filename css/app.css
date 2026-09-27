@@ -370,6 +370,7 @@ svg text{font-family:var(--sans);font-weight:500}
    colour. A selected note's line comes up bright and the rest fade back */
 .ov{margin-bottom:4px}
 .ov svg{display:block;width:100%;cursor:pointer;touch-action:pan-y}
+#sChart svg{cursor:default}
 .ov .grid{stroke:var(--line)}
 .ov .zero{stroke:var(--rule);stroke-opacity:.55;stroke-width:1.25}
 .ov .lbl{font:600 9.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;fill:var(--muted)}
