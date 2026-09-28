@@ -1,14 +1,15 @@
 // Start-up: the frame loop, buttons and shortcuts, redrawing on resize, and getting the piano ready. (Saved rounds
 // start loading in storage.js.)
 
-import { calib, ctx, lastDb, stream } from './audio/mic.js?v=3948b70b10';
-import { audioOut, muted, setMuted } from './audio/piano.js?v=3948b70b10';
-import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=3948b70b10';
-import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=3948b70b10';
-import { drawListen, setStage } from './stage.js?v=3948b70b10';
-import { lastFrameAt, round } from './state.js?v=3948b70b10';
-import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=3948b70b10';
-import { $, clamp } from './util.js?v=3948b70b10';
+import { calib, ctx, lastDb, stream } from './audio/mic.js?v=997606aace';
+import { audioOut, muted, setMuted, whenMuted } from './audio/piano.js?v=997606aace';
+import { buildPicker, drawTester, renderRange, tester, testMic } from './home.js?v=997606aace';
+import { askQuit, calmProgress, hearAgain, micLost, practiceNext, practiceNote, show, startFromHome, startPractice, startRound, togglePause } from './round.js?v=997606aace';
+import { drawListen, setStage } from './stage.js?v=997606aace';
+import { lastFrameAt, round } from './state.js?v=997606aace';
+import { saveSettings, settings } from './storage.js?v=997606aace';
+import { drawKeysMap, drawNotesChart, pickDetail, setMapMode } from './summary.js?v=997606aace';
+import { $, clamp } from './util.js?v=997606aace';
 
 function tick() {
   requestAnimationFrame(tick);
@@ -75,6 +76,9 @@ window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() =
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$('#home').hidden) renderRange(); });
 
 buildPicker();
+// Sound stays as you last left it: on once you've turned it on (or started a round), until you turn it off.
+whenMuted((v) => { if (settings.sound !== !v) { settings.sound = !v; saveSettings(); } });
+if (settings.sound) setMuted(false);
 try { audioOut(); } catch (e) {}                   // make the context and decode the piano now, so the first key is ready
 renderRange();
 requestAnimationFrame(tick);

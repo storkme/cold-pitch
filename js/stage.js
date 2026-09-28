@@ -1,9 +1,9 @@
 // The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip, the listening strip,
 // and the practice note's guidance.
 
-import { run } from './state.js?v=3948b70b10';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=3948b70b10';
-import { drawWave } from './wave.js?v=3948b70b10';
+import { run } from './state.js?v=997606aace';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=997606aace';
+import { drawWave } from './wave.js?v=997606aace';
 
 /* ---------- stage ---------- */
 const STAGE = {

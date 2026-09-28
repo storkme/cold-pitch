@@ -1,9 +1,9 @@
 // The piano: recorded samples played by the engine, the hum that stands in until they're ready, the sound
 // button, and notes held down on a drawn keyboard.
 
-import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=3948b70b10';
-import { ctx } from './mic.js?v=3948b70b10';
-import { $, clamp, hz } from '../util.js?v=3948b70b10';
+import { engineCancel, engineLoad, engineOff, engineOn, engineRoom, engineStart, engineSync } from './engine.js?v=997606aace';
+import { ctx } from './mic.js?v=997606aace';
+import { $, clamp, hz } from '../util.js?v=997606aace';
 
 /* ---------- the piano: recorded grand-piano samples, played by one AudioWorklet ----------
    The voice is the Salamander Grand (samples/salamander/), recorded in stereo, one sample every three semitones:
@@ -86,11 +86,14 @@ function endHum(h, t) {
 }
 
 const DAMPER = 0.03;                               // the damper's time constant: under 1% after 5 of these
-// Sound on/off. Every visit starts silent: no page should make noise you didn't expect. Every sound goes through one
-// master volume per context, so muting catches everything. When something tries to play while muted, the sound
-// button (in the range card on the home screen) pulses. Leaving home for a round or a summary turns sound on (see
-// show()).
+// Sound on/off. A first visit starts silent: no page should make noise you didn't expect. Once sound is on (the sound
+// button, or starting a round) it stays on for later visits until you turn it off: whenMuted() hears every change,
+// and main.js keeps it in the settings. Every sound goes through one master volume per context, so muting catches
+// everything. When something tries to play while muted, the sound button (in the range card on the home screen)
+// pulses. Leaving home for a round or a summary turns sound on (see show()).
 export let muted = true;
+let onMuted = null;
+export function whenMuted(f) { onMuted = f; }
 export function outNode(ac) {
   if (!ac._master) { ac._master = ac.createGain(); ac._master.gain.value = muted ? 0 : 1; ac._master.connect(ac.destination); }
   return ac._master;
@@ -102,6 +105,7 @@ export function setMuted(v) {
   for (const ac of [ctx, pctx]) if (ac && ac._master) ac._master.gain.setTargetAtTime(v ? 0 : 1, ac.currentTime, 0.02);
   const b = $('#soundBtn'); b.setAttribute('aria-pressed', String(!v)); b.setAttribute('aria-label', v ? 'Sound off. Turn sound on' : 'Sound on. Turn sound off');
   b.classList.remove('nudge');
+  if (onMuted) onMuted(v);
 }
 export function wantSound() {
   const b = $('#soundBtn');
