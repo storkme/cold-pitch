@@ -1,9 +1,9 @@
 // The stage during a note: the words, the Listen / imagine / Sing steps, the progress strip, the listening strip,
 // and the practice note's guidance.
 
-import { run } from './state.js?v=af8b1cc76e';
-import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=af8b1cc76e';
-import { drawWave } from './wave.js?v=af8b1cc76e';
+import { run } from './state.js?v=3948b70b10';
+import { $, nname, restart, ROUND_LEN, slideThumb } from './util.js?v=3948b70b10';
+import { drawWave } from './wave.js?v=3948b70b10';
 
 /* ---------- stage ---------- */
 const STAGE = {
@@ -48,7 +48,8 @@ export function setStage(p) {
   }
   $('#track').style.opacity = p === 'hold' ? 1 : 0;
   if (p !== 'capture') $('#core').style.transform = '';
-  if (p === 'sing' && navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+  // No haptic cue on Sing: a phone's mic hears its own vibration motor, a short ~140 Hz buzz clear enough to pass
+  // for a voice, which started notes early (seen in recordings from a phone, 2026-09-27).
 }
 export function renderProgress() {
   if (!run) return;

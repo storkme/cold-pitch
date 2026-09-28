@@ -1,17 +1,17 @@
 // The end of a round (and a round reopened from the progress table): scores, observations, the keyboard map,
 // each note in detail, and playing back its recording.
 
-import { floorDb, thrDb } from './audio/mic.js?v=af8b1cc76e';
-import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=af8b1cc76e';
-import { bestScore, fmtDay } from './home.js?v=af8b1cc76e';
-import { keyUnder, playable, rangeMap } from './keyboard.js?v=af8b1cc76e';
-import { CURVE, SCORING } from './rescore.js?v=af8b1cc76e';
-import { drawOverlay, markOverlay } from './overlay.js?v=af8b1cc76e';
-import { show } from './round.js?v=af8b1cc76e';
-import { duo, off, scoreNote, sentence, size, tierFromAcc, tierOf } from './scoring.js?v=af8b1cc76e';
-import { run, setRound } from './state.js?v=af8b1cc76e';
-import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=af8b1cc76e';
-import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=af8b1cc76e';
+import { floorDb, thrDb } from './audio/mic.js?v=3948b70b10';
+import { audioOut, ghostNote, wantSound, withPiano } from './audio/piano.js?v=3948b70b10';
+import { bestScore, fmtDay } from './home.js?v=3948b70b10';
+import { keyUnder, playable, rangeMap } from './keyboard.js?v=3948b70b10';
+import { CURVE, SCORING } from './rescore.js?v=3948b70b10';
+import { drawOverlay, markOverlay } from './overlay.js?v=3948b70b10';
+import { show } from './round.js?v=3948b70b10';
+import { duo, off, scoreNote, sentence, size, tierFromAcc, tierOf } from './scoring.js?v=3948b70b10';
+import { run, setRound } from './state.js?v=3948b70b10';
+import { clipCount, dataLine, DB, packTrace, rounds, setClipCount, unpackTrace } from './storage.js?v=3948b70b10';
+import { $, clamp, mean, median, motion, nname, restart, slideThumb } from './util.js?v=3948b70b10';
 
 /* ---------- summary ---------- */
 function insights(notes) {
